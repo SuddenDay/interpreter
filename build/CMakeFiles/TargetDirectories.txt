@@ -1,0 +1,3 @@
+/home/ace/interpreter/build/CMakeFiles/main.dir
+/home/ace/interpreter/build/CMakeFiles/edit_cache.dir
+/home/ace/interpreter/build/CMakeFiles/rebuild_cache.dir
