@@ -23,7 +23,7 @@ include_directories(include)
 #   gtest_discover_tests(${test_name})
 # endfunction()
 
-add_executable(main src/chunk.cpp main.cpp)
+add_executable(main src/vm.cpp src/chunk.cpp main.cpp)
 
 # # add_executable(main src/DB.cpp src/FileIO.cpp src/BTree.cpp main.cpp)
 # # target_link_libraries(main ZLIB::ZLIB)

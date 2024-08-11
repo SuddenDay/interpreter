@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/main.dir/src/chunk.cpp.o CMakeFiles/main.dir/main.cpp.o -o main 
+/usr/bin/c++ CMakeFiles/main.dir/src/vm.cpp.o CMakeFiles/main.dir/src/chunk.cpp.o CMakeFiles/main.dir/main.cpp.o -o main 

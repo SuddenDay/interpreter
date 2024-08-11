@@ -1,6 +1,7 @@
 #include "chunk.hpp"
 #include <iostream>
 #include <iomanip>
+#include "util.hpp"
 namespace clox {
     std::ostream& operator<<(std::ostream& os, Opcode op) {
         const char* name = [&] () {
@@ -18,29 +19,11 @@ namespace clox {
         os << name;
         return os;
     }
+
     std::ostream& operator<<(std::ostream& os, const Chunk& chunk) {
         os << " === Bytecode === \n";
-        auto disassembleInstruction = [&](const Chunk& chunk, int offset) {
-            os << std::setw(4) << std::setfill('0') << std::right << offset << " ";
-            Opcode instruction = static_cast<Opcode>(chunk.bytecode[offset]);
-            switch (instruction) {
-                case Opcode::OP_RETURN: {
-                    os << "  " << instruction << std::endl;
-                    return offset + 1;        
-                }
-                case Opcode::OP_CONSTANT: {
-                    int index = chunk.bytecode[offset + 1]; // can't use uint8 because unsigned char is null
-                    os << "  " << instruction << " [" << index << "] " << chunk.constants[index]
-                     << std::endl; 
-                    return offset + 2;
-                }
-                default:
-                    std::cout << "Unknown opcode " << instruction << std::endl;
-                    return offset + 1;
-            }
-        };
         for(int offset = 0; offset < chunk.bytecode.size(); ) {
-            offset = disassembleInstruction(chunk, offset);
+            offset = Util::disassembleInstruction(chunk, offset);
         }
         return os;
     }

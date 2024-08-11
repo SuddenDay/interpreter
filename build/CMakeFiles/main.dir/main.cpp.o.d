@@ -149,5 +149,6 @@ CMakeFiles/main.dir/main.cpp.o: /home/ace/interpreter/main.cpp \
  /usr/include/c++/11/bits/basic_ios.tcc \
  /usr/include/c++/11/bits/ostream.tcc \
  /home/ace/interpreter/include/opcode.hpp \
- /home/ace/interpreter/include/value.hpp /usr/include/c++/11/iostream \
+ /home/ace/interpreter/include/value.hpp \
+ /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/iostream \
  /usr/include/c++/11/istream /usr/include/c++/11/bits/istream.tcc

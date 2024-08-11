@@ -177,6 +177,30 @@ src/chunk.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/chunk.cpp.s
 .PHONY : src/chunk.cpp.s
 
+src/vm.o: src/vm.cpp.o
+.PHONY : src/vm.o
+
+# target to build an object file
+src/vm.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/vm.cpp.o
+.PHONY : src/vm.cpp.o
+
+src/vm.i: src/vm.cpp.i
+.PHONY : src/vm.i
+
+# target to preprocess a source file
+src/vm.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/vm.cpp.i
+.PHONY : src/vm.cpp.i
+
+src/vm.s: src/vm.cpp.s
+.PHONY : src/vm.s
+
+# target to generate assembly for a file
+src/vm.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/vm.cpp.s
+.PHONY : src/vm.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -192,6 +216,9 @@ help:
 	@echo "... src/chunk.o"
 	@echo "... src/chunk.i"
 	@echo "... src/chunk.s"
+	@echo "... src/vm.o"
+	@echo "... src/vm.i"
+	@echo "... src/vm.s"
 .PHONY : help
 
 
