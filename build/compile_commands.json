@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/vm.cpp.o -c /home/ace/interpreter/src/vm.cpp",
+  "file": "/home/ace/interpreter/src/vm.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/chunk.cpp.o -c /home/ace/interpreter/src/chunk.cpp",
+  "file": "/home/ace/interpreter/src/chunk.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/main.cpp.o -c /home/ace/interpreter/main.cpp",
+  "file": "/home/ace/interpreter/main.cpp"
+}
+]
