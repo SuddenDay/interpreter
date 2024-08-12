@@ -3,11 +3,9 @@
 #include <functional>
 #include "util.hpp"
 
-namespace clox
-{
     #define READ_BYTE() (chunk->getCodeAt(ip++))
     #define READ_CONSTANT() (chunk->getConstAt(READ_BYTE()))
-    InterpretResult VM::interpreter() {
+    InterpretResult VM::run() {
         for (;;) {
             #ifdef DEBUG_MODE
             printf("           stackframe: ");
@@ -53,4 +51,3 @@ namespace clox
     }
     #undef READ_BYTE
     #undef READ_CONSTANT
-}

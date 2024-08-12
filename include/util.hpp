@@ -3,7 +3,6 @@
 #include <iostream>
 #include <iomanip>
 #include "chunk.hpp"
-namespace clox {
     class Util {
         public:
         static auto disassembleInstruction(const Chunk& chunk, int offset) {
@@ -31,4 +30,3 @@ namespace clox {
             }
         }
     };
-}

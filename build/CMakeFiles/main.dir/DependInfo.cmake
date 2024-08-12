@@ -10,6 +10,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/ace/interpreter/main.cpp" "CMakeFiles/main.dir/main.cpp.o" "gcc" "CMakeFiles/main.dir/main.cpp.o.d"
   "/home/ace/interpreter/src/chunk.cpp" "CMakeFiles/main.dir/src/chunk.cpp.o" "gcc" "CMakeFiles/main.dir/src/chunk.cpp.o.d"
+  "/home/ace/interpreter/src/compiler.cpp" "CMakeFiles/main.dir/src/compiler.cpp.o" "gcc" "CMakeFiles/main.dir/src/compiler.cpp.o.d"
+  "/home/ace/interpreter/src/parser.cpp" "CMakeFiles/main.dir/src/parser.cpp.o" "gcc" "CMakeFiles/main.dir/src/parser.cpp.o.d"
+  "/home/ace/interpreter/src/scanner.cpp" "CMakeFiles/main.dir/src/scanner.cpp.o" "gcc" "CMakeFiles/main.dir/src/scanner.cpp.o.d"
   "/home/ace/interpreter/src/vm.cpp" "CMakeFiles/main.dir/src/vm.cpp.o" "gcc" "CMakeFiles/main.dir/src/vm.cpp.o.d"
   )
 

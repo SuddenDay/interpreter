@@ -5,11 +5,12 @@
 #include <iostream>
 #include <fstream>
 
-using namespace clox;
 static InterpretResult interpret(const std::string& source) {
-    compiler Compiler(source);
-    Compiler.compile();
-    return INTERPRET_OK;
+    Compiler compiler(source);
+    if(!compiler.compile())
+        return INTERPRET_COMPILE_ERROR;
+    VM vm(compiler.currentChunk());
+    return vm.run();
 }
 
 static void REPL() {

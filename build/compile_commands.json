@@ -1,6 +1,21 @@
 [
 {
   "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/scanner.cpp.o -c /home/ace/interpreter/src/scanner.cpp",
+  "file": "/home/ace/interpreter/src/scanner.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/parser.cpp.o -c /home/ace/interpreter/src/parser.cpp",
+  "file": "/home/ace/interpreter/src/parser.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/compiler.cpp.o -c /home/ace/interpreter/src/compiler.cpp",
+  "file": "/home/ace/interpreter/src/compiler.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
   "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/vm.cpp.o -c /home/ace/interpreter/src/vm.cpp",
   "file": "/home/ace/interpreter/src/vm.cpp"
 },

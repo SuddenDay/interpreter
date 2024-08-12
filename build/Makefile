@@ -177,6 +177,78 @@ src/chunk.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/chunk.cpp.s
 .PHONY : src/chunk.cpp.s
 
+src/compiler.o: src/compiler.cpp.o
+.PHONY : src/compiler.o
+
+# target to build an object file
+src/compiler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/compiler.cpp.o
+.PHONY : src/compiler.cpp.o
+
+src/compiler.i: src/compiler.cpp.i
+.PHONY : src/compiler.i
+
+# target to preprocess a source file
+src/compiler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/compiler.cpp.i
+.PHONY : src/compiler.cpp.i
+
+src/compiler.s: src/compiler.cpp.s
+.PHONY : src/compiler.s
+
+# target to generate assembly for a file
+src/compiler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/compiler.cpp.s
+.PHONY : src/compiler.cpp.s
+
+src/parser.o: src/parser.cpp.o
+.PHONY : src/parser.o
+
+# target to build an object file
+src/parser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/parser.cpp.o
+.PHONY : src/parser.cpp.o
+
+src/parser.i: src/parser.cpp.i
+.PHONY : src/parser.i
+
+# target to preprocess a source file
+src/parser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/parser.cpp.i
+.PHONY : src/parser.cpp.i
+
+src/parser.s: src/parser.cpp.s
+.PHONY : src/parser.s
+
+# target to generate assembly for a file
+src/parser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/parser.cpp.s
+.PHONY : src/parser.cpp.s
+
+src/scanner.o: src/scanner.cpp.o
+.PHONY : src/scanner.o
+
+# target to build an object file
+src/scanner.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.o
+.PHONY : src/scanner.cpp.o
+
+src/scanner.i: src/scanner.cpp.i
+.PHONY : src/scanner.i
+
+# target to preprocess a source file
+src/scanner.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.i
+.PHONY : src/scanner.cpp.i
+
+src/scanner.s: src/scanner.cpp.s
+.PHONY : src/scanner.s
+
+# target to generate assembly for a file
+src/scanner.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.s
+.PHONY : src/scanner.cpp.s
+
 src/vm.o: src/vm.cpp.o
 .PHONY : src/vm.o
 
@@ -216,6 +288,15 @@ help:
 	@echo "... src/chunk.o"
 	@echo "... src/chunk.i"
 	@echo "... src/chunk.s"
+	@echo "... src/compiler.o"
+	@echo "... src/compiler.i"
+	@echo "... src/compiler.s"
+	@echo "... src/parser.o"
+	@echo "... src/parser.i"
+	@echo "... src/parser.s"
+	@echo "... src/scanner.o"
+	@echo "... src/scanner.i"
+	@echo "... src/scanner.s"
 	@echo "... src/vm.o"
 	@echo "... src/vm.i"
 	@echo "... src/vm.s"

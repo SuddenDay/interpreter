@@ -1,6 +1,4 @@
 #pragma once
-namespace clox
-{
     enum TokenType
     {
         // Single-character tokens.
@@ -49,4 +47,3 @@ namespace clox
         TOKEN_ERROR,
         TOKEN_EOF
     };
-}

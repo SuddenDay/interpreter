@@ -69,10 +69,52 @@ include CMakeFiles/main.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/main.dir/flags.make
 
+CMakeFiles/main.dir/src/scanner.cpp.o: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/scanner.cpp.o: ../src/scanner.cpp
+CMakeFiles/main.dir/src/scanner.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main.dir/src/scanner.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/scanner.cpp.o -MF CMakeFiles/main.dir/src/scanner.cpp.o.d -o CMakeFiles/main.dir/src/scanner.cpp.o -c /home/ace/interpreter/src/scanner.cpp
+
+CMakeFiles/main.dir/src/scanner.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/src/scanner.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ace/interpreter/src/scanner.cpp > CMakeFiles/main.dir/src/scanner.cpp.i
+
+CMakeFiles/main.dir/src/scanner.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/scanner.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ace/interpreter/src/scanner.cpp -o CMakeFiles/main.dir/src/scanner.cpp.s
+
+CMakeFiles/main.dir/src/parser.cpp.o: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/parser.cpp.o: ../src/parser.cpp
+CMakeFiles/main.dir/src/parser.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main.dir/src/parser.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/parser.cpp.o -MF CMakeFiles/main.dir/src/parser.cpp.o.d -o CMakeFiles/main.dir/src/parser.cpp.o -c /home/ace/interpreter/src/parser.cpp
+
+CMakeFiles/main.dir/src/parser.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/src/parser.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ace/interpreter/src/parser.cpp > CMakeFiles/main.dir/src/parser.cpp.i
+
+CMakeFiles/main.dir/src/parser.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/parser.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ace/interpreter/src/parser.cpp -o CMakeFiles/main.dir/src/parser.cpp.s
+
+CMakeFiles/main.dir/src/compiler.cpp.o: CMakeFiles/main.dir/flags.make
+CMakeFiles/main.dir/src/compiler.cpp.o: ../src/compiler.cpp
+CMakeFiles/main.dir/src/compiler.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/main.dir/src/compiler.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/compiler.cpp.o -MF CMakeFiles/main.dir/src/compiler.cpp.o.d -o CMakeFiles/main.dir/src/compiler.cpp.o -c /home/ace/interpreter/src/compiler.cpp
+
+CMakeFiles/main.dir/src/compiler.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/main.dir/src/compiler.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/ace/interpreter/src/compiler.cpp > CMakeFiles/main.dir/src/compiler.cpp.i
+
+CMakeFiles/main.dir/src/compiler.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/main.dir/src/compiler.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/ace/interpreter/src/compiler.cpp -o CMakeFiles/main.dir/src/compiler.cpp.s
+
 CMakeFiles/main.dir/src/vm.cpp.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp
 CMakeFiles/main.dir/src/vm.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/main.dir/src/vm.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/main.dir/src/vm.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/vm.cpp.o -MF CMakeFiles/main.dir/src/vm.cpp.o.d -o CMakeFiles/main.dir/src/vm.cpp.o -c /home/ace/interpreter/src/vm.cpp
 
 CMakeFiles/main.dir/src/vm.cpp.i: cmake_force
@@ -86,7 +128,7 @@ CMakeFiles/main.dir/src/vm.cpp.s: cmake_force
 CMakeFiles/main.dir/src/chunk.cpp.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/src/chunk.cpp.o: ../src/chunk.cpp
 CMakeFiles/main.dir/src/chunk.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/main.dir/src/chunk.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/main.dir/src/chunk.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/src/chunk.cpp.o -MF CMakeFiles/main.dir/src/chunk.cpp.o.d -o CMakeFiles/main.dir/src/chunk.cpp.o -c /home/ace/interpreter/src/chunk.cpp
 
 CMakeFiles/main.dir/src/chunk.cpp.i: cmake_force
@@ -100,7 +142,7 @@ CMakeFiles/main.dir/src/chunk.cpp.s: cmake_force
 CMakeFiles/main.dir/main.cpp.o: CMakeFiles/main.dir/flags.make
 CMakeFiles/main.dir/main.cpp.o: ../main.cpp
 CMakeFiles/main.dir/main.cpp.o: CMakeFiles/main.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/main.dir/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/main.dir/main.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/main.dir/main.cpp.o -MF CMakeFiles/main.dir/main.cpp.o.d -o CMakeFiles/main.dir/main.cpp.o -c /home/ace/interpreter/main.cpp
 
 CMakeFiles/main.dir/main.cpp.i: cmake_force
@@ -113,6 +155,9 @@ CMakeFiles/main.dir/main.cpp.s: cmake_force
 
 # Object files for target main
 main_OBJECTS = \
+"CMakeFiles/main.dir/src/scanner.cpp.o" \
+"CMakeFiles/main.dir/src/parser.cpp.o" \
+"CMakeFiles/main.dir/src/compiler.cpp.o" \
 "CMakeFiles/main.dir/src/vm.cpp.o" \
 "CMakeFiles/main.dir/src/chunk.cpp.o" \
 "CMakeFiles/main.dir/main.cpp.o"
@@ -120,12 +165,15 @@ main_OBJECTS = \
 # External object files for target main
 main_EXTERNAL_OBJECTS =
 
+main: CMakeFiles/main.dir/src/scanner.cpp.o
+main: CMakeFiles/main.dir/src/parser.cpp.o
+main: CMakeFiles/main.dir/src/compiler.cpp.o
 main: CMakeFiles/main.dir/src/vm.cpp.o
 main: CMakeFiles/main.dir/src/chunk.cpp.o
 main: CMakeFiles/main.dir/main.cpp.o
 main: CMakeFiles/main.dir/build.make
 main: CMakeFiles/main.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/ace/interpreter/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable main"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/main.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

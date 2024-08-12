@@ -1,14 +1,13 @@
 #include "scanner.hpp"
+#include <iostream>
 #include <string>
 #include <cctype>
 
-namespace clox {
     static const std::string_view error_message = "Unexpected character";
-    token scanner::scanToken()
+    Token Scanner::scanToken()
     {
         skipSpace();
         start = current;
-
         if(isAtEnd()) return makeToken(TOKEN_EOF);
         char ch = advance();
         if(std::isdigit(ch)) return number();
@@ -37,19 +36,19 @@ namespace clox {
             case '"': 
                 return this->string();
         }
-        return token{TOKEN_ERROR, error_message, line};
+        return Token{TOKEN_ERROR, error_message, line};
     }
-    char scanner::peek()
+    char Scanner::peek()
     {
         return *current; 
     }
-    char scanner::advance()
+    char Scanner::advance()
     {
         char ch = *current; 
         current++; 
         return ch;  
     }
-    void scanner::skipSpace()
+    void Scanner::skipSpace()
     {
         for (;;) { 
             char c = peek(); 
@@ -75,26 +74,26 @@ namespace clox {
            } 
         } 
     }
-    bool scanner::match(char wana)
+    bool Scanner::match(char wana)
     {
         if(isAtEnd()) return false;
         if (*current != wana) return false;
         current++;
         return true;
     }
-    bool scanner::isAtEnd()
+    bool Scanner::isAtEnd()
     {
         return current == source.end() || *current == '\0';
     }
-    token scanner::makeToken(TokenType type)
+    Token Scanner::makeToken(TokenType type)
     {
-        return token{type, std::string_view(start, std::distance(start, current)), line};
+        return Token{type, std::string_view(start, std::distance(start, current)), line};
     }
-    char scanner::peekNext() {
+    char Scanner::peekNext() {
         if (isAtEnd()) return '\0';
         return *(current + 1);
     }
-    token scanner::number()
+    Token Scanner::number()
     {
         while (std::isdigit(peek())) advance();
 
@@ -103,27 +102,26 @@ namespace clox {
         while (std::isdigit(peek())) advance();
         return makeToken(TOKEN_NUMBER);
     }
-    token scanner::string()
+    Token Scanner::string()
     {
         while (peek() != '"' && !isAtEnd()) {
           if (peek() == '\n') line++;
           advance();
         }
         if (isAtEnd()) 
-            return token{TOKEN_ERROR, error_message, line};
+            return Token{TOKEN_ERROR, error_message, line};
         advance();
         return makeToken(TOKEN_STRING);
     }
-    token scanner::identifier()
+    Token Scanner::identifier()
     {
         while (std::isalpha(peek()) || std::isdigit(peek())) advance();
         return makeToken(identifierType());
     }
-    TokenType scanner::identifierType()
+    TokenType Scanner::identifierType()
     {
         auto str = std::string_view(start, std::distance(start, current));
         return checkKeyword.find(str) != checkKeyword.end() \
             ? checkKeyword.at(str)
             : TOKEN_IDENTIFIER;
     }
-}
