@@ -2,27 +2,26 @@
 #include "common.hpp"
 #include <vector>
 #include <ostream>
+#include "util.hpp"
 #include "opcode.hpp"
+#include "memory.hpp"
 #include "value.hpp"
 
+struct Value;
 std::ostream &operator<<(std::ostream &os, Opcode op);
 
-class Chunk
+class Compiler;
+template<template<typename>typename Alloc>
+struct ChunkTemplate
 {
-private:
-    using Bytecode_vector = std::vector<uint8_t>;
+    using Bytecode_vector = std::vector<uint8_t, Alloc<uint8_t>>;
     Bytecode_vector bytecode;
-    ValueArray constants;
+    ValueArray<Alloc> constants;
+    std::vector<int, Alloc<int>> lines;
 
-public:
-    void writeChunk(uint8_t op);
-    uint8_t addConstant(Value value);
-    friend std::ostream &operator<<(std::ostream &os, const Chunk &chunk);
-    void emitConstant(Value value);
-    void emitBytes(uint8_t byte1, uint8_t byte2);
-    void emitReturn();
-    void emitByte(uint8_t byte);
-    uint8_t makeConstant(Value value);
+    int getLineAt(int index) {
+        return lines[index];
+    }
     uint8_t getCodeAt(int index) const
     {
         return bytecode.at(index);
@@ -32,4 +31,9 @@ public:
     {
         return constants.at(index);
     }
+};
+
+class Chunk : public ChunkTemplate<Allocator> {
+    public:
+    friend std::ostream &operator<<(std::ostream &os, const Chunk& chunk) ;
 };

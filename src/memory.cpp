@@ -1,0 +1,173 @@
+#include "memory.hpp"
+
+#include "object.hpp"
+#include "objstring.hpp"
+#include "vm.hpp"
+
+constexpr auto GC_HEAP_GROW_FACTOR = 2;
+
+void GC::collect()
+{
+	mark_roots();
+	trace_references();
+	remove_white_string();
+	sweep();
+
+	next_gc = bytes_allocated * GC_HEAP_GROW_FACTOR;
+}
+
+void GC::mark_roots()
+{
+	for (auto slot = 0; slot < vm.top; ++slot) {
+		std::cout<<std::endl<<"slot is: "<< vm.stack[slot]<<std::endl;
+		mark_value(vm.stack[slot]);
+	}
+
+	// for (size_t i = 0; i < vm.frame_count; i++)
+	// 	mark_object(std::remove_const_t<ObjClosure*>(vm.frames.at(i).closure));
+
+	// for (auto upvalue = vm.open_upvalues; upvalue != nullptr; upvalue = upvalue->next)
+	// 	mark_object(upvalue);
+
+	//mark_table(vm.globals);
+	mark_compiler_roots();
+	// mark_object(vm.init_string);
+}
+
+void GC::mark_array(const ValueArray<Allocator>& array)
+{
+	for (auto& value : array)
+		mark_value(value);
+}
+
+void GC::mark_compiler_roots()
+{
+	// auto compiler = vm.cu.current.get();
+	// while (compiler != nullptr)
+	// {
+	// 	mark_object(compiler->function);
+	// 	compiler = compiler->enclosing.get();
+	// }
+}
+
+void GC::mark_object(Obj* const ptr)
+{
+	if (ptr == nullptr) return;
+	if (ptr->is_marked) return;
+
+	ptr->is_marked = true;
+	gray_stack.push_back(ptr);
+}
+
+void GC::mark_value(const Value& value)
+{
+	if (value.is_obj())
+		mark_object(value.as<Obj*>());
+}
+
+// void GC::mark_table(const table& table)
+// {
+// 	for (auto& [key, value] : table)
+// 	{
+// 		mark_object(key);
+// 		mark_value(value);
+// 	}
+// }
+
+void GC::trace_references()
+{
+	while (!gray_stack.empty())
+	{
+		auto obj = gray_stack.front();
+		blacken_object(obj);
+		gray_stack.pop_front();
+	}
+}
+
+void GC::blacken_object(Obj* ptr)
+{
+	switch (ptr->type)
+	{
+		// case ObjType::BoundMethod:
+		// {
+		// 	auto bound = static_cast<ObjBoundMethod*>(ptr);
+		// 	mark_value(bound->receiver);
+		// 	mark_object(bound->method);
+		// 	break;
+		// }
+		// case ObjType::Class:
+		// {
+		// 	auto klass = static_cast<ObjClass*>(ptr);
+		// 	mark_object(klass->name);
+		// 	mark_table(klass->methods);
+		// 	break;
+		// }
+		// case ObjType::Closure:
+		// {
+		// 	auto closure = static_cast<ObjClosure*>(ptr);
+		// 	mark_object(closure->function);
+		// 	for (auto v : closure->upvalues)
+		// 		mark_object(v);
+		// 	break;
+		// }
+		// case ObjType::Function:
+		// {
+		// 	auto function = static_cast<ObjFunction*>(ptr);
+		// 	mark_object(function->name);
+		// 	mark_array(function->chunk.constants);
+		// 	break;
+		// }
+		// case ObjType::Instance:
+		// {
+		// 	auto instance = static_cast<ObjInstance*>(ptr);
+		// 	mark_object(instance->klass);
+		// 	mark_table(instance->fields);
+		// 	break;
+		// }
+		// case ObjType::Upvalue:
+		// 	mark_value(static_cast<ObjUpvalue*>(ptr)->closed);
+		// 	break;
+		// case ObjType::Native:
+		case ObjType::String:
+		default:
+			break;
+	}
+}
+
+void GC::remove_white_string()noexcept
+{
+	for (auto it = strings.begin(); it != strings.end();)
+	{
+		if (*it != nullptr && !(*it)->is_marked)
+			it = strings.erase(it);
+		else ++it;
+	}
+}
+
+void GC::sweep()
+{
+	Obj* previous = nullptr;
+	Obj* object = objects.get();
+	while (object != nullptr)
+	{
+		if (object->is_marked)
+		{
+			object->is_marked = false;
+			previous = object;
+			object = object->next.get();
+		} else
+		{
+			decltype(object->next) temp = std::move(object->next);
+			if (previous == nullptr)
+			{
+				objects = std::move(temp);
+				object = objects.get();
+			} else
+			{
+				previous->next = std::move(temp);
+				object = previous->next.get();
+			}
+		}
+	}
+}
+

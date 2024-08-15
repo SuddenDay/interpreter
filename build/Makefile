@@ -201,6 +201,78 @@ src/compiler.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/compiler.cpp.s
 .PHONY : src/compiler.cpp.s
 
+src/memory.o: src/memory.cpp.o
+.PHONY : src/memory.o
+
+# target to build an object file
+src/memory.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/memory.cpp.o
+.PHONY : src/memory.cpp.o
+
+src/memory.i: src/memory.cpp.i
+.PHONY : src/memory.i
+
+# target to preprocess a source file
+src/memory.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/memory.cpp.i
+.PHONY : src/memory.cpp.i
+
+src/memory.s: src/memory.cpp.s
+.PHONY : src/memory.s
+
+# target to generate assembly for a file
+src/memory.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/memory.cpp.s
+.PHONY : src/memory.cpp.s
+
+src/object.o: src/object.cpp.o
+.PHONY : src/object.o
+
+# target to build an object file
+src/object.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/object.cpp.o
+.PHONY : src/object.cpp.o
+
+src/object.i: src/object.cpp.i
+.PHONY : src/object.i
+
+# target to preprocess a source file
+src/object.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/object.cpp.i
+.PHONY : src/object.cpp.i
+
+src/object.s: src/object.cpp.s
+.PHONY : src/object.s
+
+# target to generate assembly for a file
+src/object.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/object.cpp.s
+.PHONY : src/object.cpp.s
+
+src/objstring.o: src/objstring.cpp.o
+.PHONY : src/objstring.o
+
+# target to build an object file
+src/objstring.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/objstring.cpp.o
+.PHONY : src/objstring.cpp.o
+
+src/objstring.i: src/objstring.cpp.i
+.PHONY : src/objstring.i
+
+# target to preprocess a source file
+src/objstring.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/objstring.cpp.i
+.PHONY : src/objstring.cpp.i
+
+src/objstring.s: src/objstring.cpp.s
+.PHONY : src/objstring.s
+
+# target to generate assembly for a file
+src/objstring.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/objstring.cpp.s
+.PHONY : src/objstring.cpp.s
+
 src/parser.o: src/parser.cpp.o
 .PHONY : src/parser.o
 
@@ -249,6 +321,54 @@ src/scanner.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.s
 .PHONY : src/scanner.cpp.s
 
+src/util.o: src/util.cpp.o
+.PHONY : src/util.o
+
+# target to build an object file
+src/util.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/util.cpp.o
+.PHONY : src/util.cpp.o
+
+src/util.i: src/util.cpp.i
+.PHONY : src/util.i
+
+# target to preprocess a source file
+src/util.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/util.cpp.i
+.PHONY : src/util.cpp.i
+
+src/util.s: src/util.cpp.s
+.PHONY : src/util.s
+
+# target to generate assembly for a file
+src/util.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/util.cpp.s
+.PHONY : src/util.cpp.s
+
+src/value.o: src/value.cpp.o
+.PHONY : src/value.o
+
+# target to build an object file
+src/value.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/value.cpp.o
+.PHONY : src/value.cpp.o
+
+src/value.i: src/value.cpp.i
+.PHONY : src/value.i
+
+# target to preprocess a source file
+src/value.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/value.cpp.i
+.PHONY : src/value.cpp.i
+
+src/value.s: src/value.cpp.s
+.PHONY : src/value.s
+
+# target to generate assembly for a file
+src/value.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/value.cpp.s
+.PHONY : src/value.cpp.s
+
 src/vm.o: src/vm.cpp.o
 .PHONY : src/vm.o
 
@@ -291,12 +411,27 @@ help:
 	@echo "... src/compiler.o"
 	@echo "... src/compiler.i"
 	@echo "... src/compiler.s"
+	@echo "... src/memory.o"
+	@echo "... src/memory.i"
+	@echo "... src/memory.s"
+	@echo "... src/object.o"
+	@echo "... src/object.i"
+	@echo "... src/object.s"
+	@echo "... src/objstring.o"
+	@echo "... src/objstring.i"
+	@echo "... src/objstring.s"
 	@echo "... src/parser.o"
 	@echo "... src/parser.i"
 	@echo "... src/parser.s"
 	@echo "... src/scanner.o"
 	@echo "... src/scanner.i"
 	@echo "... src/scanner.s"
+	@echo "... src/util.o"
+	@echo "... src/util.i"
+	@echo "... src/util.s"
+	@echo "... src/value.o"
+	@echo "... src/value.i"
+	@echo "... src/value.s"
 	@echo "... src/vm.o"
 	@echo "... src/vm.i"
 	@echo "... src/vm.s"

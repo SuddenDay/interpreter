@@ -11,7 +11,7 @@ struct Token
 class Scanner
 {
 public:
-    Scanner(const std::string_view& str) : line(1), source(str), checkKeyword()
+    Scanner(const std::string_view& str) : source(str), checkKeyword()
     {
         start = source.cbegin();
         current = source.cbegin();
@@ -49,5 +49,5 @@ private:
     std::string_view::const_iterator current;
     std::unordered_map<std::string_view, TokenType> checkKeyword;
 
-    int line;
+    int line = 1;
 };

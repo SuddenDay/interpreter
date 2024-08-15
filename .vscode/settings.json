@@ -77,6 +77,10 @@
         "istream": "cpp",
         "sstream": "cpp",
         "codecvt": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "__memory": "cpp",
+        "set": "cpp",
+        "__tree": "cpp",
+        "map": "cpp"
     }
 }

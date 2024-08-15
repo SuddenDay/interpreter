@@ -1,32 +1,57 @@
 [
 {
   "directory": "/home/ace/interpreter/build",
-  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/scanner.cpp.o -c /home/ace/interpreter/src/scanner.cpp",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/value.cpp.o -c /home/ace/interpreter/src/value.cpp",
+  "file": "/home/ace/interpreter/src/value.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/objstring.cpp.o -c /home/ace/interpreter/src/objstring.cpp",
+  "file": "/home/ace/interpreter/src/objstring.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/object.cpp.o -c /home/ace/interpreter/src/object.cpp",
+  "file": "/home/ace/interpreter/src/object.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/memory.cpp.o -c /home/ace/interpreter/src/memory.cpp",
+  "file": "/home/ace/interpreter/src/memory.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/util.cpp.o -c /home/ace/interpreter/src/util.cpp",
+  "file": "/home/ace/interpreter/src/util.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/scanner.cpp.o -c /home/ace/interpreter/src/scanner.cpp",
   "file": "/home/ace/interpreter/src/scanner.cpp"
 },
 {
   "directory": "/home/ace/interpreter/build",
-  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/parser.cpp.o -c /home/ace/interpreter/src/parser.cpp",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/parser.cpp.o -c /home/ace/interpreter/src/parser.cpp",
   "file": "/home/ace/interpreter/src/parser.cpp"
 },
 {
   "directory": "/home/ace/interpreter/build",
-  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/compiler.cpp.o -c /home/ace/interpreter/src/compiler.cpp",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/compiler.cpp.o -c /home/ace/interpreter/src/compiler.cpp",
   "file": "/home/ace/interpreter/src/compiler.cpp"
 },
 {
   "directory": "/home/ace/interpreter/build",
-  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/vm.cpp.o -c /home/ace/interpreter/src/vm.cpp",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/vm.cpp.o -c /home/ace/interpreter/src/vm.cpp",
   "file": "/home/ace/interpreter/src/vm.cpp"
 },
 {
   "directory": "/home/ace/interpreter/build",
-  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/src/chunk.cpp.o -c /home/ace/interpreter/src/chunk.cpp",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/chunk.cpp.o -c /home/ace/interpreter/src/chunk.cpp",
   "file": "/home/ace/interpreter/src/chunk.cpp"
 },
 {
   "directory": "/home/ace/interpreter/build",
-  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -std=gnu++17 -o CMakeFiles/main.dir/main.cpp.o -c /home/ace/interpreter/main.cpp",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/main.cpp.o -c /home/ace/interpreter/main.cpp",
   "file": "/home/ace/interpreter/main.cpp"
 }
 ]

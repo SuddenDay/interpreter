@@ -5,6 +5,8 @@ project(my_project)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_options(-Wall -Wextra -pedantic)
+
 # Include project headers
 include_directories(include)
 
@@ -23,7 +25,7 @@ include_directories(include)
 #   gtest_discover_tests(${test_name})
 # endfunction()
 
-add_executable(main src/scanner.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/chunk.cpp main.cpp)
+add_executable(main src/value.cpp src/objstring.cpp src/object.cpp src/memory.cpp src/util.cpp src/scanner.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/chunk.cpp  main.cpp)
 
 # # add_executable(main src/DB.cpp src/FileIO.cpp src/BTree.cpp main.cpp)
 # # target_link_libraries(main ZLIB::ZLIB)

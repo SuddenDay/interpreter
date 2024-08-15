@@ -19,9 +19,9 @@ enum Precedence
     PREC_PRIMARY
 };
 
-class Parser
+struct Parser
 {
-    using ParseFn = std::function<void(Parser &)>;
+    using ParseFn = std::function<void(Compiler&)>;
     struct ParseRule
     {
         ParseFn prefix;
@@ -29,29 +29,15 @@ class Parser
         Precedence precedence;
     };
 
-    friend class Compiler;
-public:
-    Parser(const std::string_view &str);
+    Parser();
 
     void errorAtCurrent();
     void error();
 
-private:
     void errorAt(const Token &token, const std::string_view &message);
-    void advance();
-    void consume(TokenType type);
-    void expression();
-    void parsePrecedence(Precedence precedence);
-    void number();
-    void binary();
-    void unary();
-    void grouping();
     
     Token current;
     Token previous;
     bool hadError;
     bool panicMode;
-    std::unordered_map<TokenType, const ParseRule&> getRule;
-    Scanner scanner;
-    Chunk compilingChunk;
 };

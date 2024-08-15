@@ -1,7 +1,5 @@
-CMakeFiles/main.dir/src/compiler.cpp.o: \
- /home/ace/interpreter/src/compiler.cpp /usr/include/stdc-predef.h \
- /home/ace/interpreter/include/compiler.hpp \
- /home/ace/interpreter/include/util.hpp \
+CMakeFiles/main.dir/src/util.cpp.o: /home/ace/interpreter/src/util.cpp \
+ /usr/include/stdc-predef.h /home/ace/interpreter/include/util.hpp \
  /home/ace/interpreter/include/opcode.hpp /usr/include/c++/11/iostream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/os_defines.h \
@@ -161,23 +159,12 @@ CMakeFiles/main.dir/src/compiler.cpp.o: \
  /usr/include/c++/11/bits/invoke.h \
  /usr/include/c++/11/bits/quoted_string.h /usr/include/c++/11/sstream \
  /usr/include/c++/11/bits/sstream.tcc \
+ /home/ace/interpreter/include/chunk.hpp \
  /home/ace/interpreter/include/common.hpp /usr/include/c++/11/vector \
  /usr/include/c++/11/bits/stl_uninitialized.h \
  /usr/include/c++/11/bits/stl_vector.h \
  /usr/include/c++/11/bits/stl_bvector.h \
  /usr/include/c++/11/bits/vector.tcc \
- /home/ace/interpreter/include/parser.hpp \
- /home/ace/interpreter/include/scanner.hpp \
- /home/ace/interpreter/include/tokentype.hpp \
- /usr/include/c++/11/unordered_map \
- /usr/include/c++/11/ext/aligned_buffer.h \
- /usr/include/c++/11/bits/hashtable.h \
- /usr/include/c++/11/bits/hashtable_policy.h \
- /usr/include/c++/11/bits/enable_special_members.h \
- /usr/include/c++/11/bits/node_handle.h \
- /usr/include/c++/11/bits/unordered_map.h \
- /usr/include/c++/11/bits/erase_if.h \
- /home/ace/interpreter/include/chunk.hpp \
  /home/ace/interpreter/include/memory.hpp /usr/include/c++/11/algorithm \
  /usr/include/c++/11/bits/stl_algo.h \
  /usr/include/c++/11/bits/algorithmfwd.h \
@@ -187,6 +174,14 @@ CMakeFiles/main.dir/src/compiler.cpp.o: \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
  /usr/include/c++/11/functional /usr/include/c++/11/bits/refwrap.h \
  /usr/include/c++/11/bits/std_function.h \
+ /usr/include/c++/11/unordered_map \
+ /usr/include/c++/11/ext/aligned_buffer.h \
+ /usr/include/c++/11/bits/hashtable.h \
+ /usr/include/c++/11/bits/hashtable_policy.h \
+ /usr/include/c++/11/bits/enable_special_members.h \
+ /usr/include/c++/11/bits/node_handle.h \
+ /usr/include/c++/11/bits/unordered_map.h \
+ /usr/include/c++/11/bits/erase_if.h \
  /usr/include/c++/11/pstl/execution_defs.h /usr/include/c++/11/deque \
  /usr/include/c++/11/bits/stl_deque.h /usr/include/c++/11/bits/deque.tcc \
  /usr/include/c++/11/memory \
@@ -206,6 +201,4 @@ CMakeFiles/main.dir/src/compiler.cpp.o: \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
  /home/ace/interpreter/include/obj.hpp \
- /home/ace/interpreter/include/object.hpp \
- /home/ace/interpreter/include/objstring.hpp \
- /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg
+ /home/ace/interpreter/include/object.hpp

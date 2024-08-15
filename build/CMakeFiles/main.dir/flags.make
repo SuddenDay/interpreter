@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -I/home/ace/interpreter/include
 
-CXX_FLAGS = -g -std=gnu++17
+CXX_FLAGS = -g -Wall -Wextra -pedantic -std=gnu++17
 

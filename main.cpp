@@ -2,14 +2,17 @@
 #include "opcode.hpp"
 #include "vm.hpp"
 #include "compiler.hpp"
+#include "memory.hpp"
+
 #include <iostream>
 #include <fstream>
 
 static InterpretResult interpret(const std::string& source) {
-    Compiler compiler(source);
+    Chunk chunk;
+    VM vm(&chunk);
+    Compiler compiler(source, vm);
     if(!compiler.compile())
         return INTERPRET_COMPILE_ERROR;
-    VM vm(compiler.currentChunk());
     return vm.run();
 }
 
