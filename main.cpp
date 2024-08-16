@@ -9,7 +9,8 @@
 
 static InterpretResult interpret(const std::string& source, VM& vm) {
     vm.gc.running = false;
-    Compiler compiler(source, vm);
+    Compiler comp;
+    Complication compiler(&comp, source, vm);
     if(!compiler.compile())
         return INTERPRET_COMPILE_ERROR;
     return vm.run();

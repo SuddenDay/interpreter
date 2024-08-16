@@ -11,15 +11,15 @@ Parser::Parser() : hadError(false), panicMode(false)
 
 void Parser::errorAtCurrent()
 {
-    errorAt(current, current.string);
+    errorAt(current);
 }
 
 void Parser::error()
 {
-    errorAt(previous, previous.string);
+    errorAt(previous);
 }
 
-void Parser::errorAt(const Token &token, const std::string_view &message)
+void Parser::errorAt(const Token &token)
 {
     if (panicMode)
         return;
@@ -35,6 +35,6 @@ void Parser::errorAt(const Token &token, const std::string_view &message)
         std::cerr << " at '" << token.string << "'";
     }
 
-    std::cerr << ": " << message << std::endl;
+    //std::cerr << ": " << message << std::endl;
     hadError = true;
 }

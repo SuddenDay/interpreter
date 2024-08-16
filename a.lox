@@ -1,4 +1,6 @@
-var a = "1";
-a = "2";
-a = "2" + "3";
+var a = 1;
+{
+    var a = a;
+    print a;
+}
 print a;

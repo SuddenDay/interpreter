@@ -5,52 +5,52 @@
 #include "memory.hpp"
 #include "vm.hpp"
 
-Compiler::Compiler(const std::string &str, VM &vm) : scanner(str), compilingChunk(vm.chunk), parser(), vm(vm), getRule({
-                                                                                                                   {TOKEN_LEFT_PAREN, {&Compiler::grouping, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_RIGHT_PAREN, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_LEFT_BRACE, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_RIGHT_BRACE, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_COMMA, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_DOT, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_MINUS, {&Compiler::unary, &Compiler::binary, PREC_TERM}},
-                                                                                                                   {TOKEN_PLUS, {NULL, &Compiler::binary, PREC_TERM}},
-                                                                                                                   {TOKEN_SEMICOLON, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_SLASH, {NULL, &Compiler::binary, PREC_FACTOR}},
-                                                                                                                   {TOKEN_STAR, {NULL, &Compiler::binary, PREC_FACTOR}},
-                                                                                                                   {TOKEN_BANG, {&Compiler::unary, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_BANG_EQUAL, {NULL, &Compiler::binary, PREC_EQUALITY}},
-                                                                                                                   {TOKEN_EQUAL, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_EQUAL_EQUAL, {NULL, &Compiler::binary, PREC_EQUALITY}},
-                                                                                                                   {TOKEN_GREATER, {NULL, &Compiler::binary, PREC_COMPARISON}},
-                                                                                                                   {TOKEN_GREATER_EQUAL, {NULL, &Compiler::binary, PREC_COMPARISON}},
-                                                                                                                   {TOKEN_LESS, {NULL, &Compiler::binary, PREC_COMPARISON}},
-                                                                                                                   {TOKEN_LESS_EQUAL, {NULL, &Compiler::binary, PREC_COMPARISON}},
-                                                                                                                   {TOKEN_IDENTIFIER, {&Compiler::variable, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_STRING, {&Compiler::string, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_NUMBER, {&Compiler::number, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_AND, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_CLASS, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_ELSE, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_FALSE, {&Compiler::literal, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_FOR, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_FUN, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_IF, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_NIL, {&Compiler::literal, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_OR, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_PRINT, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_RETURN, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_SUPER, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_THIS, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_TRUE, {&Compiler::literal, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_VAR, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_WHILE, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_ERROR, {NULL, NULL, PREC_NONE}},
-                                                                                                                   {TOKEN_EOF, {NULL, NULL, PREC_NONE}},
-                                                                                                               })
+Complication::Complication(Compiler *compiler, const std::string &str, VM &vm) : scanner(str), current(compiler), compilingChunk(vm.chunk), parser(), vm(vm), getRule({
+                                                                                                                                                                  {TOKEN_LEFT_PAREN, {&Complication::grouping, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_RIGHT_PAREN, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_LEFT_BRACE, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_RIGHT_BRACE, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_COMMA, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_DOT, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
+                                                                                                                                                                  {TOKEN_PLUS, {NULL, &Complication::binary, PREC_TERM}},
+                                                                                                                                                                  {TOKEN_SEMICOLON, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_SLASH, {NULL, &Complication::binary, PREC_FACTOR}},
+                                                                                                                                                                  {TOKEN_STAR, {NULL, &Complication::binary, PREC_FACTOR}},
+                                                                                                                                                                  {TOKEN_BANG, {&Complication::unary, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_BANG_EQUAL, {NULL, &Complication::binary, PREC_EQUALITY}},
+                                                                                                                                                                  {TOKEN_EQUAL, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_EQUAL_EQUAL, {NULL, &Complication::binary, PREC_EQUALITY}},
+                                                                                                                                                                  {TOKEN_GREATER, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                                                                                                  {TOKEN_GREATER_EQUAL, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                                                                                                  {TOKEN_LESS, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                                                                                                  {TOKEN_LESS_EQUAL, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                                                                                                  {TOKEN_IDENTIFIER, {&Complication::variable, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_STRING, {&Complication::string, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_NUMBER, {&Complication::number, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_AND, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_CLASS, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_ELSE, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_FALSE, {&Complication::literal, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_FOR, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_FUN, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_IF, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_NIL, {&Complication::literal, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_OR, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_PRINT, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_RETURN, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_SUPER, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_THIS, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_TRUE, {&Complication::literal, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_VAR, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_WHILE, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_ERROR, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                                  {TOKEN_EOF, {NULL, NULL, PREC_NONE}},
+                                                                                                                                                              })
 {
 }
 
-bool Compiler::compile()
+bool Complication::compile()
 {
     // int line = -1;
     // while (true) {
@@ -77,7 +77,7 @@ bool Compiler::compile()
     return !parser.hadError;
 }
 
-void Compiler::synchronize()
+void Complication::synchronize()
 {
     parser.panicMode = false;
 
@@ -104,7 +104,7 @@ void Compiler::synchronize()
     }
 }
 
-void Compiler::advance()
+void Complication::advance()
 {
     parser.previous = parser.current;
     while (true)
@@ -116,7 +116,7 @@ void Compiler::advance()
         parser.errorAtCurrent();
     }
 }
-void Compiler::consume(TokenType type)
+void Complication::consume(TokenType type)
 {
     if (parser.current.type == type)
     {
@@ -125,11 +125,11 @@ void Compiler::consume(TokenType type)
     }
     parser.errorAtCurrent();
 }
-void Compiler::expression()
+void Complication::expression()
 {
     parsePrecedence(PREC_ASSIGNMENT);
 }
-void Compiler::parsePrecedence(Precedence precedence)
+void Complication::parsePrecedence(Precedence precedence)
 {
     advance();
     auto name = getRule.at(parser.previous.type);
@@ -150,12 +150,12 @@ void Compiler::parsePrecedence(Precedence precedence)
     if (canAssign && match(TOKEN_EQUAL))
         parser.error();
 }
-void Compiler::number(bool canAssign)
+void Complication::number(bool canAssign)
 {
     Value value = std::stoi(std::string(parser.previous.string));
     emitConstant(value);
 }
-void Compiler::binary(bool canAssign)
+void Complication::binary(bool canAssign)
 {
     TokenType operatorType = parser.previous.type;
     Parser::ParseRule rule = getRule.at(operatorType);
@@ -197,7 +197,7 @@ void Compiler::binary(bool canAssign)
         return; // Unreachable.
     }
 }
-void Compiler::unary(bool canAssign)
+void Complication::unary(bool canAssign)
 {
     TokenType operatorType = parser.previous.type;
     expression();
@@ -213,13 +213,13 @@ void Compiler::unary(bool canAssign)
         return; // Unreachable.
     }
 }
-void Compiler::grouping(bool canAssign)
+void Complication::grouping(bool canAssign)
 {
     expression();
     consume(TOKEN_RIGHT_PAREN);
 }
 
-void Compiler::literal(bool canAssign)
+void Complication::literal(bool canAssign)
 {
     switch (parser.previous.type)
     {
@@ -237,7 +237,7 @@ void Compiler::literal(bool canAssign)
     }
 }
 
-void Compiler::string(bool canAssign)
+void Complication::string(bool canAssign)
 {
     auto &text = parser.previous.string;
     auto str = text.substr(1, text.size() - 2);
@@ -245,16 +245,22 @@ void Compiler::string(bool canAssign)
     emitConstant(obj);
 }
 
-void Compiler::variable(bool canAssign)
+void Complication::variable(bool canAssign)
 {
     namedVariable(parser.previous, canAssign);
 }
 
-void Compiler::statement()
+void Complication::statement()
 {
     if (match(TOKEN_PRINT))
     {
         printStatement();
+    }
+    else if (match(TOKEN_LEFT_BRACE))
+    {
+        beginScope();
+        block();
+        endScope();
     }
     else
     {
@@ -262,21 +268,28 @@ void Compiler::statement()
     }
 }
 
-void Compiler::printStatement()
+void Complication::block()
+{
+    while (!check(TOKEN_RIGHT_BRACE) && !check(TOKEN_EOF))
+        declaration();
+    consume(TOKEN_RIGHT_BRACE);
+}
+
+void Complication::printStatement()
 {
     expression();
     consume(TOKEN_SEMICOLON);
     emitByte(OP_PRINT);
 }
 
-void Compiler::expressionStatement()
+void Complication::expressionStatement()
 {
     expression();
     consume(TOKEN_SEMICOLON);
     emitByte(OP_POP);
 }
 
-void Compiler::varDeclaration()
+void Complication::varDeclaration()
 {
     uint8_t global = parseVariable();
     if (match(TOKEN_EQUAL))
@@ -291,39 +304,72 @@ void Compiler::varDeclaration()
     defineVariable(global);
 }
 
-void Compiler::namedVariable(Token name, bool canAssign)
+void Complication::namedVariable(Token name, bool canAssign)
 {
-    uint8_t arg = identifierConstant(name);
-    if (match(TOKEN_EQUAL))
+    Opcode getOp, setOp;
+    int arg = resolveLocal(current, name);
+    std::cout<<"nameVar " <<arg<<std::endl;
+    if (arg != -1)
     {
-        expression();
-        emitBytes(OP_SET_GLOBAL, arg);
+        getOp = OP_GET_LOCAL;
+        setOp = OP_SET_LOCAL;
     }
     else
     {
-        emitBytes(OP_GET_GLOBAL, arg);
+        arg = identifierConstant(name);
+        getOp = OP_GET_GLOBAL;
+        setOp = OP_SET_GLOBAL;
+    }
+    if (canAssign && match(TOKEN_EQUAL))
+    {
+        expression();
+        emitBytes(setOp, arg);
+    }
+    else
+    {
+        emitBytes(getOp, arg);
     }
 }
 
-uint8_t Compiler::parseVariable()
+int Complication::resolveLocal(Compiler* compiler, Token name) {
+  for (int i = compiler->localCount - 1; i >= 0; i--) {
+    Local local = compiler->locals[i];
+    if (identifiersEqual(name, local.name)) {
+        if(local.depth == -1)
+            parser.error();
+        return i;
+    }
+  }
+  return -1;
+}
+
+void Complication::markInitialized()
+{
+    current->locals[current->localCount - 1].depth = current->scopeDepth;
+}
+
+uint8_t Complication::parseVariable()
 {
     consume(TOKEN_IDENTIFIER);
+    declareVariable();
+    if (current->scopeDepth > 0)
+        return 0;
     return identifierConstant(parser.previous);
 }
 
-uint8_t Compiler::identifierConstant(Token token)
+uint8_t Complication::identifierConstant(Token token)
 {
     auto name = create_obj_string(token.string, vm);
     // vm.globals.insert({name, Value()});
     return makeConstant(name);
 }
 
-bool Compiler::check(TokenType type)
+bool Complication::check(TokenType type)
 {
     return parser.current.type == type;
 }
 
-bool Compiler::match(TokenType type)
+bool Complication::match(TokenType type)
 {
     if (!check(type))
         return false;
@@ -331,7 +377,7 @@ bool Compiler::match(TokenType type)
     return true;
 }
 
-void Compiler::declaration()
+void Complication::declaration()
 {
     if (match(TOKEN_VAR))
     {
@@ -343,18 +389,56 @@ void Compiler::declaration()
     }
 }
 
-void Compiler::defineVariable(uint8_t global)
+void Complication::declareVariable()
 {
+    if (current->scopeDepth == 0)
+        return;
+
+    Token name = parser.previous;
+    for (int i = current->localCount - 1; i >= 0; i--)
+    {
+        Local local = current->locals[i];
+        if (local.depth != -1 && local.depth < current->scopeDepth)
+            break;
+        if (identifiersEqual(name, local.name))
+            parser.error();
+    }
+    addLocal(name);
+}
+
+void Complication::addLocal(Token name)
+{
+    if (current->localCount == UINT8_MAX)
+    {
+        parser.error();
+        return;
+    }
+    Local& local = current->locals[current->localCount++];
+    local.name = name;
+    local.depth = -1;
+}
+
+bool Complication::identifiersEqual(Token a, Token b)
+{
+    return a.string == b.string;
+}
+
+void Complication::defineVariable(uint8_t global)
+{
+    if (current->scopeDepth > 0) {
+        markInitialized();
+        return;
+    }
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
-void Compiler::writeChunk(uint8_t op, int line)
+void Complication::writeChunk(uint8_t op, int line)
 {
     compilingChunk->bytecode.push_back(op);
     compilingChunk->lines.push_back(line);
 }
 
-uint8_t Compiler::addConstant(Value value)
+uint8_t Complication::addConstant(Value value)
 {
     vm.push(value);
     compilingChunk->constants.push_back(value);
@@ -362,25 +446,25 @@ uint8_t Compiler::addConstant(Value value)
     return compilingChunk->constants.size() - 1;
 }
 
-void Compiler::emitConstant(Value value)
+void Complication::emitConstant(Value value)
 {
     emitBytes(OP_CONSTANT, makeConstant(value));
 }
-void Compiler::emitBytes(uint8_t byte1, uint8_t byte2)
+void Complication::emitBytes(uint8_t byte1, uint8_t byte2)
 {
     emitByte(byte1);
     emitByte(byte2);
 }
-void Compiler::emitReturn()
+void Complication::emitReturn()
 {
     emitByte(Opcode::OP_RETURN);
 }
-void Compiler::emitByte(uint8_t byte)
+void Complication::emitByte(uint8_t byte)
 {
     writeChunk(byte, parser.previous.line); // TODO
 }
 
-uint8_t Compiler::makeConstant(Value value)
+uint8_t Complication::makeConstant(Value value)
 {
     int constant = addConstant(value);
     if (constant > UINT8_MAX)

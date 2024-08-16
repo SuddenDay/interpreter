@@ -178,6 +178,18 @@ InterpretResult VM::run()
             pop();
             break;
         }
+        case Opcode::OP_GET_LOCAL:
+        {
+            uint8_t slot = read_byte();
+            push(stack[slot]);
+            break;
+        }
+        case Opcode::OP_SET_LOCAL:
+        {
+            uint8_t slot = read_byte();
+            stack[slot] = peek(0);
+            break;
+        }
         default:
             std::cout << Opcode(instruction) << " error" << std::endl;
             break;

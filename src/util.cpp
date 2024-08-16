@@ -22,6 +22,8 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_RETURN:
     case Opcode::OP_PRINT:
     case Opcode::OP_POP:
+    case Opcode::OP_SET_LOCAL:
+    case Opcode::OP_GET_LOCAL:
     {
         std::cout << "  " << instruction << std::endl;
         return offset + 1;
