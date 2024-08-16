@@ -5,8 +5,21 @@
 #include "objstring.hpp"
 #include "value.hpp"
 
-#define READ_BYTE() (chunk->getCodeAt(ip++))
-#define READ_CONSTANT() (chunk->getConstAt(READ_BYTE()))
+uint8_t VM::read_byte()
+{
+    return chunk->getCodeAt(ip++);
+}
+
+Value VM::read_constant()
+{
+    return chunk->getConstAt(read_byte());
+}
+
+ObjString *VM::read_string()
+{
+    return read_constant().as_obj<ObjString>();
+}
+
 bool is_falsey(const Value &value)
 {
     return value.is_nil() ||
@@ -14,9 +27,9 @@ bool is_falsey(const Value &value)
 }
 InterpretResult VM::run()
 {
+    gc.running = true;
     for (;;)
     {
-        gc.running = true;
 #ifdef DEBUG_MODE
         printf("           stackframe: ");
         for (int i = 0; i < top; i++)
@@ -24,12 +37,11 @@ InterpretResult VM::run()
         std::cout << "\n";
         Util::disassembleInstruction(*chunk, ip);
 #endif
-        uint8_t instruction = READ_BYTE();
+        uint8_t instruction = read_byte();
         switch (instruction)
         {
         case Opcode::OP_RETURN:
         {
-            std::cout << pop() << std::endl;
             return INTERPRET_OK;
         }
         case Opcode::OP_NEGATE:
@@ -45,7 +57,7 @@ InterpretResult VM::run()
         }
         case Opcode::OP_CONSTANT:
         {
-            push(READ_CONSTANT());
+            push(read_constant());
             break;
         }
         case Opcode::OP_ADD:
@@ -68,7 +80,7 @@ InterpretResult VM::run()
             else
             {
                 runtimeError("Operands must be two numbers or two strings.");
-                return InterpretResult::INTERPRET_RUNTIME_ERROR;
+                return INTERPRET_RUNTIME_ERROR;
             }
             break;
         }
@@ -128,12 +140,51 @@ InterpretResult VM::run()
                 return INTERPRET_RUNTIME_ERROR;
             break;
         }
+        case Opcode::OP_PRINT:
+        {
+            std::cout << pop() << std::endl;
+            break;
+        }
+        case Opcode::OP_DEFINE_GLOBAL:
+        {
+            auto name = read_string();
+            globals.insert_or_assign(name, peek(0));
+            pop();
+            break;
+        }
+        case Opcode::OP_GET_GLOBAL:
+        {
+            auto name = read_string();
+            try
+            {
+                auto &value = globals.at(name);
+                push(value);
+            }
+            catch (const std::out_of_range &)
+            {
+                runtimeError("Undefined variable ", name->text());
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            break;
+        }
+        case Opcode::OP_SET_GLOBAL:
+        {
+            auto name = read_string();
+            globals.insert_or_assign(name, peek(0)); // modify ?
+            break;
+        }
+        case Opcode::OP_POP:
+        {
+            pop();
+            break;
+        }
         default:
-            std::cout << "error" << std::endl;
+            std::cout << Opcode(instruction) << " error" << std::endl;
             break;
         }
     }
 }
+
 void VM::runtimeError(const char *format, ...)
 {
     va_list args;

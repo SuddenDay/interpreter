@@ -3,8 +3,11 @@
 #include <ostream>
 #include <variant>
 #include <vector>
-#include "obj.hpp"
 #include "object.hpp"
+
+struct Value;
+using ValueArray = std::vector<Value>;
+struct Obj;
 struct Value
 {
     bool operator!() const
@@ -127,3 +130,4 @@ inline Value Value::performOperation(const Value &other, Op op) const
         return Value(op(as<int>(), other.as<int>()));
     throw std::runtime_error("PerformOperation only used for number.");
 }
+

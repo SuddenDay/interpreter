@@ -14,6 +14,11 @@
     X(OP_EQUAL)        \
     X(OP_GREATER)        \
     X(OP_LESS)        \
+    X(OP_PRINT)        \
+    X(OP_POP)        \
+    X(OP_DEFINE_GLOBAL) \
+    X(OP_GET_GLOBAL) \
+    X(OP_SET_GLOBAL) \
 
 enum Opcode
 {

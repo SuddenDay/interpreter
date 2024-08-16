@@ -7,9 +7,8 @@
 #include <iostream>
 #include <fstream>
 
-static InterpretResult interpret(const std::string& source) {
-    Chunk chunk;
-    VM vm(&chunk);
+static InterpretResult interpret(const std::string& source, VM& vm) {
+    vm.gc.running = false;
     Compiler compiler(source, vm);
     if(!compiler.compile())
         return INTERPRET_COMPILE_ERROR;
@@ -17,6 +16,8 @@ static InterpretResult interpret(const std::string& source) {
 }
 
 static void REPL() {
+    Chunk chunk;
+    VM vm(&chunk);
     std::string line;
     for (;;) {
         std::cout << "> "; // Output the prompt
@@ -25,7 +26,7 @@ static void REPL() {
             std::cout << std::endl;
             break; // Exit loop if input fails (e.g., EOF)
         } 
-        interpret(line);
+        interpret(line, vm);
     }
 }
 
@@ -51,8 +52,10 @@ static std::string readFile(const std::string& path) {
 
 static void runFile(const std::string& path) {
     try {
+        Chunk chunk;
+        VM vm(&chunk);
         std::string source = readFile(path);  // Automatically managed string
-        InterpretResult result = interpret(source);
+        InterpretResult result = interpret(source, vm);
 
         if (result == INTERPRET_COMPILE_ERROR) throw std::runtime_error("Compile error");
         if (result == INTERPRET_RUNTIME_ERROR) throw std::runtime_error("Runtime error");

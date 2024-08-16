@@ -21,7 +21,7 @@ enum Precedence
 
 struct Parser
 {
-    using ParseFn = std::function<void(Compiler&)>;
+    using ParseFn = std::function<void(Compiler&, bool)>;
     struct ParseRule
     {
         ParseFn prefix;
@@ -40,4 +40,5 @@ struct Parser
     Token previous;
     bool hadError;
     bool panicMode;
+    int line;
 };

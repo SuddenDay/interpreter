@@ -153,6 +153,7 @@ CMakeFiles/main.dir/src/value.cpp.o: /home/ace/interpreter/src/value.cpp \
  /usr/include/c++/11/bits/invoke.h \
  /usr/include/c++/11/ext/aligned_buffer.h \
  /usr/include/c++/11/bits/parse_numbers.h \
+ /home/ace/interpreter/include/object.hpp \
  /home/ace/interpreter/include/obj.hpp /usr/include/c++/11/functional \
  /usr/include/c++/11/tuple /usr/include/c++/11/array \
  /usr/include/c++/11/bits/uses_allocator.h \
@@ -180,7 +181,7 @@ CMakeFiles/main.dir/src/value.cpp.o: /home/ace/interpreter/src/value.cpp \
  /usr/include/c++/11/backward/auto_ptr.h \
  /usr/include/c++/11/pstl/glue_memory_defs.h \
  /usr/include/c++/11/pstl/execution_defs.h \
- /home/ace/interpreter/include/object.hpp \
+ /home/ace/interpreter/include/objstring.hpp \
  /home/ace/interpreter/include/memory.hpp /usr/include/c++/11/algorithm \
  /usr/include/c++/11/pstl/glue_algorithm_defs.h \
  /usr/include/c++/11/iostream /usr/include/c++/11/istream \
@@ -189,7 +190,9 @@ CMakeFiles/main.dir/src/value.cpp.o: /home/ace/interpreter/src/value.cpp \
  /usr/include/c++/11/set /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/stl_set.h \
  /usr/include/c++/11/bits/stl_multiset.h \
- /home/ace/interpreter/include/objstring.hpp \
+ /home/ace/interpreter/include/table.hpp /usr/include/c++/11/map \
+ /usr/include/c++/11/bits/stl_map.h \
+ /usr/include/c++/11/bits/stl_multimap.h \
  /home/ace/interpreter/include/vm.hpp \
  /home/ace/interpreter/include/chunk.hpp \
  /home/ace/interpreter/include/util.hpp \

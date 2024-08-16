@@ -26,16 +26,29 @@ public:
     }
 
 private:
+    void synchronize();
     void advance();
     void consume(TokenType type);
     void expression();
     void parsePrecedence(Precedence precedence);
-    void number();
-    void binary();
-    void unary();
-    void grouping();
-    void literal();
-    void string();
+    void number(bool canAssign);
+    void binary(bool canAssign);
+    void unary(bool canAssign);
+    void grouping(bool canAssign);
+    void literal(bool canAssign);
+    void string(bool canAssign);
+    void variable(bool canAssign); 
+    void statement();
+    void printStatement();
+    void expressionStatement();
+    void varDeclaration();
+    void namedVariable(Token name, bool canAssign);
+    uint8_t parseVariable();
+    uint8_t identifierConstant(Token token);
+    bool check(TokenType type);
+    bool match(TokenType type);
+    void declaration();
+    void defineVariable(uint8_t global);
 
     void writeChunk(uint8_t op, int line);
     uint8_t addConstant(Value value);

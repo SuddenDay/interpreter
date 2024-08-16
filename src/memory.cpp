@@ -1,5 +1,5 @@
 #include "memory.hpp"
-
+#include "value.hpp"
 #include "object.hpp"
 #include "objstring.hpp"
 #include "vm.hpp"
@@ -8,10 +8,12 @@ constexpr auto GC_HEAP_GROW_FACTOR = 2;
 
 void GC::collect()
 {
+	auto before = bytes_allocated;
 	mark_roots();
 	trace_references();
 	remove_white_string();
 	sweep();
+	std::cout << "gc collect " << before - bytes_allocated << " bytes" << std::endl;
 
 	next_gc = bytes_allocated * GC_HEAP_GROW_FACTOR;
 }
@@ -19,7 +21,6 @@ void GC::collect()
 void GC::mark_roots()
 {
 	for (auto slot = 0; slot < vm.top; ++slot) {
-		std::cout<<std::endl<<"slot is: "<< vm.stack[slot]<<std::endl;
 		mark_value(vm.stack[slot]);
 	}
 
@@ -29,12 +30,12 @@ void GC::mark_roots()
 	// for (auto upvalue = vm.open_upvalues; upvalue != nullptr; upvalue = upvalue->next)
 	// 	mark_object(upvalue);
 
-	//mark_table(vm.globals);
+	mark_table(vm.globals);
 	mark_compiler_roots();
 	// mark_object(vm.init_string);
 }
 
-void GC::mark_array(const ValueArray<Allocator>& array)
+void GC::mark_array(const ValueArray& array)
 {
 	for (auto& value : array)
 		mark_value(value);
@@ -65,14 +66,14 @@ void GC::mark_value(const Value& value)
 		mark_object(value.as<Obj*>());
 }
 
-// void GC::mark_table(const table& table)
-// {
-// 	for (auto& [key, value] : table)
-// 	{
-// 		mark_object(key);
-// 		mark_value(value);
-// 	}
-// }
+void GC::mark_table(const Table& table)
+{
+	for (auto& [key, value] : table)
+	{
+		mark_object(key);
+		mark_value(value);
+	}
+}
 
 void GC::trace_references()
 {
@@ -155,7 +156,8 @@ void GC::sweep()
 			object->is_marked = false;
 			previous = object;
 			object = object->next.get();
-		} else
+		} 
+		else
 		{
 			decltype(object->next) temp = std::move(object->next);
 			if (previous == nullptr)

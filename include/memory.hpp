@@ -5,11 +5,9 @@
 #include <deque>
 #include <memory>
 #include <set>
+#include "table.hpp"
+#include "value.hpp"
 
-struct Value; 
-
-template <template <typename> typename Alloc>
-using ValueArray = std::vector<Value, Alloc<Value>>;
 
 struct ObjString;
 struct VM;
@@ -73,10 +71,10 @@ struct GC
 
 private:
 	void mark_roots();
-	void mark_array(const ValueArray<Allocator>& array);
+	void mark_array(const ValueArray& array);
 	void mark_compiler_roots();
 	void mark_object(Obj* const ptr);
-	//void mark_table(const table& table);
+	void mark_table(const Table& table);
 	void mark_value(const Value& value);
 
 	void trace_references();
@@ -109,6 +107,7 @@ bool operator!=(const Allocator<T>& t, const Allocator<U>& u)
 	return false;
 }
 
+
 template<typename T>
 T* Allocator<T>::allocate(std::size_t n)
 {
@@ -117,22 +116,29 @@ T* Allocator<T>::allocate(std::size_t n)
 
 	if (gc != nullptr)
 	{
-		std::cout<<"allocate: " << alloc_size << std::endl;
+		//std::cout<<"allocate: " << alloc_size << std::endl;
 		gc->bytes_allocated += alloc_size;
-		if(gc->running)
-			gc->collect();
-		if (gc->bytes_allocated > gc->next_gc)
-			gc->collect();
+		if(gc->running) 
+			 gc->collect(); // if open this stress-test, when insert global variant, 
+		// // will call gc->collect meanwhile vm->stack has required objstring, 
+		// // and delete all in stack, maybe when callframe can fix it?
+		// if (gc->bytes_allocated > gc->next_gc && gc->running)
+		// 	gc->collect();
 	}
 	return p;
+}
+
+inline void test() {
+	std::cout<<"test!\n";
 }
 
 template<typename T>
 void Allocator<T>::deallocate(T* p, std::size_t n)
 {
 	worker_traits::deallocate(worker, p, n);
+	test();
 	if (gc != nullptr) {
 		gc->bytes_allocated -= sizeof(T) * n;
-		std::cout<<"deallocate: " << sizeof(T) * n << std::endl;
+		// std::cout<<"deallocate: " << sizeof(T) * n << std::endl;
 	}
 }

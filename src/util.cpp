@@ -20,10 +20,15 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_LESS:
     case Opcode::OP_EQUAL:
     case Opcode::OP_RETURN:
+    case Opcode::OP_PRINT:
+    case Opcode::OP_POP:
     {
         std::cout << "  " << instruction << std::endl;
         return offset + 1;
     }
+    case Opcode::OP_GET_GLOBAL:
+    case Opcode::OP_DEFINE_GLOBAL:
+    case Opcode::OP_SET_GLOBAL:
     case Opcode::OP_CONSTANT:
     {
         int index = chunk.getCodeAt(offset + 1); // can't use uint8 because unsigned char is null

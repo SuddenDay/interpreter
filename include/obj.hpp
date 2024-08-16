@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+
 enum class ObjType
 {
 	BoundMethod,

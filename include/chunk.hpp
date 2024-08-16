@@ -11,13 +11,12 @@ struct Value;
 std::ostream &operator<<(std::ostream &os, Opcode op);
 
 class Compiler;
-template<template<typename>typename Alloc>
 struct ChunkTemplate
 {
-    using Bytecode_vector = std::vector<uint8_t, Alloc<uint8_t>>;
+    using Bytecode_vector = std::vector<uint8_t>;
     Bytecode_vector bytecode;
-    ValueArray<Alloc> constants;
-    std::vector<int, Alloc<int>> lines;
+    ValueArray constants;
+    std::vector<int> lines;
 
     int getLineAt(int index) {
         return lines[index];
@@ -33,7 +32,7 @@ struct ChunkTemplate
     }
 };
 
-class Chunk : public ChunkTemplate<Allocator> {
+class Chunk : public ChunkTemplate {
     public:
     friend std::ostream &operator<<(std::ostream &os, const Chunk& chunk) ;
 };

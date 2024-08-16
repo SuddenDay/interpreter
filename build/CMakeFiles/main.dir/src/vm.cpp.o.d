@@ -198,8 +198,11 @@ CMakeFiles/main.dir/src/vm.cpp.o: /home/ace/interpreter/src/vm.cpp \
  /usr/include/c++/11/pstl/glue_memory_defs.h /usr/include/c++/11/set \
  /usr/include/c++/11/bits/stl_tree.h /usr/include/c++/11/bits/stl_set.h \
  /usr/include/c++/11/bits/stl_multiset.h \
+ /home/ace/interpreter/include/table.hpp /usr/include/c++/11/map \
+ /usr/include/c++/11/bits/stl_map.h \
+ /usr/include/c++/11/bits/stl_multimap.h \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
- /home/ace/interpreter/include/obj.hpp \
- /home/ace/interpreter/include/object.hpp /usr/include/c++/11/cstdarg \
+ /home/ace/interpreter/include/object.hpp \
+ /home/ace/interpreter/include/obj.hpp /usr/include/c++/11/cstdarg \
  /home/ace/interpreter/include/objstring.hpp

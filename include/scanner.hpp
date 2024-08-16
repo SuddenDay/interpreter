@@ -29,10 +29,11 @@ public:
         checkKeyword.insert({"true", TOKEN_TRUE});
         checkKeyword.insert({"fun", TOKEN_FUN});
         checkKeyword.insert({"this", TOKEN_THIS});
+        checkKeyword.insert({"var", TOKEN_VAR});
     }
     Token scanToken();
 
-private:
+public:
     char peek();
     char advance();
     void skipSpace();

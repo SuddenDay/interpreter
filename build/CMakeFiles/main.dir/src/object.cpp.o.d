@@ -186,4 +186,10 @@ CMakeFiles/main.dir/src/object.cpp.o: \
  /usr/include/c++/11/bits/stl_deque.h /usr/include/c++/11/bits/deque.tcc \
  /usr/include/c++/11/set /usr/include/c++/11/bits/stl_tree.h \
  /usr/include/c++/11/bits/stl_set.h \
- /usr/include/c++/11/bits/stl_multiset.h
+ /usr/include/c++/11/bits/stl_multiset.h \
+ /home/ace/interpreter/include/table.hpp /usr/include/c++/11/map \
+ /usr/include/c++/11/bits/stl_map.h \
+ /usr/include/c++/11/bits/stl_multimap.h \
+ /home/ace/interpreter/include/value.hpp \
+ /home/ace/interpreter/include/common.hpp /usr/include/c++/11/variant \
+ /usr/include/c++/11/bits/parse_numbers.h

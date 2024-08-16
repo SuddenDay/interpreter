@@ -2,8 +2,12 @@
 
 #include <string_view>
 #include "obj.hpp"
-#include "memory.hpp"
 
+
+template<typename T>
+struct Allocator;
+
+struct ObjString;
 struct GC;
 struct Obj;
 using ObjDeleter = std::function<void(Obj*)>;
