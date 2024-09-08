@@ -35,7 +35,7 @@ void GC::mark_roots()
 	// mark_object(vm.init_string);
 }
 
-void GC::mark_array(const ValueArray& array)
+void GC::mark_array(const std::vector<Value>& array)
 {
 	for (auto& value : array)
 		mark_value(value);
@@ -111,13 +111,13 @@ void GC::blacken_object(Obj* ptr)
 		// 		mark_object(v);
 		// 	break;
 		// }
-		// case ObjType::Function:
-		// {
-		// 	auto function = static_cast<ObjFunction*>(ptr);
-		// 	mark_object(function->name);
-		// 	mark_array(function->chunk.constants);
-		// 	break;
-		// }
+		case ObjType::Function:
+		{
+			auto function = static_cast<ObjFunction*>(ptr);
+			mark_object(function->name);
+			mark_array(function->chunk.constants);
+			break;
+		}
 		// case ObjType::Instance:
 		// {
 		// 	auto instance = static_cast<ObjInstance*>(ptr);

@@ -9,6 +9,7 @@ enum Precedence
 {
     PREC_NONE,
     PREC_ASSIGNMENT, // =
+    PREC_OR,        // or
     PREC_AND,        // and
     PREC_EQUALITY,   // == !=
     PREC_COMPARISON, // < > <= >=
@@ -29,13 +30,14 @@ struct Parser
         Precedence precedence;
     };
 
-    Parser();
+    Parser(const std::string_view&);
 
-    void errorAtCurrent();
-    void error();
+    void errorAtCurrent(const std::string_view& message);
+    void error(const std::string_view& message);
 
-    void errorAt(const Token &token);
+    void errorAt(const Token &token, const std::string_view& message);
     
+    Scanner scanner;
     Token current;
     Token previous;
     bool hadError;

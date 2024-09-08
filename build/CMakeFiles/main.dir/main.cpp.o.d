@@ -200,15 +200,15 @@ CMakeFiles/main.dir/main.cpp.o: /home/ace/interpreter/main.cpp \
  /home/ace/interpreter/include/table.hpp /usr/include/c++/11/map \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
+ /home/ace/interpreter/include/obj.hpp \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
- /home/ace/interpreter/include/object.hpp \
- /home/ace/interpreter/include/obj.hpp \
  /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg \
  /home/ace/interpreter/include/compiler.hpp \
  /home/ace/interpreter/include/parser.hpp \
  /home/ace/interpreter/include/scanner.hpp \
- /home/ace/interpreter/include/tokentype.hpp /usr/include/c++/11/fstream \
+ /home/ace/interpreter/include/tokentype.hpp \
+ /home/ace/interpreter/include/object.hpp /usr/include/c++/11/fstream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
  /usr/include/c++/11/bits/fstream.tcc

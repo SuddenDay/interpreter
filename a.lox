@@ -1,6 +1,8 @@
-var a = 1;
-{
-    var a = a;
-    print a;
+print clock();
+fun a() { b(); }
+fun b() { c(); }
+fun c() {
+  print clock();
 }
-print a;
+
+c();

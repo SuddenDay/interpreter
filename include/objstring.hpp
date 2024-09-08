@@ -1,9 +1,9 @@
 #pragma once
 
-#include "memory.hpp"
-#include "vm.hpp"
-#include "object.hpp"
 #include "obj.hpp"
+#include "memory.hpp"
+#include "object.hpp"
+#include "vm.hpp"
 
 using clox_string = std::basic_string<char, std::char_traits<char>, Allocator<char>>;
 
@@ -27,18 +27,5 @@ clox_string operator+(const ObjString& lhs, const ObjString& rhs);
 bool operator==(const ObjString& lhs, const ObjString& rhs);
 
 template <typename T>
-ObjString *create_obj_string(T &&str, VM &vm)
-{
-	auto interned = vm.gc.find_string(str);
-	if (interned != nullptr)
-		return interned;
+ObjString *create_obj_string(T &&str, VM &vm);
 
-	auto p = alloc_unique_obj<ObjString>();
-	auto res = static_cast<ObjString*>(p.get());
-	vm.push(res);
-	res->content = std::forward<T>(str);
-	vm.gc.strings.emplace(res);
-	register_obj(std::move(p), vm.gc);
-	vm.pop();
-	return res;
-}

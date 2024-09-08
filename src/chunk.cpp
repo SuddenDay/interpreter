@@ -23,8 +23,21 @@ std::ostream &operator<<(std::ostream &os, Opcode op)
 
 std::ostream &operator<<(std::ostream &os, const Chunk &chunk)
 {
-    os << " === Bytecode === \n";
     for (int offset = 0; offset < static_cast<int>(chunk.bytecode.size());)
         offset = Util::disassembleInstruction(chunk, offset);
     return os;
+}
+
+int Chunk::getLineAt(int index)
+{
+    return lines[index];
+}
+uint8_t Chunk::getCodeAt(int index) const
+{
+    return bytecode.at(index);
+}
+
+Value Chunk::getConstAt(int index) const
+{
+    return constants.at(index);
 }

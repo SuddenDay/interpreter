@@ -7,32 +7,19 @@
 #include "memory.hpp"
 #include "value.hpp"
 
-struct Value;
 std::ostream &operator<<(std::ostream &os, Opcode op);
 
 class Compiler;
-struct ChunkTemplate
+class Chunk 
 {
+    public:
     using Bytecode_vector = std::vector<uint8_t>;
     Bytecode_vector bytecode;
-    ValueArray constants;
+    std::vector<Value> constants;
     std::vector<int> lines;
 
-    int getLineAt(int index) {
-        return lines[index];
-    }
-    uint8_t getCodeAt(int index) const
-    {
-        return bytecode.at(index);
-    }
-
-    Value getConstAt(int index) const
-    {
-        return constants.at(index);
-    }
-};
-
-class Chunk : public ChunkTemplate {
-    public:
+    int getLineAt(int index);
+    uint8_t getCodeAt(int index) const;
+    Value getConstAt(int index) const;
     friend std::ostream &operator<<(std::ostream &os, const Chunk& chunk) ;
 };

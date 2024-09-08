@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string_view>
+#include "table.hpp"
 #include "obj.hpp"
-
+#include "chunk.hpp"
+#include <functional>
 
 template<typename T>
 struct Allocator;
@@ -23,29 +25,31 @@ auto delete_obj(Alloc<T>& a, T* ptr)
 	AllocTraits::deallocate(a, ptr, 1);
 }
 
-// struct ObjFunction final : public Obj
-// {
-// 	size_t arity = 0;
-// 	size_t upvalue_count = 0;
-// 	Chunk chunk;
-// 	ObjString* name = nullptr;
+struct ObjFunction : public Obj
+{
+	int arity = 0;
+	int upvalue_count = 0;
+	Chunk chunk;
+	ObjString* name = nullptr;
 
-// 	ObjFunction() :Obj(ObjType::Function) {}
-// };
-// std::ostream& operator<<(std::ostream& out, const ObjFunction& f);
+	ObjFunction() :Obj(ObjType::Function) {}
+};
 
-// using NativeFn = Value(*)(uint8_t arg_count, Value * args);
+std::ostream& operator<<(std::ostream& out, const ObjFunction& f);
 
-// struct ObjNative final :public Obj
-// {
-// 	NativeFn function;
+using NativeFn = std::function<Value(int argCount, Value* args)>;
 
-// 	constexpr explicit ObjNative(NativeFn func)noexcept
-// 		:Obj(ObjType::Native), function(func)
-// 	{
-// 	}
-// };
-// std::ostream& operator<<(std::ostream& out, const ObjNative& s);
+struct ObjNative final :public Obj
+{
+	NativeFn function;
+	std::string_view name;
+
+	ObjNative(NativeFn func, std::string_view name)
+		:Obj(ObjType::Native), function(func), name(name)
+	{
+	}
+};
+std::ostream& operator<<(std::ostream& out, const ObjNative& s);
 
 // struct ObjUpvalue final :public Obj
 // {
@@ -136,6 +140,7 @@ auto create_obj(GC& gc, Args&&... args)
 	return static_cast<T*>(res);
 }
 
+
 template<typename T>
 constexpr auto objtype_of()
 ->typename std::enable_if_t<std::is_base_of_v<Obj, T> && !std::is_same_v<Obj, T>, ObjType>
@@ -146,13 +151,13 @@ constexpr auto objtype_of()
 	// 	return ObjType::Class;
 	// else if constexpr (std::is_same_v<T, ObjClosure>)
 	// 	return ObjType::Closure;
-	// else if constexpr (std::is_same_v<T, ObjFunction>)
-	// 	return ObjType::Function;
+	if constexpr (std::is_same_v<T, ObjFunction>)
+		return ObjType::Function;
 	// else if constexpr (std::is_same_v<T, ObjInstance>)
 	// 	return ObjType::Instance;
-	// else if constexpr (std::is_same_v<T, ObjNative>)
-	// 	return ObjType::Native;
-	if constexpr (std::is_same_v<T, ObjString>)
+	else if constexpr (std::is_same_v<T, ObjNative>)
+		return ObjType::Native;
+	else if constexpr (std::is_same_v<T, ObjString>)
 		return ObjType::String;
 	// else if constexpr (std::is_same_v<T, ObjUpvalue>)
 	// 	return ObjType::Upvalue;
@@ -182,5 +187,9 @@ constexpr auto nameof()
 			return "string"sv;
 		case ObjType::Upvalue:
 			return "upvalue"sv;
+		default:
+			return "unknown type";
 	}
 }
+
+std::ostream& operator<<(std::ostream& out, const Obj& obj);

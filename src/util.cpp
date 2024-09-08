@@ -3,13 +3,23 @@
 #include "memory.hpp"
 int Util::disassembleInstruction(const Chunk &chunk, int offset)
 {
+
     std::cout << std::setw(4) << std::setfill('0') << std::right << offset << " ";
     Opcode instruction = static_cast<Opcode>(chunk.getCodeAt(offset));
+    auto jumpInstruction = [&](int sign, const Chunk& chunk, int offset) {
+        uint16_t jump = (uint16_t)(chunk.bytecode[offset + 1] << 8);
+        jump |= chunk.bytecode[offset + 2];
+        std::cout << std::setfill(' ') << std::left << std::setw(16) << instruction << ' ';
+	    std::cout << std::setw(4) << offset << " -> ";
+	    std::cout << offset + 3 + sign * jump << '\n';
+        return offset + 3;
+    };
     switch (instruction)
     {
     case Opcode::OP_ADD:
     case Opcode::OP_SUB:
     case Opcode::OP_MUL:
+    case Opcode::OP_CALL:
     case Opcode::OP_DIV:
     case Opcode::OP_TRUE:
     case Opcode::OP_FALSE:
@@ -37,6 +47,14 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
         std::cout << "  " << instruction << " [" << index << "] " << chunk.getConstAt(index)
                   << std::endl;
         return offset + 2;
+    }
+    case Opcode::OP_JUMP:
+    case Opcode::OP_JUMP_IF_FALSE:
+    {
+        return jumpInstruction(1, chunk, offset);
+    }
+    case Opcode::OP_LOOP: {
+        return jumpInstruction(-1, chunk, offset);
     }
     default:
         std::cout << "Unknown opcode " << instruction << std::endl;

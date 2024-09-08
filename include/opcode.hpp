@@ -21,6 +21,10 @@
     X(OP_SET_GLOBAL) \
     X(OP_SET_LOCAL) \
     X(OP_GET_LOCAL) \
+    X(OP_JUMP_IF_FALSE) \
+    X(OP_JUMP) \
+    X(OP_LOOP) \
+    X(OP_CALL) \
 
 enum Opcode
 {

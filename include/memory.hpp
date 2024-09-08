@@ -6,8 +6,7 @@
 #include <memory>
 #include <set>
 #include "table.hpp"
-#include "value.hpp"
-
+#include "obj.hpp"
 
 struct ObjString;
 struct VM;
@@ -71,7 +70,7 @@ struct GC
 
 private:
 	void mark_roots();
-	void mark_array(const ValueArray& array);
+	void mark_array(const std::vector<Value>& array);
 	void mark_compiler_roots();
 	void mark_object(Obj* const ptr);
 	void mark_table(const Table& table);
@@ -128,15 +127,10 @@ T* Allocator<T>::allocate(std::size_t n)
 	return p;
 }
 
-inline void test() {
-	std::cout<<"test!\n";
-}
-
 template<typename T>
 void Allocator<T>::deallocate(T* p, std::size_t n)
 {
 	worker_traits::deallocate(worker, p, n);
-	test();
 	if (gc != nullptr) {
 		gc->bytes_allocated -= sizeof(T) * n;
 		// std::cout<<"deallocate: " << sizeof(T) * n << std::endl;

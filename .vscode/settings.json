@@ -81,6 +81,7 @@
         "__memory": "cpp",
         "set": "cpp",
         "__tree": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "complex": "cpp"
     }
 }

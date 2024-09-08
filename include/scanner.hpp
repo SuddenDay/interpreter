@@ -30,6 +30,7 @@ public:
         checkKeyword.insert({"fun", TOKEN_FUN});
         checkKeyword.insert({"this", TOKEN_THIS});
         checkKeyword.insert({"var", TOKEN_VAR});
+        checkKeyword.insert({"for", TOKEN_FOR});
     }
     Token scanToken();
 

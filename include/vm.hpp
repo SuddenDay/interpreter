@@ -4,58 +4,61 @@
 #include <cstdarg>
 #include "common.hpp"
 #include "memory.hpp"
-//#include "value.hpp"
+#include "value.hpp"
 #include "table.hpp"
+#include "compiler.hpp"
+#include "object.hpp"
 
+#define FRAMES_MAX 64
+#define STACK_MAX (FRAMES_MAX * UINT8_MAX)
+struct GC;
 enum InterpretResult
 {
     INTERPRET_OK,
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR,
 };
+struct CallFrame {
+    ObjFunction* function = nullptr;
+    uint8_t ip = 0;
+    Value* slots = nullptr;
+
+    uint8_t read_byte();
+	Value read_constant();
+	uint16_t read_short();
+	ObjString* read_string();
+	//const Chunk& chunk()const noexcept;
+};
 class VM
 {
 public:
-    VM(Chunk *chunk) : globals(), chunk(chunk), stack(STACK_MAX), gc(*this)
-    {
-        AllocBase::init(&gc);
-    }
+    VM(); 
     InterpretResult run();
 
     template <typename Operator>
-    bool Binary_OP(Operator op)
-    {
-        auto a = pop();
-        auto b = pop();
-        if (!(
-                (a.is_number() && b.is_number()) ||
-                (a.is_bool() && b.is_bool()) ||
-                (a.is_obj() && b.is_obj())))
-        {
-            runtimeError("Operands do not fit");
-            return false;
-        }
-        push(op(b, a));
-        return true;
-    }
-    void push(Value value) { stack.at(top++) = value; }
-    void resetStack() { ip = 0; }
-    Value pop() { return stack.at(--top); }
-    Value peek(int distance)
-    {
-        return stack[top - 1 - distance];
-    }
-    uint8_t read_byte();
+    bool Binary_OP(Operator op);
+   
+    void push(Value value);
+    void resetStack();
+    Value pop();
+    Value peek(int distance);
 
-    Value read_constant();
+    bool callValue(const Value& callee, uint8_t arg_count);
+    bool call(ObjFunction* function, int argCount);
 
-    ObjString *read_string();
 
-    void runtimeError(const char *format, ...);
+	template<typename... Args>
+	void runtimeError(Args&&... args);
+
+    void defineNative(std::string_view name, NativeFn function);
+
+    InterpretResult interpret(const std::string& source);
+
+    Complication cu;
+    std::array<CallFrame, FRAMES_MAX> frames;
+    int frameCount = 0;
     Table globals;
-    Chunk *chunk;
-    int ip = 0;
-    std::vector<Value> stack;
     int top = 0;
-    struct GC gc;
+    std::vector<Value> stack;
+    GC gc;
 };
