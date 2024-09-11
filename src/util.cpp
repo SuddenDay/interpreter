@@ -16,10 +16,20 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     };
     switch (instruction)
     {
+    case Opcode::OP_CALL:
+    case Opcode::OP_SET_LOCAL:
+    case Opcode::OP_GET_LOCAL:
+    case Opcode::OP_SET_UPVALUE:
+    case Opcode::OP_GET_UPVALUE:
+    {
+        auto slot = chunk.getCodeAt(offset + 1);
+        std::cout << "  " << instruction << " [" << static_cast<int>(slot) << "] " << std::endl;
+	    return offset + 2;
+    }
+    case Opcode::OP_CLOSE_UPVALUE:
     case Opcode::OP_ADD:
     case Opcode::OP_SUB:
     case Opcode::OP_MUL:
-    case Opcode::OP_CALL:
     case Opcode::OP_DIV:
     case Opcode::OP_TRUE:
     case Opcode::OP_FALSE:
@@ -32,8 +42,6 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_RETURN:
     case Opcode::OP_PRINT:
     case Opcode::OP_POP:
-    case Opcode::OP_SET_LOCAL:
-    case Opcode::OP_GET_LOCAL:
     {
         std::cout << "  " << instruction << std::endl;
         return offset + 1;
@@ -55,6 +63,12 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     }
     case Opcode::OP_LOOP: {
         return jumpInstruction(-1, chunk, offset);
+    }
+    case Opcode::OP_CLOSURE: {
+        offset++;
+        int constant = chunk.bytecode[offset++];
+	    std::cout << "  " << instruction << " [" << constant << "] " << chunk.constants[constant] << std::endl;
+        return offset;
     }
     default:
         std::cout << "Unknown opcode " << instruction << std::endl;

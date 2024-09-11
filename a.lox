@@ -1,8 +1,9 @@
-print clock();
-fun a() { b(); }
-fun b() { c(); }
-fun c() {
-  print clock();
+fun main() {
+  var a = "first value";
+  a = "update " + a;
+  a = "hhh";
+  print a;
+  return ;
 }
 
-c();
+print main();

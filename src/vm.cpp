@@ -43,8 +43,10 @@ bool VM::callValue(const Value &callee, uint8_t argCount)
             // 		}
             // 		return true;
             // 	}
-        case ObjType::Function:
-            return call(callee.as_obj<ObjFunction>(), argCount);
+        case ObjType::Closure:
+            return call(callee.as_obj<ObjClosure>(), argCount); // add new frame
+        // case ObjType::Function:
+        //     return call(callee.as_obj<ObjFunction>(), argCount);
         case ObjType::Native:
         {
             auto native = callee.as_obj<ObjNative>()->function;
@@ -53,6 +55,7 @@ bool VM::callValue(const Value &callee, uint8_t argCount)
             push(result);
             return true;
         }
+
         default:
             break;
         }
@@ -61,11 +64,11 @@ bool VM::callValue(const Value &callee, uint8_t argCount)
     return false;
 }
 
-bool VM::call(ObjFunction *function, int argCount)
+bool VM::call(ObjClosure *closure, int argCount)
 {
-    if (argCount != function->arity)
+    if (argCount != closure->function->arity)
     {
-        runtimeError("Expected ", function->arity, " arguments but got", argCount);
+        runtimeError("Expected ", closure->function->arity, " arguments but got", argCount);
         return false;
     }
     if (frameCount >= FRAMES_MAX)
@@ -73,11 +76,35 @@ bool VM::call(ObjFunction *function, int argCount)
         runtimeError("Stack overflow.");
         return false;
     }
-    CallFrame *frame = &frames[frameCount++];
-    frame->function = function;
-    frame->ip = 0;
-    frame->slots = stack.data() + top - argCount - 1;
+    CallFrame &frame = frames[frameCount++];
+    frame.closure = closure;
+    frame.ip = 0;
+    frame.slots = stack.data() + top - argCount - 1;
     return true;
+}
+
+ObjUpvalue *VM::captureUpvalue(Value *local)
+{
+    ObjUpvalue *prevUpvalue = NULL;
+    ObjUpvalue *upvalue = openUpvalues;
+    while (upvalue != nullptr && upvalue->location > local)
+    {
+        prevUpvalue = upvalue;
+        upvalue = upvalue->next;
+    }
+
+    if (upvalue != NULL && upvalue->location == local)
+        return upvalue;
+
+    ObjUpvalue *createdUpvalue = create_obj<ObjUpvalue>(gc, local);
+    createdUpvalue->next = upvalue;
+
+    if (prevUpvalue == NULL)
+        openUpvalues = createdUpvalue;
+    else
+        prevUpvalue->next = createdUpvalue;
+
+    return createdUpvalue;
 }
 
 void VM::defineNative(std::string_view name, NativeFn function)
@@ -85,8 +112,8 @@ void VM::defineNative(std::string_view name, NativeFn function)
     push(create_obj_string(name, *this));
     push(create_obj<ObjNative>(gc, function, name));
     globals.insert_or_assign(stack.at(0).as_obj<ObjString>(), stack.at(1));
-	pop();
-	pop();
+    pop();
+    pop();
 }
 
 InterpretResult VM::interpret(const std::string &source)
@@ -94,8 +121,11 @@ InterpretResult VM::interpret(const std::string &source)
     ObjFunction *function = cu.compile(source);
     if (function == nullptr)
         return InterpretResult::INTERPRET_COMPILE_ERROR;
-    push(function);
-    call(function, 0);
+    push(function); // for garbage collect
+    ObjClosure *closure = create_obj<ObjClosure>(gc, function);
+    pop();
+    push(closure);
+    call(closure, 0); // generate latest frame
     return run();
 }
 
@@ -105,18 +135,18 @@ bool is_falsey(const Value &value)
            (value.is_bool() && !value.as<bool>());
 }
 
-
 InterpretResult VM::run()
 {
     CallFrame *frame = &frames[frameCount - 1];
     for (;;)
     {
+        //   gc.collect();
 #ifdef DEBUG_MODE
         printf("           stackframe: ");
         for (int i = 0; i < top; i++)
             std::cout << "[ " << stack.at(i) << " ]";
         std::cout << "\n";
-        Util::disassembleInstruction(frame->function->chunk, frame->ip);
+        Util::disassembleInstruction(frame->closure->function->chunk, frame->ip);
 #endif
         uint8_t instruction = frame->read_byte();
         switch (instruction)
@@ -124,7 +154,8 @@ InterpretResult VM::run()
         case Opcode::OP_RETURN:
         {
             Value result = pop();
-            frameCount--;
+            closeUpvalues(frame->slots);
+            frameCount--; // leave current frame
             if (frameCount == 0)
             {
                 pop();
@@ -305,7 +336,41 @@ InterpretResult VM::run()
             int argCount = frame->read_byte();
             if (!callValue(peek(argCount), argCount))
                 return INTERPRET_RUNTIME_ERROR;
-            frame = &frames[frameCount - 1];
+            frame = &frames[frameCount - 1]; // frame update, enter into function scope
+            break;
+        }
+        case OP_CLOSURE:
+        {
+            auto function = frame->read_constant().as_obj<ObjFunction>();
+            auto closure = create_obj<ObjClosure>(gc, function);
+            push(closure);
+            for (int i = 0; i < closure->upvalueCount(); i++)
+            {
+                auto isLocal = frame->read_byte();
+                auto index = frame->read_byte();
+                if (isLocal)
+                    closure->upvalues.at(i) = captureUpvalue(frame->slots + index);
+                else
+                    closure->upvalues.at(i) = frame->closure->upvalues.at(index);
+            }
+            break;
+        }
+        case OP_CLOSE_UPVALUE:
+        {
+            closeUpvalues(stack.data() + top - 1);
+            pop();
+            break;
+        }
+        case OP_GET_UPVALUE:
+        {
+            uint8_t slot = frame->read_byte();
+            push(*frame->closure->upvalues[slot]->location);
+            break;
+        }
+        case OP_SET_UPVALUE:
+        {
+            uint8_t slot = frame->read_byte();
+            *frame->closure->upvalues[slot]->location = peek(0);
             break;
         }
         default:
@@ -317,14 +382,14 @@ InterpretResult VM::run()
 
 uint8_t CallFrame::read_byte()
 {
-    return function->chunk.getCodeAt(ip++);
+    return closure->function->chunk.getCodeAt(ip++);
 }
-Value CallFrame::read_constant() { return function->chunk.constants.at(read_byte()); }
+Value CallFrame::read_constant() { return closure->function->chunk.constants.at(read_byte()); }
 uint16_t CallFrame::read_short()
 {
     ip += 2;
-    auto a = function->chunk.getCodeAt(ip - 2) << 8;
-    auto b = function->chunk.getCodeAt(ip - 1);
+    auto a = closure->function->chunk.getCodeAt(ip - 2) << 8;
+    auto b = closure->function->chunk.getCodeAt(ip - 1);
     return static_cast<uint16_t>(a | b);
 };
 ObjString *CallFrame::read_string()
@@ -332,11 +397,26 @@ ObjString *CallFrame::read_string()
     return read_constant().as_obj<ObjString>();
 }
 void VM::push(Value value) { stack.at(top++) = value; }
-void VM::resetStack() { top = frameCount = 0; }
+void VM::resetStack()
+{
+    top = frameCount = 0;
+    openUpvalues = nullptr;
+}
 Value VM::pop() { return stack.at(--top); }
 Value VM::peek(int distance)
 {
     return stack[top - 1 - distance];
+}
+void VM::closeUpvalues(Value *last)
+{
+    while (openUpvalues != NULL &&
+           openUpvalues->location >= last)
+    {
+        ObjUpvalue *upvalue = openUpvalues;
+        upvalue->closed = *upvalue->location;
+        upvalue->location = &upvalue->closed;
+        openUpvalues = upvalue->next;
+    }
 }
 template <typename Operator>
 bool VM::Binary_OP(Operator op)
@@ -346,7 +426,11 @@ bool VM::Binary_OP(Operator op)
     if (!(
             (a.is_number() && b.is_number()) ||
             (a.is_bool() && b.is_bool()) ||
-            (a.is_obj() && b.is_obj())))
+            (a.is_obj() && b.is_obj()) ||
+            (a.is_nil() && b.is_nil()) ||
+            (a.is_nil() && b.is_obj()) ||
+            (a.is_obj() && b.is_nil()))
+        )
     {
         runtimeError("Operands do not fit");
         return false;
@@ -364,7 +448,7 @@ void VM::runtimeError(Args &&...args)
     for (int i = frameCount - 1; i >= 0; i--)
     {
         const auto &frame = frames.at(i);
-        auto function = frame.function;
+        auto function = frame.closure->function;
         auto instruction = frame.ip - 1;
         auto line = function->chunk.lines.at(instruction);
         std::cerr << "[line " << line << "] in ";

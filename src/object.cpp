@@ -24,6 +24,18 @@ std::ostream &operator<<(std::ostream &out, const ObjNative &s)
 	return out;
 }
 
+std::ostream &operator<<(std::ostream &out, const ObjUpvalue &s)
+{
+	out << "<upvalue " << s.closed << ">";
+	return out;
+}
+
+std::ostream &operator<<(std::ostream &out, const ObjClosure &s)
+{
+	out << "<closure " << *s.function << ">";
+	return out;
+}
+
 std::ostream& operator<<(std::ostream& out, const Obj& obj)
 {
 	switch (obj.type)
@@ -31,9 +43,9 @@ std::ostream& operator<<(std::ostream& out, const Obj& obj)
 		// case ObjType::Class:
 		// 	out << static_cast<const ObjClass&>(obj);
 		// 	break;
-		// case ObjType::Closure:
-		// 	out << static_cast<const ObjClosure&>(obj);
-		// 	break;
+		case ObjType::Closure:
+			out << static_cast<const ObjClosure&>(obj);
+			break;
 		case ObjType::Function:
 			out << static_cast<const ObjFunction&>(obj);
 			break;
@@ -46,9 +58,9 @@ std::ostream& operator<<(std::ostream& out, const Obj& obj)
 		case ObjType::String:
 			out << static_cast<const ObjString&>(obj);
 			break;
-		// case ObjType::Upvalue:
-		// 	out << static_cast<const ObjUpvalue&>(obj);
-		// 	break;
+		case ObjType::Upvalue:
+			out << static_cast<const ObjUpvalue&>(obj);
+			break;
 		default:
 			throw std::invalid_argument("Unexpected ObjType:: Output failed");
 	}

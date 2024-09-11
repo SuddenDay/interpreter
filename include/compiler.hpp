@@ -5,26 +5,28 @@
 #include "scanner.hpp"
 #include "memory.hpp"
 #include <array>
+#include "object.hpp"
 
 struct VM;
-struct ObjFunction;
 struct Local
 {
     Token name;
     int depth = -1;
-    // bool is_captured = false;
+    bool isCaptured = false;
 };
 
-enum FunctionType{
-  TYPE_FUNCTION,
-  TYPE_SCRIPT
+enum FunctionType
+{
+    TYPE_FUNCTION,
+    TYPE_SCRIPT
 };
 
 struct Compiler
 {
     std::unique_ptr<Compiler> enclosing = nullptr;
-    ObjFunction* function = nullptr;
+    ObjFunction *function = nullptr;
     FunctionType type;
+    std::array<Upvalue, UINT8_MAX> upvalues;
     std::array<Local, UINT8_MAX> locals;
     int localCount = 0;
     int scopeDepth = 0;
@@ -33,17 +35,15 @@ struct Compiler
 class Complication
 {
 public:
-    Complication(VM& vm);
-    ObjFunction* compile(const std::string_view& source);
+    Complication(VM &vm);
+    ObjFunction *compile(const std::string_view &source);
     Chunk *currentChunk();
-    
-    ObjFunction* endCompiler();
 
+    auto endCompiler() -> std::pair<ObjFunction*, std::unique_ptr<Compiler>>;
 
-private:
     void synchronize();
     void advance();
-    void consume(TokenType type, const std::string& message);
+    void consume(TokenType type, const std::string &message);
     void expression();
     void parsePrecedence(Precedence precedence);
     void number(bool canAssign);
@@ -69,7 +69,7 @@ private:
     void varDeclaration();
     void function(FunctionType type);
     void namedVariable(Token name, bool canAssign);
-    uint8_t parseVariable(const std::string& message);
+    uint8_t parseVariable(const std::string &message);
     uint8_t identifierConstant(Token token);
     int emitJump(Opcode instruction);
     void patchJump(int offset);
@@ -81,9 +81,12 @@ private:
     void funDeclaration();
     void addLocal(Token name);
     bool identifiersEqual(Token a, Token b);
-    int resolveLocal(Compiler* compiler, Token name);
     void markInitialized();
     void initCompiler(FunctionType type);
+    int resolveUpvalue(const std::unique_ptr<Compiler> &compiler, Token &name);
+    int resolveLocal(const std::unique_ptr<Compiler> &compiler, Token name);
+    int addUpvalue(const std::unique_ptr<Compiler> &compiler, int index,
+                   bool isLocal);
 
     void beginScope()
     {
@@ -97,7 +100,10 @@ private:
                current->locals[current->localCount - 1].depth >
                    current->scopeDepth)
         {
-            emitByte(OP_POP);
+            if(current->locals[current->localCount - 1].isCaptured)
+                emitByte(OP_CLOSE_UPVALUE);
+            else
+                emitByte(OP_POP);
             current->localCount--;
         }
     }

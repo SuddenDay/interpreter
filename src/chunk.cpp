@@ -23,7 +23,7 @@ std::ostream &operator<<(std::ostream &os, Opcode op)
 
 std::ostream &operator<<(std::ostream &os, const Chunk &chunk)
 {
-    for (int offset = 0; offset < static_cast<int>(chunk.bytecode.size());)
+    for (int offset = 0; offset < static_cast<int>(chunk.bytecode.size()); )
         offset = Util::disassembleInstruction(chunk, offset);
     return os;
 }

@@ -7,51 +7,51 @@
 #include "vm.hpp"
 
 Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), getRule({
-                                                                                                                               {TOKEN_LEFT_PAREN, {&Complication::grouping, &Complication::call, PREC_CALL}},
-                                                                                                                               {TOKEN_RIGHT_PAREN, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_LEFT_BRACE, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_RIGHT_BRACE, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_COMMA, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_DOT, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
-                                                                                                                               {TOKEN_PLUS, {NULL, &Complication::binary, PREC_TERM}},
-                                                                                                                               {TOKEN_SEMICOLON, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_SLASH, {NULL, &Complication::binary, PREC_FACTOR}},
-                                                                                                                               {TOKEN_STAR, {NULL, &Complication::binary, PREC_FACTOR}},
-                                                                                                                               {TOKEN_BANG, {&Complication::unary, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_BANG_EQUAL, {NULL, &Complication::binary, PREC_EQUALITY}},
-                                                                                                                               {TOKEN_EQUAL, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_EQUAL_EQUAL, {NULL, &Complication::binary, PREC_EQUALITY}},
-                                                                                                                               {TOKEN_GREATER, {NULL, &Complication::binary, PREC_COMPARISON}},
-                                                                                                                               {TOKEN_GREATER_EQUAL, {NULL, &Complication::binary, PREC_COMPARISON}},
-                                                                                                                               {TOKEN_LESS, {NULL, &Complication::binary, PREC_COMPARISON}},
-                                                                                                                               {TOKEN_LESS_EQUAL, {NULL, &Complication::binary, PREC_COMPARISON}},
-                                                                                                                               {TOKEN_IDENTIFIER, {&Complication::variable, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_STRING, {&Complication::string, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_NUMBER, {&Complication::number, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_AND, {NULL, &Complication::and_, PREC_AND}},
-                                                                                                                               {TOKEN_CLASS, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_ELSE, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_FALSE, {&Complication::literal, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_FOR, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_FUN, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_IF, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_NIL, {&Complication::literal, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_OR, {NULL, &Complication::or_, PREC_OR}},
-                                                                                                                               {TOKEN_PRINT, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_RETURN, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_SUPER, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_THIS, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_TRUE, {&Complication::literal, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_VAR, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_WHILE, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_ERROR, {NULL, NULL, PREC_NONE}},
-                                                                                                                               {TOKEN_EOF, {NULL, NULL, PREC_NONE}},
-                                                                                                                           })
+                                                                                    {TOKEN_LEFT_PAREN, {&Complication::grouping, &Complication::call, PREC_CALL}},
+                                                                                    {TOKEN_RIGHT_PAREN, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_LEFT_BRACE, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_RIGHT_BRACE, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_COMMA, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_DOT, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
+                                                                                    {TOKEN_PLUS, {NULL, &Complication::binary, PREC_TERM}},
+                                                                                    {TOKEN_SEMICOLON, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_SLASH, {NULL, &Complication::binary, PREC_FACTOR}},
+                                                                                    {TOKEN_STAR, {NULL, &Complication::binary, PREC_FACTOR}},
+                                                                                    {TOKEN_BANG, {&Complication::unary, NULL, PREC_NONE}},
+                                                                                    {TOKEN_BANG_EQUAL, {NULL, &Complication::binary, PREC_EQUALITY}},
+                                                                                    {TOKEN_EQUAL, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_EQUAL_EQUAL, {NULL, &Complication::binary, PREC_EQUALITY}},
+                                                                                    {TOKEN_GREATER, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                    {TOKEN_GREATER_EQUAL, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                    {TOKEN_LESS, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                    {TOKEN_LESS_EQUAL, {NULL, &Complication::binary, PREC_COMPARISON}},
+                                                                                    {TOKEN_IDENTIFIER, {&Complication::variable, NULL, PREC_NONE}},
+                                                                                    {TOKEN_STRING, {&Complication::string, NULL, PREC_NONE}},
+                                                                                    {TOKEN_NUMBER, {&Complication::number, NULL, PREC_NONE}},
+                                                                                    {TOKEN_AND, {NULL, &Complication::and_, PREC_AND}},
+                                                                                    {TOKEN_CLASS, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_ELSE, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_FALSE, {&Complication::literal, NULL, PREC_NONE}},
+                                                                                    {TOKEN_FOR, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_FUN, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_IF, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_NIL, {&Complication::literal, NULL, PREC_NONE}},
+                                                                                    {TOKEN_OR, {NULL, &Complication::or_, PREC_OR}},
+                                                                                    {TOKEN_PRINT, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_RETURN, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_SUPER, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_THIS, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_TRUE, {&Complication::literal, NULL, PREC_NONE}},
+                                                                                    {TOKEN_VAR, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_WHILE, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_ERROR, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_EOF, {NULL, NULL, PREC_NONE}},
+                                                                                })
 {
 }
 
-ObjFunction *Complication::compile(const std::string_view& source)
+ObjFunction *Complication::compile(const std::string_view &source)
 {
     parser = std::make_unique<Parser>(source);
     initCompiler(TYPE_SCRIPT);
@@ -59,8 +59,7 @@ ObjFunction *Complication::compile(const std::string_view& source)
     while (!match(TOKEN_EOF))
         declaration();
     consume(TOKEN_EOF, "Expect EOF in the end.");
-    auto function = endCompiler();
-
+    auto [function, done] = endCompiler();
     return parser->hadError ? nullptr : function;
 }
 
@@ -69,9 +68,9 @@ Chunk *Complication::currentChunk()
     return &current->function->chunk;
 }
 
-ObjFunction *Complication::endCompiler()
+auto Complication::endCompiler()->std::pair<ObjFunction*, std::unique_ptr<Compiler>>
 {
-    emitReturn();
+    emitReturn(); 
     ObjFunction *function = current->function;
 #ifdef DEBUG_MODE
     if (!parser->hadError)
@@ -83,8 +82,9 @@ ObjFunction *Complication::endCompiler()
             std::cout << "<script>" << " ===\n";
     }
 #endif
-    current = std::move(current->enclosing);
-    return function;
+	std::unique_ptr<Compiler> done = std::move(current);
+	current = std::move(done->enclosing);
+	return {function, std::move(done)};
 }
 
 void Complication::synchronize()
@@ -489,11 +489,16 @@ void Complication::varDeclaration()
 void Complication::namedVariable(Token name, bool canAssign)
 {
     Opcode getOp, setOp;
-    int arg = resolveLocal(current.get(), name);
+    int arg = resolveLocal(current, name);
     if (arg != -1)
     {
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
+    }
+    else if ((arg = resolveUpvalue(current, name)) != -1)
+    {
+        getOp = OP_GET_UPVALUE;
+        setOp = OP_SET_UPVALUE;
     }
     else
     {
@@ -512,11 +517,11 @@ void Complication::namedVariable(Token name, bool canAssign)
     }
 }
 
-int Complication::resolveLocal(Compiler *compiler, Token name)
+int Complication::resolveLocal(const std::unique_ptr<Compiler> &compiler, Token name)
 {
     for (int i = compiler->localCount - 1; i >= 0; i--)
     {
-        Local local = compiler->locals[i];
+        Local& local = compiler->locals[i];
         if (identifiersEqual(name, local.name))
         {
             if (local.depth == -1)
@@ -532,7 +537,8 @@ int Complication::resolveLocal(Compiler *compiler, Token name)
 
 void Complication::markInitialized() // when define function and define local variable used
 {
-    if(current->scopeDepth > 0) // at start all depth is -1
+    if(current->scopeDepth == 0) return ;
+    if (current->scopeDepth > 0) // at start all depth is -1
         current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
@@ -546,10 +552,55 @@ void Complication::initCompiler(FunctionType type)
 
     if (type != FunctionType::TYPE_SCRIPT)
         current->function->name = create_obj_string(parser->previous.string, vm);
-    Local &local = current->locals.at(current->localCount++);
+    Local &local = current->locals.at(current->localCount++); // why
     local.depth = 0;
+    local.isCaptured = false;
     local.name.string = std::string_view();
 }
+
+int Complication::resolveUpvalue(const std::unique_ptr<Compiler> &compiler, Token &name)
+{
+    if (compiler->enclosing == NULL)
+        return -1;
+    int local = resolveLocal(compiler->enclosing, name);
+    if (local != -1) {
+        compiler->enclosing->locals[local].isCaptured = true;
+        return addUpvalue(compiler, local, true);
+    }
+
+    int upvalue = resolveUpvalue(compiler->enclosing, name); // layer-by-layer
+                                                             // to add upvalue
+                                                             // and ensure concerned func
+                                                             // all have upvalue
+    if (upvalue != -1)
+      return addUpvalue(compiler, upvalue, false); // capture upvalue
+    
+    return -1;
+}
+
+
+int Complication::addUpvalue(const std::unique_ptr<Compiler> &compiler, int index, bool isLocal)
+{
+    int upvalueCount = compiler->function->upvalueCount; // outside function firstly add upvalue
+                                                         // and the outest one have 0 upvalueCount
+                                                         // because only after outside capture it,
+                                                         // can inside get upvalueCount and upvalue information
+    for (int i = 0; i < upvalueCount; i++)
+    {
+        Upvalue& upvalue = compiler->upvalues[i];
+        if (upvalue.index == index && upvalue.isLocal == isLocal) // index is about captured local-var
+            return i;                                             // isLocal is outside function's local-var
+    }                                                             // we shouldn't repeatedly add
+    if (upvalueCount == UINT8_MAX)
+    {
+        parser->error("Too many closure variables in function.");
+        return 0;
+    }
+    compiler->upvalues[upvalueCount].isLocal = isLocal;
+    compiler->upvalues[upvalueCount].index = index;
+    return compiler->function->upvalueCount++;
+}
+
 
 uint8_t Complication::parseVariable(const std::string &message)
 {
@@ -602,7 +653,7 @@ void Complication::declaration()
     if (match(TOKEN_FUN))
     {
         funDeclaration();
-    } 
+    }
     else if (match(TOKEN_VAR))
     {
         varDeclaration();
@@ -633,7 +684,7 @@ void Complication::declareVariable()
 void Complication::funDeclaration()
 {
     uint8_t global = parseVariable("Expect function name."); // before closure all function is global
-    markInitialized(); // why initialize
+    markInitialized();                                       // why initialize
     function(TYPE_FUNCTION);
     defineVariable(global);
 }
@@ -642,7 +693,7 @@ void Complication::function(FunctionType type)
 {
     initCompiler(type);
     beginScope();
-
+    
     consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
     if (!check(TOKEN_RIGHT_PAREN))
     {
@@ -659,8 +710,13 @@ void Complication::function(FunctionType type)
     consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
     block();
 
-    ObjFunction *function = endCompiler();
-    emitBytes(OP_CONSTANT, makeConstant(static_cast<Obj *>(function)));
+    auto [function, done] = endCompiler();
+    // emitBytes(OP_CONSTANT, makeConstant(static_cast<Obj *>(function)));
+    emitBytes(OP_CLOSURE, makeConstant(function));
+    for (int i = 0; i < function->upvalueCount; i++) {
+        emitByte(done->upvalues[i].isLocal ? 1 : 0);
+        emitByte(done->upvalues[i].index);
+    }
 }
 
 void Complication::addLocal(Token name)

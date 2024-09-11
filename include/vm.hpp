@@ -19,7 +19,7 @@ enum InterpretResult
     INTERPRET_RUNTIME_ERROR,
 };
 struct CallFrame {
-    ObjFunction* function = nullptr;
+    ObjClosure* closure = nullptr;
     uint8_t ip = 0;
     Value* slots = nullptr;
 
@@ -27,7 +27,6 @@ struct CallFrame {
 	Value read_constant();
 	uint16_t read_short();
 	ObjString* read_string();
-	//const Chunk& chunk()const noexcept;
 };
 class VM
 {
@@ -42,10 +41,12 @@ public:
     void resetStack();
     Value pop();
     Value peek(int distance);
+    void closeUpvalues(Value* last);
 
     bool callValue(const Value& callee, uint8_t arg_count);
-    bool call(ObjFunction* function, int argCount);
+    bool call(ObjClosure* closure, int argCount);
 
+    ObjUpvalue* captureUpvalue(Value* local);
 
 	template<typename... Args>
 	void runtimeError(Args&&... args);
@@ -59,6 +60,7 @@ public:
     int frameCount = 0;
     Table globals;
     int top = 0;
+    ObjUpvalue* openUpvalues = nullptr;
     std::vector<Value> stack;
     GC gc;
 };

@@ -57,8 +57,6 @@ struct GC
 	size_t bytes_allocated = 0;
 	size_t next_gc = 1024 * 1024;
 
-	bool running = false;
-
 	VM& vm;
 
 	explicit GC(VM& vm)noexcept
@@ -70,7 +68,7 @@ struct GC
 
 private:
 	void mark_roots();
-	void mark_array(const std::vector<Value>& array);
+	void mark_array(const std::vector<Value, Allocator<Value>>& array);
 	void mark_compiler_roots();
 	void mark_object(Obj* const ptr);
 	void mark_table(const Table& table);
@@ -117,8 +115,7 @@ T* Allocator<T>::allocate(std::size_t n)
 	{
 		//std::cout<<"allocate: " << alloc_size << std::endl;
 		gc->bytes_allocated += alloc_size;
-		if(gc->running) 
-			 gc->collect(); // if open this stress-test, when insert global variant, 
+		gc->collect(); // if open this stress-test, when insert global variant, 
 		// // will call gc->collect meanwhile vm->stack has required objstring, 
 		// // and delete all in stack, maybe when callframe can fix it?
 		// if (gc->bytes_allocated > gc->next_gc && gc->running)
@@ -133,6 +130,5 @@ void Allocator<T>::deallocate(T* p, std::size_t n)
 	worker_traits::deallocate(worker, p, n);
 	if (gc != nullptr) {
 		gc->bytes_allocated -= sizeof(T) * n;
-		// std::cout<<"deallocate: " << sizeof(T) * n << std::endl;
 	}
 }

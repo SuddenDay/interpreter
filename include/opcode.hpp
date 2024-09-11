@@ -25,6 +25,10 @@
     X(OP_JUMP) \
     X(OP_LOOP) \
     X(OP_CALL) \
+    X(OP_CLOSURE) \
+    X(OP_GET_UPVALUE) \
+    X(OP_SET_UPVALUE) \
+    X(OP_CLOSE_UPVALUE) \
 
 enum Opcode
 {

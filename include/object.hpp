@@ -28,7 +28,7 @@ auto delete_obj(Alloc<T>& a, T* ptr)
 struct ObjFunction : public Obj
 {
 	int arity = 0;
-	int upvalue_count = 0;
+	int upvalueCount = 0;
 	Chunk chunk;
 	ObjString* name = nullptr;
 
@@ -39,7 +39,7 @@ std::ostream& operator<<(std::ostream& out, const ObjFunction& f);
 
 using NativeFn = std::function<Value(int argCount, Value* args)>;
 
-struct ObjNative final :public Obj
+struct ObjNative : public Obj
 {
 	NativeFn function;
 	std::string_view name;
@@ -51,29 +51,34 @@ struct ObjNative final :public Obj
 };
 std::ostream& operator<<(std::ostream& out, const ObjNative& s);
 
-// struct ObjUpvalue final :public Obj
-// {
-// 	Value* location;
-// 	Value closed;
-// 	ObjUpvalue* next = nullptr;
+struct Upvalue {
+	bool isLocal;
+	int index;
+};
 
-// 	constexpr explicit ObjUpvalue(Value* slot)noexcept
-// 		:Obj(ObjType::Upvalue), location(slot)
-// 	{
-// 	}
-// };
-// std::ostream& operator<<(std::ostream& out, const ObjUpvalue& s);
+struct ObjUpvalue : public Obj
+{
+	Value* location;
+	Value closed;
+	ObjUpvalue* next = nullptr;
 
-// struct ObjClosure final :public Obj
-// {
-// 	ObjFunction* const function;
-// 	std::vector<ObjUpvalue*, Allocator<ObjUpvalue*>> upvalues;
+	ObjUpvalue(Value* slot)
+		: Obj(ObjType::Upvalue),  location(slot), closed(Value())
+	{
+	}
+};
+std::ostream& operator<<(std::ostream& out, const ObjUpvalue& s);
 
-// 	explicit ObjClosure(ObjFunction* func);
+struct ObjClosure : public Obj
+{
+	ObjFunction* function;
+	std::vector<ObjUpvalue*, Allocator<ObjUpvalue*>> upvalues;
 
-// 	constexpr size_t upvalue_count()const noexcept { return upvalues.size(); }
-// };
-// std::ostream& operator<<(std::ostream& out, const ObjClosure& s);
+	ObjClosure(ObjFunction* func) : Obj(ObjType::Closure), function(func), upvalues(func->upvalueCount, nullptr) {}
+
+	int upvalueCount() { return upvalues.size(); }
+};
+std::ostream& operator<<(std::ostream& out, const ObjClosure& s);
 
 // struct ObjClass final :public Obj
 // {
@@ -149,9 +154,9 @@ constexpr auto objtype_of()
 	// 	return ObjType::BoundMethod;
 	// else if constexpr (std::is_same_v<T, ObjClass>)
 	// 	return ObjType::Class;
-	// else if constexpr (std::is_same_v<T, ObjClosure>)
-	// 	return ObjType::Closure;
-	if constexpr (std::is_same_v<T, ObjFunction>)
+	if constexpr (std::is_same_v<T, ObjClosure>)
+		return ObjType::Closure;
+	else if constexpr (std::is_same_v<T, ObjFunction>)
 		return ObjType::Function;
 	// else if constexpr (std::is_same_v<T, ObjInstance>)
 	// 	return ObjType::Instance;
@@ -159,8 +164,8 @@ constexpr auto objtype_of()
 		return ObjType::Native;
 	else if constexpr (std::is_same_v<T, ObjString>)
 		return ObjType::String;
-	// else if constexpr (std::is_same_v<T, ObjUpvalue>)
-	// 	return ObjType::Upvalue;
+	else if constexpr (std::is_same_v<T, ObjUpvalue>)
+		return ObjType::Upvalue;
 }
 
 template<typename T>

@@ -188,10 +188,10 @@ CMakeFiles/main.dir/src/memory.cpp.o: \
  /home/ace/interpreter/include/table.hpp /usr/include/c++/11/map \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /home/ace/interpreter/include/obj.hpp \
  /home/ace/interpreter/include/value.hpp \
  /home/ace/interpreter/include/common.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
+ /home/ace/interpreter/include/obj.hpp \
  /home/ace/interpreter/include/object.hpp \
  /home/ace/interpreter/include/chunk.hpp \
  /home/ace/interpreter/include/util.hpp \

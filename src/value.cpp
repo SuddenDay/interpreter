@@ -76,6 +76,8 @@ template auto Value::is_obj_type<ObjFunction>() const -> typename std::enable_if
 template auto Value::as_obj<ObjFunction>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjFunction> && !std::is_same_v<Obj, ObjFunction>, ObjFunction*>;
 template auto Value::is_obj_type<ObjNative>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjNative> && !std::is_same_v<Obj, ObjNative>, bool>;
 template auto Value::as_obj<ObjNative>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjNative> && !std::is_same_v<Obj, ObjNative>, ObjNative*>;
+template auto Value::is_obj_type<ObjClosure>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClosure> && !std::is_same_v<Obj, ObjClosure>, bool>;
+template auto Value::as_obj<ObjClosure>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClosure> && !std::is_same_v<Obj, ObjClosure>, ObjClosure*>;
 
 
 template <typename U>
@@ -98,6 +100,13 @@ auto Value::as_obj() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U
 		throw std::invalid_argument(std::string("Value is not a ") + nameof<U>().data());
 }
 
+bool operator==(const std::monostate nil, const Obj* obj) {
+	return obj == nullptr;
+}
+bool operator==(const Obj* obj, const std::monostate nil) {
+	return obj == nullptr;
+}
+
 bool operator==(const Value &v1, const Value &v2)
 {
 	return v1.value == v2.value;
@@ -105,7 +114,7 @@ bool operator==(const Value &v1, const Value &v2)
 
 bool operator!=(const Value &v1, const Value &v2)
 {
-	return v1.value != v2.value;
+	return !(v1 == v2);
 }
 
 template <typename Op>
@@ -115,13 +124,10 @@ Value Value::performOperation(const Value &other, Op op) const
 		return Value(op(as<int>(), other.as<int>()));
 	throw std::runtime_error("PerformOperation only used for number.");
 }
-void test() {
 
-}
 
 std::ostream &operator<<(std::ostream &os, const Value &value)
 {
-	test();
 	std::visit([&os](auto &&arg)
 			   {
                    using T = std::decay_t<decltype(arg)>;

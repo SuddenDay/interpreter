@@ -20,22 +20,21 @@ void GC::collect()
 
 void GC::mark_roots()
 {
-	for (auto slot = 0; slot < vm.top; ++slot) {
+	for (auto slot = 0; slot < vm.top; ++slot)
 		mark_value(vm.stack[slot]);
-	}
 
-	// for (size_t i = 0; i < vm.frame_count; i++)
-	// 	mark_object(std::remove_const_t<ObjClosure*>(vm.frames.at(i).closure));
+	for (int i = 0; i < vm.frameCount; i++)
+		mark_object(std::remove_const_t<ObjClosure*>(vm.frames.at(i).closure));
 
-	// for (auto upvalue = vm.open_upvalues; upvalue != nullptr; upvalue = upvalue->next)
-	// 	mark_object(upvalue);
+	for (auto upvalue = vm.openUpvalues; upvalue != nullptr; upvalue = upvalue->next)
+		mark_object(upvalue);
 
 	mark_table(vm.globals);
 	mark_compiler_roots();
 	// mark_object(vm.init_string);
 }
 
-void GC::mark_array(const std::vector<Value>& array)
+void GC::mark_array(const std::vector<Value, Allocator<Value>>& array)
 {
 	for (auto& value : array)
 		mark_value(value);
@@ -43,12 +42,12 @@ void GC::mark_array(const std::vector<Value>& array)
 
 void GC::mark_compiler_roots()
 {
-	// auto compiler = vm.cu.current.get();
-	// while (compiler != nullptr)
-	// {
-	// 	mark_object(compiler->function);
-	// 	compiler = compiler->enclosing.get();
-	// }
+	auto compiler = vm.cu.current.get();
+	while (compiler != nullptr)
+	{
+		mark_object(compiler->function);
+		compiler = compiler->enclosing.get();
+	}
 }
 
 void GC::mark_object(Obj* const ptr)
@@ -103,14 +102,14 @@ void GC::blacken_object(Obj* ptr)
 		// 	mark_table(klass->methods);
 		// 	break;
 		// }
-		// case ObjType::Closure:
-		// {
-		// 	auto closure = static_cast<ObjClosure*>(ptr);
-		// 	mark_object(closure->function);
-		// 	for (auto v : closure->upvalues)
-		// 		mark_object(v);
-		// 	break;
-		// }
+		case ObjType::Closure:
+		{
+			auto closure = static_cast<ObjClosure*>(ptr);
+			mark_object(closure->function);
+			for (auto v : closure->upvalues)
+				mark_object(v);
+			break;
+		}
 		case ObjType::Function:
 		{
 			auto function = static_cast<ObjFunction*>(ptr);
@@ -125,10 +124,10 @@ void GC::blacken_object(Obj* ptr)
 		// 	mark_table(instance->fields);
 		// 	break;
 		// }
-		// case ObjType::Upvalue:
-		// 	mark_value(static_cast<ObjUpvalue*>(ptr)->closed);
-		// 	break;
-		// case ObjType::Native:
+		case ObjType::Upvalue:
+			mark_value(static_cast<ObjUpvalue*>(ptr)->closed);
+			break;
+		case ObjType::Native:
 		case ObjType::String:
 		default:
 			break;

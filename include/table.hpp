@@ -1,11 +1,10 @@
 #pragma once
 #include <map>
+#include "value.hpp"
 
-struct Value;
 struct ObjString;
 
-// template<typename T>
-// struct Allocator;
+template<typename T>
+struct Allocator;
 
-//using Table = std::map<ObjString*, Value, std::less<ObjString*>, Allocator<std::pair<ObjString* const, Value>>>;
-using Table = std::map<ObjString*, Value>;
+using Table = std::map<ObjString*, Value, std::less<ObjString*>, Allocator<std::pair<ObjString* const, Value>>>;
