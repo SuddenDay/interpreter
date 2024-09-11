@@ -95,13 +95,13 @@ void GC::blacken_object(Obj* ptr)
 		// 	mark_object(bound->method);
 		// 	break;
 		// }
-		// case ObjType::Class:
-		// {
-		// 	auto klass = static_cast<ObjClass*>(ptr);
-		// 	mark_object(klass->name);
-		// 	mark_table(klass->methods);
-		// 	break;
-		// }
+		case ObjType::Class:
+		{
+			auto objClass = static_cast<ObjClass*>(ptr);
+			mark_object(objClass->name);
+			mark_table(objClass->methods);
+			break;
+		}
 		case ObjType::Closure:
 		{
 			auto closure = static_cast<ObjClosure*>(ptr);
@@ -117,13 +117,13 @@ void GC::blacken_object(Obj* ptr)
 			mark_array(function->chunk.constants);
 			break;
 		}
-		// case ObjType::Instance:
-		// {
-		// 	auto instance = static_cast<ObjInstance*>(ptr);
-		// 	mark_object(instance->klass);
-		// 	mark_table(instance->fields);
-		// 	break;
-		// }
+		case ObjType::Instance:
+		{
+			auto instance = static_cast<ObjInstance*>(ptr);
+			mark_object(instance->objClass);
+			mark_table(instance->fields);
+			break;
+		}
 		case ObjType::Upvalue:
 			mark_value(static_cast<ObjUpvalue*>(ptr)->closed);
 			break;

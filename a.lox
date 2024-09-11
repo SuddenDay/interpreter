@@ -1,9 +1,5 @@
-fun main() {
-  var a = "first value";
-  a = "update " + a;
-  a = "hhh";
-  print a;
-  return ;
-}
-
-print main();
+class Pair {}
+var pair = Pair();
+pair.first = 1;
+pair.second = 2;
+print pair.first + pair.second;

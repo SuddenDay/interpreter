@@ -80,29 +80,29 @@ struct ObjClosure : public Obj
 };
 std::ostream& operator<<(std::ostream& out, const ObjClosure& s);
 
-// struct ObjClass final :public Obj
-// {
-// 	ObjString* const name;
-// 	table methods;
+struct ObjClass : public Obj
+{
+	ObjString* const name;
+	Table methods;
 
-// 	ObjClass(ObjString* name) noexcept
-// 		:Obj(ObjType::Class), name(name)
-// 	{
-// 	}
-// };
-// std::ostream& operator<<(std::ostream& out, const ObjClass& c);
+	ObjClass(ObjString* name) 
+		:Obj(ObjType::Class), name(name)
+	{
+	}
+};
+std::ostream& operator<<(std::ostream& out, const ObjClass& c);
 
-// struct ObjInstance final :public Obj
-// {
-// 	ObjClass* const klass;
-// 	table fields;
+struct ObjInstance : public Obj
+{
+	ObjClass* const objClass;
+	Table fields;
 
-// 	explicit ObjInstance(ObjClass* klass)
-// 		:Obj(ObjType::Instance), klass(klass)
-// 	{
-// 	}
-// };
-// std::ostream& operator<<(std::ostream& out, const ObjInstance& ins);
+	ObjInstance(ObjClass* objClass)
+		:Obj(ObjType::Instance), objClass(objClass)
+	{
+	}
+};
+std::ostream& operator<<(std::ostream& out, const ObjInstance& ins);
 
 // struct ObjBoundMethod :public Obj
 // {
@@ -152,14 +152,14 @@ constexpr auto objtype_of()
 {
 	// if constexpr (std::is_same_v<T, ObjBoundMethod>)
 	// 	return ObjType::BoundMethod;
-	// else if constexpr (std::is_same_v<T, ObjClass>)
-	// 	return ObjType::Class;
-	if constexpr (std::is_same_v<T, ObjClosure>)
+	if constexpr (std::is_same_v<T, ObjClass>)
+		return ObjType::Class;
+	else if constexpr (std::is_same_v<T, ObjClosure>)
 		return ObjType::Closure;
 	else if constexpr (std::is_same_v<T, ObjFunction>)
 		return ObjType::Function;
-	// else if constexpr (std::is_same_v<T, ObjInstance>)
-	// 	return ObjType::Instance;
+	else if constexpr (std::is_same_v<T, ObjInstance>)
+		return ObjType::Instance;
 	else if constexpr (std::is_same_v<T, ObjNative>)
 		return ObjType::Native;
 	else if constexpr (std::is_same_v<T, ObjString>)

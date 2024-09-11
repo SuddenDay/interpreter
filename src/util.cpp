@@ -50,6 +50,9 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_DEFINE_GLOBAL:
     case Opcode::OP_SET_GLOBAL:
     case Opcode::OP_CONSTANT:
+    case Opcode::OP_GET_PROPERTY:
+    case Opcode::OP_SET_PROPERTY:
+    case Opcode::OP_CLASS:
     {
         int index = chunk.getCodeAt(offset + 1); // can't use uint8 because unsigned char is null
         std::cout << "  " << instruction << " [" << index << "] " << chunk.getConstAt(index)

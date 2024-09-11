@@ -25,28 +25,14 @@ bool VM::callValue(const Value &callee, uint8_t argCount)
             // 		stacktop[-arg_count - 1] = bound->receiver;
             // 		return call(bound->method, arg_count);
             // 	}
-            // 	case ObjType::Class:
-            // 	{
-            // 		auto klass = callee.as_obj<ObjClass>();
-            // 		stacktop[-arg_count - 1] = create_obj<ObjInstance>(gc, klass);
-            // 		try
-            // 		{
-            // 			auto& initializer = klass->methods.at(init_string);
-            // 			return call(initializer.as_obj<ObjClosure>(), arg_count);
-            // 		} catch (const std::out_of_range&)
-            // 		{
-            // 			if (arg_count != 0)
-            // 			{
-            // 				runtime_error("Expected 0 arguments but got ", arg_count, " .");
-            // 				return false;
-            // 			}
-            // 		}
-            // 		return true;
-            // 	}
+        case ObjType::Class:
+        {
+            auto kclass = callee.as_obj<ObjClass>();
+            stack.at(top - 1 - argCount) = create_obj<ObjInstance>(gc, kclass);
+            return true;
+        }
         case ObjType::Closure:
             return call(callee.as_obj<ObjClosure>(), argCount); // add new frame
-        // case ObjType::Function:
-        //     return call(callee.as_obj<ObjFunction>(), argCount);
         case ObjType::Native:
         {
             auto native = callee.as_obj<ObjNative>()->function;
@@ -140,7 +126,6 @@ InterpretResult VM::run()
     CallFrame *frame = &frames[frameCount - 1];
     for (;;)
     {
-        //   gc.collect();
 #ifdef DEBUG_MODE
         printf("           stackframe: ");
         for (int i = 0; i < top; i++)
@@ -373,6 +358,33 @@ InterpretResult VM::run()
             *frame->closure->upvalues[slot]->location = peek(0);
             break;
         }
+        case OP_CLASS:
+        {
+            push(create_obj<ObjClass>(gc, frame->read_string()));
+            break;
+        }
+        case OP_GET_PROPERTY:
+        {
+            auto instance = peek(0).as_obj<ObjInstance>();
+            auto name = frame->read_string();
+            if (instance->fields.find(name) == instance->fields.end())
+            {
+                runtimeError("Undefined property ", *name, ".");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            pop();
+            push(instance->fields.at(name));
+            break;
+        }
+        case OP_SET_PROPERTY:
+        {
+            auto instance = peek(1).as_obj<ObjInstance>();
+            instance->fields.insert_or_assign(frame->read_string(), peek(0));
+            Value value = pop();
+            pop();
+            push(value);
+            break;
+        }
         default:
             std::cout << Opcode(instruction) << " error" << std::endl;
             break;
@@ -429,8 +441,7 @@ bool VM::Binary_OP(Operator op)
             (a.is_obj() && b.is_obj()) ||
             (a.is_nil() && b.is_nil()) ||
             (a.is_nil() && b.is_obj()) ||
-            (a.is_obj() && b.is_nil()))
-        )
+            (a.is_obj() && b.is_nil())))
     {
         runtimeError("Operands do not fit");
         return false;

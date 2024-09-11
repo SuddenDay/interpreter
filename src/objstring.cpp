@@ -6,6 +6,7 @@
 
 template ObjString *create_obj_string(std::string_view& str, VM &vm);
 template ObjString *create_obj_string(std::string_view&& str, VM &vm);
+template ObjString *create_obj_string(std::basic_string_view<char, std::char_traits<char> > const& str, VM &vm);
 
 template <typename T>
 ObjString *create_obj_string(T &&str, VM &vm)

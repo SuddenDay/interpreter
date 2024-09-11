@@ -36,22 +36,34 @@ std::ostream &operator<<(std::ostream &out, const ObjClosure &s)
 	return out;
 }
 
+std::ostream &operator<<(std::ostream &out, const ObjClass &c)
+{
+	out << "<class " << *c.name <<">";
+	return out;
+}
+
+std::ostream &operator<<(std::ostream &out, const ObjInstance &ins)
+{
+	out << "<instance " << *ins.objClass << ">";
+	return out;
+}
+
 std::ostream& operator<<(std::ostream& out, const Obj& obj)
 {
 	switch (obj.type)
 	{
-		// case ObjType::Class:
-		// 	out << static_cast<const ObjClass&>(obj);
-		// 	break;
+		case ObjType::Class:
+			out << static_cast<const ObjClass&>(obj);
+			break;
 		case ObjType::Closure:
 			out << static_cast<const ObjClosure&>(obj);
 			break;
 		case ObjType::Function:
 			out << static_cast<const ObjFunction&>(obj);
 			break;
-		// case ObjType::Instance:
-		// 	out << static_cast<const ObjInstance&>(obj);
-		// 	break;
+		case ObjType::Instance:
+			out << static_cast<const ObjInstance&>(obj);
+			break;
 		case ObjType::Native:
 			out << static_cast<const ObjNative&>(obj);
 			break;

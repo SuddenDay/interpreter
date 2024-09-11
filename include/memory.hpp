@@ -115,11 +115,10 @@ T* Allocator<T>::allocate(std::size_t n)
 	{
 		//std::cout<<"allocate: " << alloc_size << std::endl;
 		gc->bytes_allocated += alloc_size;
-		gc->collect(); // if open this stress-test, when insert global variant, 
+		if (gc->bytes_allocated > gc->next_gc)
+			gc->collect(); // if open this stress-test, when insert global variant, 
 		// // will call gc->collect meanwhile vm->stack has required objstring, 
 		// // and delete all in stack, maybe when callframe can fix it?
-		// if (gc->bytes_allocated > gc->next_gc && gc->running)
-		// 	gc->collect();
 	}
 	return p;
 }

@@ -57,6 +57,7 @@ public:
     void literal(bool canAssign);
     void string(bool canAssign);
     void variable(bool canAssign);
+    void dot(bool canAssign);
     void statement();
     void block();
     void whileStatement();
@@ -70,7 +71,7 @@ public:
     void function(FunctionType type);
     void namedVariable(Token name, bool canAssign);
     uint8_t parseVariable(const std::string &message);
-    uint8_t identifierConstant(Token token);
+    uint8_t identifierConstant(const Token& token);
     int emitJump(Opcode instruction);
     void patchJump(int offset);
     bool check(TokenType type);
@@ -78,13 +79,14 @@ public:
     void declaration();
     void defineVariable(uint8_t global);
     void declareVariable();
+    void classDeclaration();
     void funDeclaration();
     void addLocal(Token name);
     bool identifiersEqual(Token a, Token b);
     void markInitialized();
     void initCompiler(FunctionType type);
     int resolveUpvalue(const std::unique_ptr<Compiler> &compiler, Token &name);
-    int resolveLocal(const std::unique_ptr<Compiler> &compiler, Token name);
+    int resolveLocal(const std::unique_ptr<Compiler> &compiler, const Token& name);
     int addUpvalue(const std::unique_ptr<Compiler> &compiler, int index,
                    bool isLocal);
 

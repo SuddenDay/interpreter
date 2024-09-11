@@ -12,7 +12,7 @@ Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), 
                                                                                     {TOKEN_LEFT_BRACE, {NULL, NULL, PREC_NONE}},
                                                                                     {TOKEN_RIGHT_BRACE, {NULL, NULL, PREC_NONE}},
                                                                                     {TOKEN_COMMA, {NULL, NULL, PREC_NONE}},
-                                                                                    {TOKEN_DOT, {NULL, NULL, PREC_NONE}},
+                                                                                    {TOKEN_DOT, {NULL, &Complication::dot, PREC_CALL}},
                                                                                     {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
                                                                                     {TOKEN_PLUS, {NULL, &Complication::binary, PREC_TERM}},
                                                                                     {TOKEN_SEMICOLON, {NULL, NULL, PREC_NONE}},
@@ -68,9 +68,9 @@ Chunk *Complication::currentChunk()
     return &current->function->chunk;
 }
 
-auto Complication::endCompiler()->std::pair<ObjFunction*, std::unique_ptr<Compiler>>
+auto Complication::endCompiler() -> std::pair<ObjFunction *, std::unique_ptr<Compiler>>
 {
-    emitReturn(); 
+    emitReturn();
     ObjFunction *function = current->function;
 #ifdef DEBUG_MODE
     if (!parser->hadError)
@@ -82,9 +82,9 @@ auto Complication::endCompiler()->std::pair<ObjFunction*, std::unique_ptr<Compil
             std::cout << "<script>" << " ===\n";
     }
 #endif
-	std::unique_ptr<Compiler> done = std::move(current);
-	current = std::move(done->enclosing);
-	return {function, std::move(done)};
+    std::unique_ptr<Compiler> done = std::move(current);
+    current = std::move(done->enclosing);
+    return {function, std::move(done)};
 }
 
 void Complication::synchronize()
@@ -342,6 +342,22 @@ void Complication::block()
     consume(TOKEN_RIGHT_BRACE, "block only have left right brace.");
 }
 
+void Complication::dot(bool canAssign)
+{
+    consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
+    uint8_t name = identifierConstant(parser->previous);
+
+    if (canAssign && match(TOKEN_EQUAL))
+    {
+        expression();
+        emitBytes(OP_SET_PROPERTY, name);
+    }
+    else
+    {
+        emitBytes(OP_GET_PROPERTY, name);
+    }
+}
+
 void Complication::whileStatement()
 {
     int loopStart = currentChunk()->bytecode.size();
@@ -517,11 +533,11 @@ void Complication::namedVariable(Token name, bool canAssign)
     }
 }
 
-int Complication::resolveLocal(const std::unique_ptr<Compiler> &compiler, Token name)
+int Complication::resolveLocal(const std::unique_ptr<Compiler> &compiler, const Token &name)
 {
     for (int i = compiler->localCount - 1; i >= 0; i--)
     {
-        Local& local = compiler->locals[i];
+        Local &local = compiler->locals[i];
         if (identifiersEqual(name, local.name))
         {
             if (local.depth == -1)
@@ -537,7 +553,8 @@ int Complication::resolveLocal(const std::unique_ptr<Compiler> &compiler, Token 
 
 void Complication::markInitialized() // when define function and define local variable used
 {
-    if(current->scopeDepth == 0) return ;
+    if (current->scopeDepth == 0)
+        return;
     if (current->scopeDepth > 0) // at start all depth is -1
         current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
@@ -563,7 +580,8 @@ int Complication::resolveUpvalue(const std::unique_ptr<Compiler> &compiler, Toke
     if (compiler->enclosing == NULL)
         return -1;
     int local = resolveLocal(compiler->enclosing, name);
-    if (local != -1) {
+    if (local != -1)
+    {
         compiler->enclosing->locals[local].isCaptured = true;
         return addUpvalue(compiler, local, true);
     }
@@ -573,11 +591,10 @@ int Complication::resolveUpvalue(const std::unique_ptr<Compiler> &compiler, Toke
                                                              // and ensure concerned func
                                                              // all have upvalue
     if (upvalue != -1)
-      return addUpvalue(compiler, upvalue, false); // capture upvalue
-    
+        return addUpvalue(compiler, upvalue, false); // capture upvalue
+
     return -1;
 }
-
 
 int Complication::addUpvalue(const std::unique_ptr<Compiler> &compiler, int index, bool isLocal)
 {
@@ -587,10 +604,10 @@ int Complication::addUpvalue(const std::unique_ptr<Compiler> &compiler, int inde
                                                          // can inside get upvalueCount and upvalue information
     for (int i = 0; i < upvalueCount; i++)
     {
-        Upvalue& upvalue = compiler->upvalues[i];
+        Upvalue &upvalue = compiler->upvalues[i];
         if (upvalue.index == index && upvalue.isLocal == isLocal) // index is about captured local-var
             return i;                                             // isLocal is outside function's local-var
-    }                                                             // we shouldn't repeatedly add
+    } // we shouldn't repeatedly add
     if (upvalueCount == UINT8_MAX)
     {
         parser->error("Too many closure variables in function.");
@@ -601,7 +618,6 @@ int Complication::addUpvalue(const std::unique_ptr<Compiler> &compiler, int inde
     return compiler->function->upvalueCount++;
 }
 
-
 uint8_t Complication::parseVariable(const std::string &message)
 {
     consume(TOKEN_IDENTIFIER, message);
@@ -611,7 +627,7 @@ uint8_t Complication::parseVariable(const std::string &message)
     return identifierConstant(parser->previous);
 }
 
-uint8_t Complication::identifierConstant(Token token)
+uint8_t Complication::identifierConstant(const Token &token)
 {
     auto name = create_obj_string(token.string, vm);
     return makeConstant(name);
@@ -650,6 +666,10 @@ bool Complication::match(TokenType type)
 
 void Complication::declaration()
 {
+    if (match(TOKEN_CLASS))
+    {
+        classDeclaration();
+    }
     if (match(TOKEN_FUN))
     {
         funDeclaration();
@@ -681,6 +701,19 @@ void Complication::declareVariable()
     addLocal(name);
 }
 
+void Complication::classDeclaration()
+{
+    consume(TOKEN_IDENTIFIER, "Expect class name.");
+    uint8_t nameConstant = identifierConstant(parser->previous);
+    declareVariable();
+
+    emitBytes(OP_CLASS, nameConstant);
+    defineVariable(nameConstant);
+
+    consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
+    consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
+}
+
 void Complication::funDeclaration()
 {
     uint8_t global = parseVariable("Expect function name."); // before closure all function is global
@@ -693,7 +726,7 @@ void Complication::function(FunctionType type)
 {
     initCompiler(type);
     beginScope();
-    
+
     consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
     if (!check(TOKEN_RIGHT_PAREN))
     {
@@ -713,7 +746,8 @@ void Complication::function(FunctionType type)
     auto [function, done] = endCompiler();
     // emitBytes(OP_CONSTANT, makeConstant(static_cast<Obj *>(function)));
     emitBytes(OP_CLOSURE, makeConstant(function));
-    for (int i = 0; i < function->upvalueCount; i++) {
+    for (int i = 0; i < function->upvalueCount; i++)
+    {
         emitByte(done->upvalues[i].isLocal ? 1 : 0);
         emitByte(done->upvalues[i].index);
     }

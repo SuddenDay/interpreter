@@ -78,6 +78,10 @@ template auto Value::is_obj_type<ObjNative>() const -> typename std::enable_if_t
 template auto Value::as_obj<ObjNative>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjNative> && !std::is_same_v<Obj, ObjNative>, ObjNative*>;
 template auto Value::is_obj_type<ObjClosure>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClosure> && !std::is_same_v<Obj, ObjClosure>, bool>;
 template auto Value::as_obj<ObjClosure>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClosure> && !std::is_same_v<Obj, ObjClosure>, ObjClosure*>;
+template auto Value::is_obj_type<ObjClass>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClass> && !std::is_same_v<Obj, ObjClass>, bool>;
+template auto Value::as_obj<ObjClass>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClass> && !std::is_same_v<Obj, ObjClass>, ObjClass*>;
+template auto Value::is_obj_type<ObjInstance>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjInstance> && !std::is_same_v<Obj, ObjInstance>, bool>;
+template auto Value::as_obj<ObjInstance>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjInstance> && !std::is_same_v<Obj, ObjInstance>, ObjInstance*>;
 
 
 template <typename U>

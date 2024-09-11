@@ -29,6 +29,9 @@
     X(OP_GET_UPVALUE) \
     X(OP_SET_UPVALUE) \
     X(OP_CLOSE_UPVALUE) \
+    X(OP_CLASS) \
+    X(OP_SET_PROPERTY) \
+    X(OP_GET_PROPERTY) \
 
 enum Opcode
 {
