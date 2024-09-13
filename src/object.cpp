@@ -48,6 +48,12 @@ std::ostream &operator<<(std::ostream &out, const ObjInstance &ins)
 	return out;
 }
 
+std::ostream &operator<<(std::ostream &out, const ObjBoundMethod &bm)
+{
+	out << "<method " << *bm.method->function << ">";
+	return out;
+}
+
 std::ostream& operator<<(std::ostream& out, const Obj& obj)
 {
 	switch (obj.type)
@@ -72,6 +78,9 @@ std::ostream& operator<<(std::ostream& out, const Obj& obj)
 			break;
 		case ObjType::Upvalue:
 			out << static_cast<const ObjUpvalue&>(obj);
+			break;
+		case ObjType::BoundMethod:
+			out << static_cast<const ObjBoundMethod&>(obj);
 			break;
 		default:
 			throw std::invalid_argument("Unexpected ObjType:: Output failed");

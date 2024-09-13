@@ -31,7 +31,7 @@ void GC::mark_roots()
 
 	mark_table(vm.globals);
 	mark_compiler_roots();
-	// mark_object(vm.init_string);
+	mark_object(vm.initString);
 }
 
 void GC::mark_array(const std::vector<Value, Allocator<Value>>& array)
@@ -88,13 +88,13 @@ void GC::blacken_object(Obj* ptr)
 {
 	switch (ptr->type)
 	{
-		// case ObjType::BoundMethod:
-		// {
-		// 	auto bound = static_cast<ObjBoundMethod*>(ptr);
-		// 	mark_value(bound->receiver);
-		// 	mark_object(bound->method);
-		// 	break;
-		// }
+		case ObjType::BoundMethod:
+		{
+			auto bound = static_cast<ObjBoundMethod*>(ptr);
+			mark_value(bound->receiver);
+			mark_object(bound->method);
+			break;
+		}
 		case ObjType::Class:
 		{
 			auto objClass = static_cast<ObjClass*>(ptr);

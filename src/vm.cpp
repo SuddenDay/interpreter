@@ -10,6 +10,7 @@
 VM::VM() : cu(*this), globals(), stack(STACK_MAX), gc(*this)
 {
     AllocBase::init(&gc);
+    initString = create_obj_string(std::string_view("init"), *this);
     defineNative("clock", Native::clock);
 }
 
@@ -19,16 +20,28 @@ bool VM::callValue(const Value &callee, uint8_t argCount)
     {
         switch (callee.as<Obj *>()->type)
         {
-            // 	case ObjType::BoundMethod:
-            // 	{
-            // 		auto bound = callee.as_obj<ObjBoundMethod>();
-            // 		stacktop[-arg_count - 1] = bound->receiver;
-            // 		return call(bound->method, arg_count);
-            // 	}
+        case ObjType::BoundMethod:
+        {
+            auto bound = callee.as_obj<ObjBoundMethod>();
+            stack[top - argCount - 1] = bound->receiver;
+            return call(bound->method, argCount);
+        }
         case ObjType::Class:
         {
-            auto kclass = callee.as_obj<ObjClass>();
-            stack.at(top - 1 - argCount) = create_obj<ObjInstance>(gc, kclass);
+            auto klass = callee.as_obj<ObjClass>();
+            stack.at(top - 1 - argCount) = create_obj<ObjInstance>(gc, klass);
+            Value initializer;
+            if (klass->methods.find(initString) != klass->methods.end())
+            {
+                initializer = klass->methods.at(initString);
+                return call(initializer.as_obj<ObjClosure>(), argCount);
+            }
+            else if (argCount != 0)
+            {
+                runtimeError("Expected 0 arguments but got %d.",
+                             argCount);
+                return false;
+            }
             return true;
         }
         case ObjType::Closure:
@@ -67,6 +80,38 @@ bool VM::call(ObjClosure *closure, int argCount)
     frame.ip = 0;
     frame.slots = stack.data() + top - argCount - 1;
     return true;
+}
+
+bool VM::invoke(ObjString *name, int argCount)
+{
+    Value receiver = peek(argCount);
+    if (!receiver.is_obj_type<ObjInstance>())
+    {
+        runtimeError("Only instances have methods.");
+        return false;
+    }
+    ObjInstance *instance = receiver.as_obj<ObjInstance>();
+
+    if (instance->fields.find(name) != instance->fields.end())
+    {
+        Value value = instance->fields.at(name);
+        stack[top - argCount - 1] = value;
+        return callValue(value, argCount);
+    }
+
+    return invokeFromClass(instance->objClass, name, argCount);
+}
+
+bool VM::invokeFromClass(ObjClass *klass, ObjString *name,
+                         int argCount)
+{
+    if (klass->methods.find(name) == klass->methods.end())
+    {
+        runtimeError("Undefined property ", name, ".");
+        return false;
+    }
+    auto method = klass->methods.at(name);
+    return call(method.as_obj<ObjClosure>(), argCount);
 }
 
 ObjUpvalue *VM::captureUpvalue(Value *local)
@@ -365,15 +410,25 @@ InterpretResult VM::run()
         }
         case OP_GET_PROPERTY:
         {
-            auto instance = peek(0).as_obj<ObjInstance>();
-            auto name = frame->read_string();
-            if (instance->fields.find(name) == instance->fields.end())
+            if (!peek(0).is_obj_type<ObjInstance>())
             {
-                runtimeError("Undefined property ", *name, ".");
+                runtimeError("Only instances have properties.");
                 return INTERPRET_RUNTIME_ERROR;
             }
-            pop();
-            push(instance->fields.at(name));
+
+            auto instance = peek(0).as_obj<ObjInstance>();
+            auto name = frame->read_string();
+            try
+            {
+                auto &value = instance->fields.at(name);
+                pop();
+                push(value);
+            }
+            catch (const std::out_of_range &)
+            {
+                if (!bindMethod(instance->objClass, name))
+                    return INTERPRET_RUNTIME_ERROR;
+            }
             break;
         }
         case OP_SET_PROPERTY:
@@ -383,6 +438,59 @@ InterpretResult VM::run()
             Value value = pop();
             pop();
             push(value);
+            break;
+        }
+        case OP_METHOD:
+        {
+            defineMethod(frame->read_string());
+            break;
+        }
+        case OP_INVOKE:
+        {
+            ObjString *method = frame->read_string();
+            int argCount = frame->read_byte();
+            if (!invoke(method, argCount))
+            {
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            frame = &frames[frameCount - 1];
+            break;
+        }
+        case OP_INHERIT:
+        {
+            if (!peek(1).is_obj_type<ObjClass>())
+            {
+                runtimeError("Superclass must be a class.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            ObjClass *superclass = peek(1).as_obj<ObjClass>();
+            ObjClass *subclass = peek(0).as_obj<ObjClass>();
+            for (const auto &[k, v] : superclass->methods)
+            {
+                subclass->methods.insert_or_assign(k, v);
+            }
+            pop();
+            break;
+        }
+        case OP_GET_SUPER:
+        {
+            ObjString *name = frame->read_string();
+            ObjClass *superclass = pop().as_obj<ObjClass>();
+
+            if (!bindMethod(superclass, name))
+                return INTERPRET_RUNTIME_ERROR;
+            break;
+        }
+        case OP_SUPER_INVOKE:
+        {
+            ObjString *method = frame->read_string();
+            int argCount = frame->read_byte();
+            ObjClass *superclass = pop().as_obj<ObjClass>();
+            if (!invokeFromClass(superclass, method, argCount))
+            {
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            frame = &frames[frameCount - 1];
             break;
         }
         default:
@@ -430,6 +538,32 @@ void VM::closeUpvalues(Value *last)
         openUpvalues = upvalue->next;
     }
 }
+void VM::defineMethod(ObjString *name)
+{
+    Value method = peek(0);
+    ObjClass *klass = peek(1).as_obj<ObjClass>();
+    klass->methods.insert_or_assign(name, method);
+    pop();
+}
+
+bool VM::bindMethod(ObjClass *klass, ObjString *name)
+{
+    try
+    {
+        auto method = klass->methods.at(name);
+        auto bound = create_obj<ObjBoundMethod>(gc, peek(0), method.as_obj<ObjClosure>());
+        pop();
+        push(bound);
+        return true;
+    }
+    catch (const std::out_of_range &)
+    {
+        runtimeError("Undefined property ", *name, " .");
+        return false;
+    }
+    return false;
+}
+
 template <typename Operator>
 bool VM::Binary_OP(Operator op)
 {

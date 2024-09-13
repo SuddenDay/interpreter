@@ -42,9 +42,15 @@ public:
     Value pop();
     Value peek(int distance);
     void closeUpvalues(Value* last);
+    void defineMethod(ObjString* name);
+    bool bindMethod(ObjClass* klass, ObjString* name);
 
     bool callValue(const Value& callee, uint8_t arg_count);
     bool call(ObjClosure* closure, int argCount);
+    bool invoke(ObjString* name, int argCount);
+    bool invokeFromClass(ObjClass* klass, ObjString* name,
+                            int argCount);
+
 
     ObjUpvalue* captureUpvalue(Value* local);
 
@@ -56,6 +62,7 @@ public:
     InterpretResult interpret(const std::string& source);
 
     Complication cu;
+    ObjString* initString = nullptr;
     std::array<CallFrame, FRAMES_MAX> frames;
     int frameCount = 0;
     Table globals;

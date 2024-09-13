@@ -32,6 +32,11 @@
     X(OP_CLASS) \
     X(OP_SET_PROPERTY) \
     X(OP_GET_PROPERTY) \
+    X(OP_METHOD) \
+    X(OP_INVOKE) \
+    X(OP_INHERIT) \
+    X(OP_GET_SUPER) \
+    X(OP_SUPER_INVOKE) \
 
 enum Opcode
 {

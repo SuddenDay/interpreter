@@ -18,7 +18,15 @@ struct Local
 enum FunctionType
 {
     TYPE_FUNCTION,
+    TYPE_METHOD,
+    TYPE_INITIALIZER,
     TYPE_SCRIPT
+};
+
+struct ClassCompiler {
+    std::unique_ptr<ClassCompiler> enclosing = nullptr;
+	Token name;
+	bool hasSuperclass = false;
 };
 
 struct Compiler
@@ -51,6 +59,8 @@ public:
     void unary(bool canAssign);
     void and_(bool canAssign);
     void or_(bool canAssign);
+    void this_(bool assign);
+    void super_(bool assign);
     void grouping(bool canAssign);
     uint8_t argumentList();
     void call(bool canAssign);
@@ -69,6 +79,7 @@ public:
     void expressionStatement();
     void varDeclaration();
     void function(FunctionType type);
+    void method();
     void namedVariable(Token name, bool canAssign);
     uint8_t parseVariable(const std::string &message);
     uint8_t identifierConstant(const Token& token);
@@ -82,7 +93,7 @@ public:
     void classDeclaration();
     void funDeclaration();
     void addLocal(Token name);
-    bool identifiersEqual(Token a, Token b);
+    bool identifiersEqual(const Token& a, const Token& b);
     void markInitialized();
     void initCompiler(FunctionType type);
     int resolveUpvalue(const std::unique_ptr<Compiler> &compiler, Token &name);
@@ -110,6 +121,8 @@ public:
         }
     }
 
+    Token syntheticToken(const std::string_view text);
+
     void writeChunk(uint8_t op, int line);
     uint8_t addConstant(Value value);
     void emitConstant(Value value);
@@ -118,6 +131,7 @@ public:
     void emitByte(uint8_t byte);
     uint8_t makeConstant(Value value);
 
+    std::unique_ptr<ClassCompiler> currentClass = nullptr;
     std::unique_ptr<Compiler> current;
     std::unique_ptr<Parser> parser;
     VM &vm;

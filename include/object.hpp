@@ -104,17 +104,17 @@ struct ObjInstance : public Obj
 };
 std::ostream& operator<<(std::ostream& out, const ObjInstance& ins);
 
-// struct ObjBoundMethod :public Obj
-// {
-// 	Value receiver;
-// 	ObjClosure* const method;
+struct ObjBoundMethod :public Obj
+{
+	Value receiver;
+	ObjClosure* const method;
 
-// 	constexpr ObjBoundMethod(Value receiver, ObjClosure* const method)
-// 		:Obj(ObjType::BoundMethod), receiver(std::move(receiver)), method(method)
-// 	{
-// 	}
-// };
-// std::ostream& operator<<(std::ostream& out, const ObjBoundMethod& bm);
+	ObjBoundMethod(Value receiver, ObjClosure* method)
+		:Obj(ObjType::BoundMethod), receiver(std::move(receiver)), method(method) // why?
+	{
+	}
+};
+std::ostream& operator<<(std::ostream& out, const ObjBoundMethod& bm);
 
 template<typename T, template<typename> typename Alloc = Allocator, typename... Args>
 auto alloc_unique_obj(Args&&... args)
@@ -150,9 +150,9 @@ template<typename T>
 constexpr auto objtype_of()
 ->typename std::enable_if_t<std::is_base_of_v<Obj, T> && !std::is_same_v<Obj, T>, ObjType>
 {
-	// if constexpr (std::is_same_v<T, ObjBoundMethod>)
-	// 	return ObjType::BoundMethod;
-	if constexpr (std::is_same_v<T, ObjClass>)
+	if constexpr (std::is_same_v<T, ObjBoundMethod>)
+		return ObjType::BoundMethod;
+	else if constexpr (std::is_same_v<T, ObjClass>)
 		return ObjType::Class;
 	else if constexpr (std::is_same_v<T, ObjClosure>)
 		return ObjType::Closure;
