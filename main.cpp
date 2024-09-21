@@ -64,41 +64,4 @@ int main(int argc, char** argv)
     } else {
         exit(1);
     }
-
-    // clox::Chunk chunk;
-    // uint8_t constant;
-
-    // constant = chunk.addConstant(1);
-    // chunk.writeChunk(clox::Opcode::OP_CONSTANT);
-    // chunk.writeChunk(constant);
-
-    // constant = chunk.addConstant(2);
-    // chunk.writeChunk(clox::Opcode::OP_CONSTANT);
-    // chunk.writeChunk(constant);
-
-    // chunk.writeChunk(clox::Opcode::OP_ADD);
-
-    // constant = chunk.addConstant(3);
-    // chunk.writeChunk(clox::Opcode::OP_CONSTANT);
-    // chunk.writeChunk(constant);
-
-    // chunk.writeChunk(clox::Opcode::OP_MUL);
-
-    // constant = chunk.addConstant(1);
-    // chunk.writeChunk(clox::Opcode::OP_CONSTANT);
-    // chunk.writeChunk(constant);
-
-    // chunk.writeChunk(clox::Opcode::OP_SUB);
-
-    // constant = chunk.addConstant(4);
-    // chunk.writeChunk(clox::Opcode::OP_CONSTANT);
-    // chunk.writeChunk(constant);
-
-    // chunk.writeChunk(clox::Opcode::OP_DIV);
-
-    // chunk.writeChunk(clox::Opcode::OP_NEGATE);
-    // chunk.writeChunk(clox::Opcode::OP_RETURN);
-    // // std::cout << chunk << std::endl;
-    // clox::VM vm(&chunk);
-    // vm.interpreter();
 }

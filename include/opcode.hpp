@@ -37,6 +37,9 @@
     X(OP_INHERIT) \
     X(OP_GET_SUPER) \
     X(OP_SUPER_INVOKE) \
+    X(OP_ARRAY) \
+    X(OP_GET_ELEMENT) \
+    X(OP_SET_ELEMENT) \
 
 enum Opcode
 {

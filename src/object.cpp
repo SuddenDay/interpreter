@@ -9,81 +9,97 @@ void register_obj(std::unique_ptr<Obj, ObjDeleter> &&obj, GC &gc)
 	gc.objects = std::move(obj);
 }
 
-std::ostream &operator<<(std::ostream &out, const ObjFunction &f)
+std::ostream &operator<<(std::ostream &os, const ObjFunction &f)
 {
 	if (f.name == nullptr)
-		out << "<script>";
+		os << "<script>";
 	else
-		out << "<fn " << *f.name << ">";
-	return out;
+		os << "<fn " << *f.name << ">";
+	return os;
 }
 
-std::ostream &operator<<(std::ostream &out, const ObjNative &s)
+std::ostream &operator<<(std::ostream &os, const ObjNative &s)
 {
-	out << "<native " << s.name << ">";
-	return out;
+	os << "<native " << s.name << ">";
+	return os;
 }
 
-std::ostream &operator<<(std::ostream &out, const ObjUpvalue &s)
+std::ostream &operator<<(std::ostream &os, const ObjUpvalue &s)
 {
-	out << "<upvalue " << s.closed << ">";
-	return out;
+	os << "<upvalue " << s.closed << ">";
+	return os;
 }
 
-std::ostream &operator<<(std::ostream &out, const ObjClosure &s)
+std::ostream &operator<<(std::ostream &os, const ObjClosure &s)
 {
-	out << "<closure " << *s.function << ">";
-	return out;
+	os << "<closure " << *s.function << ">";
+	return os;
 }
 
-std::ostream &operator<<(std::ostream &out, const ObjClass &c)
+std::ostream &operator<<(std::ostream &os, const ObjClass &c)
 {
-	out << "<class " << *c.name <<">";
-	return out;
+	os << "<class " << *c.name <<">";
+	return os;
 }
 
-std::ostream &operator<<(std::ostream &out, const ObjInstance &ins)
+std::ostream &operator<<(std::ostream &os, const ObjInstance &ins)
 {
-	out << "<instance " << *ins.objClass << ">";
-	return out;
+	os << "<instance " << *ins.objClass << ">";
+	return os;
 }
 
-std::ostream &operator<<(std::ostream &out, const ObjBoundMethod &bm)
+std::ostream & operator<<(std::ostream & os, const ObjArray & arr)
 {
-	out << "<method " << *bm.method->function << ">";
-	return out;
+	os << "[";
+	int n = arr.values.size();
+	for(int i = 0; i < n; i++)  {
+		os << arr.values[i];
+		if(i != n - 1)
+			os << ", ";
+	}
+	os << "]";
+	return os;
 }
 
-std::ostream& operator<<(std::ostream& out, const Obj& obj)
+std::ostream &operator<<(std::ostream &os, const ObjBoundMethod &bm)
+{
+	os << "<method " << *bm.method->function << ">";
+	return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const Obj& obj)
 {
 	switch (obj.type)
 	{
 		case ObjType::Class:
-			out << static_cast<const ObjClass&>(obj);
+			os << static_cast<const ObjClass&>(obj);
 			break;
 		case ObjType::Closure:
-			out << static_cast<const ObjClosure&>(obj);
+			os << static_cast<const ObjClosure&>(obj);
 			break;
 		case ObjType::Function:
-			out << static_cast<const ObjFunction&>(obj);
+			os << static_cast<const ObjFunction&>(obj);
 			break;
 		case ObjType::Instance:
-			out << static_cast<const ObjInstance&>(obj);
+			os << static_cast<const ObjInstance&>(obj);
 			break;
 		case ObjType::Native:
-			out << static_cast<const ObjNative&>(obj);
+			os << static_cast<const ObjNative&>(obj);
 			break;
 		case ObjType::String:
-			out << static_cast<const ObjString&>(obj);
+			os << static_cast<const ObjString&>(obj);
 			break;
 		case ObjType::Upvalue:
-			out << static_cast<const ObjUpvalue&>(obj);
+			os << static_cast<const ObjUpvalue&>(obj);
 			break;
 		case ObjType::BoundMethod:
-			out << static_cast<const ObjBoundMethod&>(obj);
+			os << static_cast<const ObjBoundMethod&>(obj);
+			break;
+		case ObjType::Array:
+			os << static_cast<const ObjArray&>(obj);
 			break;
 		default:
-			throw std::invalid_argument("Unexpected ObjType:: Output failed");
+			throw std::invalid_argument("Unexpected ObjType:: obj puts failed");
 	}
-	return out;
+	return os;
 }

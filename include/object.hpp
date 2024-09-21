@@ -104,6 +104,16 @@ struct ObjInstance : public Obj
 };
 std::ostream& operator<<(std::ostream& out, const ObjInstance& ins);
 
+struct ObjArray: public Obj
+{
+	std::vector<Value, Allocator<Value>> values;
+	ObjArray(int size)
+		:Obj(ObjType::Array), values(size)
+	{
+	}
+};
+std::ostream& operator<<(std::ostream& out, const ObjArray& arr);
+
 struct ObjBoundMethod :public Obj
 {
 	Value receiver;
@@ -166,6 +176,8 @@ constexpr auto objtype_of()
 		return ObjType::String;
 	else if constexpr (std::is_same_v<T, ObjUpvalue>)
 		return ObjType::Upvalue;
+	else if constexpr (std::is_same_v<T, ObjArray>)
+		return ObjType::Array;
 }
 
 template<typename T>
@@ -192,6 +204,8 @@ constexpr auto nameof()
 			return "string"sv;
 		case ObjType::Upvalue:
 			return "upvalue"sv;
+		case ObjType::Array:
+			return "array"sv;
 		default:
 			return "unknown type";
 	}

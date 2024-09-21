@@ -43,10 +43,18 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_RETURN:
     case Opcode::OP_PRINT:
     case Opcode::OP_POP:
+    case Opcode::OP_GET_ELEMENT:
+    case Opcode::OP_SET_ELEMENT:
     case Opcode::OP_INHERIT:
     {
         std::cout << "  " << instruction << std::endl;
         return offset + 1;
+    }
+    case Opcode::OP_ARRAY:
+    {
+        int count = chunk.getCodeAt(offset + 1); // can't use uint8 because unsigned char is null
+        std::cout << "  " << instruction << " size: " << count << std::endl;
+        return offset + 2;
     }
     case Opcode::OP_GET_GLOBAL:
     case Opcode::OP_DEFINE_GLOBAL:

@@ -14,6 +14,7 @@ struct Chunk
 {
     using Bytecode_vector = std::vector<uint8_t>;
     Bytecode_vector bytecode;
+    
     std::vector<Value, Allocator<Value>>constants;
     std::vector<int> lines;
 

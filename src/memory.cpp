@@ -124,11 +124,18 @@ void GC::blacken_object(Obj* ptr)
 			mark_table(instance->fields);
 			break;
 		}
-		case ObjType::Upvalue:
+		case ObjType::Upvalue: {
 			mark_value(static_cast<ObjUpvalue*>(ptr)->closed);
 			break;
+		}
+		case ObjType::Array: {
+			auto arrayPtr = static_cast<ObjArray*>(ptr);
+			mark_array(arrayPtr->values);
+			break;
+		}
 		case ObjType::Native:
 		case ObjType::String:
+			break;
 		default:
 			break;
 	}

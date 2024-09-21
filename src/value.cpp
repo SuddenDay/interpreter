@@ -84,6 +84,8 @@ template auto Value::is_obj_type<ObjInstance>() const -> typename std::enable_if
 template auto Value::as_obj<ObjInstance>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjInstance> && !std::is_same_v<Obj, ObjInstance>, ObjInstance*>;
 template auto Value::is_obj_type<ObjBoundMethod>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjBoundMethod> && !std::is_same_v<Obj, ObjBoundMethod>, bool>;
 template auto Value::as_obj<ObjBoundMethod>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjBoundMethod> && !std::is_same_v<Obj, ObjBoundMethod>, ObjBoundMethod*>;
+template auto Value::is_obj_type<ObjArray>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjArray> && !std::is_same_v<Obj, ObjArray>, bool>;
+template auto Value::as_obj<ObjArray>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjArray> && !std::is_same_v<Obj, ObjArray>, ObjArray*>;
 
 
 template <typename U>

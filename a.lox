@@ -1,20 +1,9 @@
-class Doughnut {
-  cook() {
-    print "Dunk in the fryer.";
-    this.finish("sprinkles");
-  }
-
-  finish(ingredient) {
-    print "Finish with " + ingredient;
-  }
-}
-
-class Cruller < Doughnut {
-  finish(ingredient) {
-    // No sprinkles, always icing.
-    super.finish("icing");
-  }
-}
-
-var crullet = Cruller();
-crullet.finish("nowayyyyyyyyy!");
+var list = [1, 2, 3];
+push(list, 4);
+print list;
+pop(list);
+print list;
+insert(list, 1, 5);
+print list;
+erase(list, 1);
+print list;

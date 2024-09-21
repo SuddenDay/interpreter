@@ -8,4 +8,29 @@ class Native {
         auto tp = std::chrono::high_resolution_clock::now().time_since_epoch();
 	    return static_cast<int>(std::chrono::duration<double>(tp).count());
     }
+    static Value push(int argCount, Value* args) {
+        args[0].as_obj<ObjArray>()->values.push_back(args[1]);
+        return Value();
+    }
+    static Value pop(int argCount, Value* args) {
+        auto array = args[0].as_obj<ObjArray>();
+        auto ret = array->values.back();
+        array->values.pop_back();
+        return ret;
+    }
+    static Value erase(int argCount, Value* args) {
+        auto value = args[0].as_obj<ObjArray>();
+        auto index = args[1].as<int>();
+        auto& array = value->values;
+        auto ret = array.at(index);
+        array.erase(index + array.begin());
+        return ret;
+    }
+    static Value insert(int argCount, Value* args) {
+        auto& array = args[0].as_obj<ObjArray>()->values;
+        auto index = args[1].as<int>();
+        auto value = args[2];
+        array.insert(index + array.begin(), value);
+        return Value();
+    }
 };

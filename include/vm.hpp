@@ -49,7 +49,7 @@ public:
     bool call(ObjClosure* closure, int argCount);
     bool invoke(ObjString* name, int argCount);
     bool invokeFromClass(ObjClass* klass, ObjString* name,
-                            int argCount);
+                            int argCount); 
 
 
     ObjUpvalue* captureUpvalue(Value* local);

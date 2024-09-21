@@ -12,7 +12,8 @@ enum class ObjType
 	Instance,
 	Native,
 	String,
-	Upvalue
+	Upvalue,
+	Array,
 };
 
 struct Obj;

@@ -7,6 +7,8 @@
 #include "vm.hpp"
 
 Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), getRule({
+                                                                                    {TOKEN_LEFT_BRACKET, {&Complication::list, &Complication::get_or_set, PREC_CALL}},
+                                                                                    {TOKEN_RIGHT_BRACKET, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_LEFT_PAREN, {&Complication::grouping, &Complication::call, PREC_CALL}},
                                                                                     {TOKEN_RIGHT_PAREN, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_LEFT_BRACE, {nullptr, nullptr, PREC_NONE}},
@@ -247,6 +249,34 @@ void Complication::grouping(bool canAssign)
 {
     expression();
     consume(TOKEN_RIGHT_PAREN, "No right paren.");
+}
+
+void Complication::list(bool canAssign)
+{
+    // [value-1, value-2, value-3]
+    int count = 0;
+    if (!check(TOKEN_RIGHT_BRACKET))
+    {
+        do
+        {
+            count++;
+            expression();
+        } while (match(TOKEN_COMMA));
+    }
+    emitBytes(OP_ARRAY, count);
+    consume(TOKEN_RIGHT_BRACKET, "Expect ']' to end array or list.");
+}
+
+void Complication::get_or_set(bool canAssign)
+{
+    expression();
+    consume(TOKEN_RIGHT_BRACKET, "Expect ']' to get list element.");
+    if(match(TOKEN_EQUAL)) {
+        expression();
+        emitByte(OP_SET_ELEMENT);
+    }
+    else
+        emitByte(OP_GET_ELEMENT);
 }
 
 uint8_t Complication::argumentList()

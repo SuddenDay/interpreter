@@ -12,6 +12,10 @@ VM::VM() : cu(*this), globals(), stack(STACK_MAX), gc(*this)
     AllocBase::init(&gc);
     initString = create_obj_string(std::string_view("init"), *this);
     defineNative("clock", Native::clock);
+    defineNative("insert", Native::insert);
+    defineNative("erase", Native::erase);
+    defineNative("push", Native::push);
+    defineNative("pop", Native::pop);
 }
 
 bool VM::callValue(const Value &callee, uint8_t argCount)
@@ -491,6 +495,34 @@ InterpretResult VM::run()
                 return INTERPRET_RUNTIME_ERROR;
             }
             frame = &frames[frameCount - 1];
+            break;
+        }
+        case OP_ARRAY:
+        {
+            int count = frame->read_byte();
+            auto objArray = create_obj<ObjArray>(this->gc, count);
+            for(int i = 0; i < count; i++)
+                objArray->values.at(count - 1 - i) =  pop();
+            push(objArray);
+            break;
+        }
+        case OP_GET_ELEMENT:
+        {
+            auto index = pop().as<int>();
+            auto value = pop().as_obj<ObjArray>()->values.at(index);
+            push(value);
+            break;
+        }
+        case OP_SET_ELEMENT:
+        {
+            auto value = pop();
+            auto index = pop().as<int>();
+            auto array = pop().as_obj<ObjArray>();
+            int n = array->values.size();
+            if(index >= n)
+                runtimeError("Index is larger than array size.");
+            array->values.at(index) = value;
+            push(value);
             break;
         }
         default:
