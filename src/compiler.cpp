@@ -11,7 +11,7 @@ Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), 
                                                                                     {TOKEN_RIGHT_BRACKET, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_LEFT_PAREN, {&Complication::grouping, &Complication::call, PREC_CALL}},
                                                                                     {TOKEN_RIGHT_PAREN, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_LEFT_BRACE, {nullptr, nullptr, PREC_NONE}},
+                                                                                    {TOKEN_LEFT_BRACE, {&Complication::json, nullptr, PREC_NONE}},
                                                                                     {TOKEN_RIGHT_BRACE, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_COMMA, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_DOT, {nullptr, &Complication::dot, PREC_CALL}},
@@ -49,6 +49,7 @@ Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), 
                                                                                     {TOKEN_WHILE, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_ERROR, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_EOF, {nullptr, nullptr, PREC_NONE}},
+                                                                                    {TOKEN_COLON, {nullptr, nullptr, PREC_NONE}},
                                                                                 })
 {
 }
@@ -265,6 +266,21 @@ void Complication::list(bool canAssign)
     }
     emitBytes(OP_ARRAY, count);
     consume(TOKEN_RIGHT_BRACKET, "Expect ']' to end array or list.");
+}
+
+void Complication::json(bool canAssign)
+{
+    int count = 0;
+    if(!check(TOKEN_RIGHT_BRACE)) {
+        do {
+            count++;
+            expression();
+            consume(TOKEN_COLON, "Expect ':' to set json value.");
+            expression();
+        } while (match(TOKEN_COMMA));
+    }
+    emitBytes(OP_JSON, count);
+    consume(TOKEN_RIGHT_BRACE, "Expect '}' to end json.");
 }
 
 void Complication::get_or_set(bool canAssign)

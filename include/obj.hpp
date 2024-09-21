@@ -14,6 +14,7 @@ enum class ObjType
 	String,
 	Upvalue,
 	Array,
+	Json
 };
 
 struct Obj;

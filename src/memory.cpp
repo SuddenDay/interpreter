@@ -133,6 +133,14 @@ void GC::blacken_object(Obj* ptr)
 			mark_array(arrayPtr->values);
 			break;
 		}
+		case ObjType::Json: {
+			auto jsonPtr = static_cast<ObjJson*>(ptr);
+			for(const auto& [k, v] : jsonPtr->kv) {
+				mark_value(k);
+				mark_value(v);
+			}
+			break;
+		}
 		case ObjType::Native:
 		case ObjType::String:
 			break;

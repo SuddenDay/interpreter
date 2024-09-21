@@ -5,6 +5,7 @@
 #include "obj.hpp"
 #include "chunk.hpp"
 #include <functional>
+#include <unordered_map>
 
 template<typename T>
 struct Allocator;
@@ -35,7 +36,7 @@ struct ObjFunction : public Obj
 	ObjFunction() :Obj(ObjType::Function) {}
 };
 
-std::ostream& operator<<(std::ostream& out, const ObjFunction& f);
+std::ostream& operator<<(std::ostream& os, const ObjFunction& f);
 
 using NativeFn = std::function<Value(int argCount, Value* args)>;
 
@@ -49,7 +50,7 @@ struct ObjNative : public Obj
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& out, const ObjNative& s);
+std::ostream& operator<<(std::ostream& os, const ObjNative& s);
 
 struct Upvalue {
 	bool isLocal;
@@ -67,7 +68,7 @@ struct ObjUpvalue : public Obj
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& out, const ObjUpvalue& s);
+std::ostream& operator<<(std::ostream& os, const ObjUpvalue& s);
 
 struct ObjClosure : public Obj
 {
@@ -78,7 +79,7 @@ struct ObjClosure : public Obj
 
 	int upvalueCount() { return upvalues.size(); }
 };
-std::ostream& operator<<(std::ostream& out, const ObjClosure& s);
+std::ostream& operator<<(std::ostream& os, const ObjClosure& s);
 
 struct ObjClass : public Obj
 {
@@ -90,7 +91,7 @@ struct ObjClass : public Obj
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& out, const ObjClass& c);
+std::ostream& operator<<(std::ostream& os, const ObjClass& c);
 
 struct ObjInstance : public Obj
 {
@@ -102,7 +103,7 @@ struct ObjInstance : public Obj
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& out, const ObjInstance& ins);
+std::ostream& operator<<(std::ostream& os, const ObjInstance& ins);
 
 struct ObjArray: public Obj
 {
@@ -112,7 +113,17 @@ struct ObjArray: public Obj
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& out, const ObjArray& arr);
+std::ostream& operator<<(std::ostream& os, const ObjArray& arr);
+
+struct ObjJson: public Obj
+{
+	std::unordered_map<Value, Value, std::hash<Value>, std::equal_to<Value>, Allocator<std::pair<const Value, Value>>> kv;
+	ObjJson()
+		:Obj(ObjType::Json)
+	{
+	}
+};
+std::ostream& operator<<(std::ostream& os, const ObjJson& json);
 
 struct ObjBoundMethod :public Obj
 {
@@ -124,7 +135,7 @@ struct ObjBoundMethod :public Obj
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& out, const ObjBoundMethod& bm);
+std::ostream& operator<<(std::ostream& os, const ObjBoundMethod& bm);
 
 template<typename T, template<typename> typename Alloc = Allocator, typename... Args>
 auto alloc_unique_obj(Args&&... args)
@@ -178,6 +189,8 @@ constexpr auto objtype_of()
 		return ObjType::Upvalue;
 	else if constexpr (std::is_same_v<T, ObjArray>)
 		return ObjType::Array;
+	else if constexpr (std::is_same_v<T, ObjJson>)
+		return ObjType::Json;
 }
 
 template<typename T>
@@ -206,9 +219,11 @@ constexpr auto nameof()
 			return "upvalue"sv;
 		case ObjType::Array:
 			return "array"sv;
+		case ObjType::Json:
+			return "json"sv;
 		default:
 			return "unknown type";
 	}
 }
 
-std::ostream& operator<<(std::ostream& out, const Obj& obj);
+std::ostream& operator<<(std::ostream& os, const Obj& obj);

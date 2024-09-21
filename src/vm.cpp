@@ -501,28 +501,58 @@ InterpretResult VM::run()
         {
             int count = frame->read_byte();
             auto objArray = create_obj<ObjArray>(this->gc, count);
-            for(int i = 0; i < count; i++)
-                objArray->values.at(count - 1 - i) =  pop();
+            for (int i = 0; i < count; i++)
+                objArray->values.at(count - 1 - i) = pop();
             push(objArray);
             break;
         }
         case OP_GET_ELEMENT:
         {
-            auto index = pop().as<int>();
-            auto value = pop().as_obj<ObjArray>()->values.at(index);
-            push(value);
+            if (peek(1).as<Obj *>()->is_type(objtype_of<ObjArray>()))
+            {
+                auto index = pop().as<int>();
+                auto value = pop().as_obj<ObjArray>()->values.at(index);
+                push(value);
+            }
+            else
+            { // json
+                auto key = pop();
+                auto value = pop().as_obj<ObjJson>()->kv[key];
+                push(value);
+            }
             break;
         }
         case OP_SET_ELEMENT:
         {
-            auto value = pop();
-            auto index = pop().as<int>();
-            auto array = pop().as_obj<ObjArray>();
-            int n = array->values.size();
-            if(index >= n)
-                runtimeError("Index is larger than array size.");
-            array->values.at(index) = value;
-            push(value);
+            if (peek(2).as<Obj *>()->is_type(objtype_of<ObjArray>()))
+            {
+                auto value = pop();
+                auto index = pop().as<int>();
+                auto array = pop().as_obj<ObjArray>();
+                int n = array->values.size();
+                if (index >= n)
+                    runtimeError("Index is larger than array size.");
+                array->values.at(index) = value;
+                push(value);
+            } else {
+                auto value = pop();
+                auto key = pop();
+                pop().as_obj<ObjJson>()->kv.insert_or_assign(key, value);
+                push(value);
+            }
+            break;
+        }
+        case OP_JSON:
+        {
+            int count = frame->read_byte();
+            auto objJson = create_obj<ObjJson>(this->gc);
+            for (int i = 0; i < count; i++)
+            {
+                auto value = pop();
+                auto key = pop();
+                objJson->kv[key] = value;
+            }
+            push(objJson);
             break;
         }
         default:

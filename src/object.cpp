@@ -61,6 +61,21 @@ std::ostream & operator<<(std::ostream & os, const ObjArray & arr)
 	return os;
 }
 
+std::ostream &operator<<(std::ostream &os, const ObjJson &json)
+{
+	os << "{";
+	int n = json.kv.size();
+	int i = 0;
+	for(const auto& [k, v] : json.kv){
+		os << k << " : " << v;
+		if(i != n - 1)
+			os << ", ";
+		i++;
+	}
+	os << "}";
+	return os;
+}
+
 std::ostream &operator<<(std::ostream &os, const ObjBoundMethod &bm)
 {
 	os << "<method " << *bm.method->function << ">";
@@ -97,6 +112,9 @@ std::ostream& operator<<(std::ostream& os, const Obj& obj)
 			break;
 		case ObjType::Array:
 			os << static_cast<const ObjArray&>(obj);
+			break;
+		case ObjType::Json:
+			os << static_cast<const ObjJson&>(obj);
 			break;
 		default:
 			throw std::invalid_argument("Unexpected ObjType:: obj puts failed");

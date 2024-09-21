@@ -38,6 +38,7 @@
     X(OP_GET_SUPER) \
     X(OP_SUPER_INVOKE) \
     X(OP_ARRAY) \
+    X(OP_JSON) \
     X(OP_GET_ELEMENT) \
     X(OP_SET_ELEMENT) \
 

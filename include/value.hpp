@@ -50,3 +50,23 @@ bool operator==(const Value &v1, const Value &v2);
 bool operator!=(const Value &v1, const Value &v2);
 bool operator==(const std::monostate nil, const Obj* obj);
 bool operator==(const Obj* obj, const std::monostate nil);
+
+namespace std {
+    template <>
+    struct hash<Value> {
+        size_t operator()(const Value &v) const {
+            return std::visit([](auto&& arg) -> size_t {
+                using T = std::decay_t<decltype(arg)>;
+                if constexpr (std::is_same_v<T, bool>) {
+                    return std::hash<bool>{}(arg);
+                } else if constexpr (std::is_same_v<T, int>) {
+                    return std::hash<int>{}(arg);
+                } else if constexpr (std::is_same_v<T, std::monostate>) {
+                    return 0; // nil case, assign a constant hash
+                } else if constexpr (std::is_same_v<T, Obj *>) {
+                    return std::hash<Obj*>{}(arg);
+                }
+            }, v.value);
+        }
+    };
+}

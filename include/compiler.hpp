@@ -63,6 +63,7 @@ public:
     void super_(bool assign);
     void grouping(bool canAssign);
     void list(bool canAssign);
+    void json(bool canAssign);
     void get_or_set(bool canAssign);
     uint8_t argumentList();
     void call(bool canAssign);

@@ -18,6 +18,8 @@ Token Scanner::scanToken()
 
     switch (ch)
     {
+    case ':':
+        return makeToken(TOKEN_COLON);
     case '[':
         return makeToken(TOKEN_LEFT_BRACKET);
     case ']':
