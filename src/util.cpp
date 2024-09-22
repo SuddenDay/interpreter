@@ -3,7 +3,6 @@
 #include "memory.hpp"
 int Util::disassembleInstruction(const Chunk &chunk, int offset)
 {
-
     std::cout << std::setw(4) << std::setfill('0') << std::right << offset << " ";
     Opcode instruction = static_cast<Opcode>(chunk.getCodeAt(offset));
     auto jumpInstruction = [&](int sign, const Chunk& chunk, int offset) {
@@ -46,6 +45,7 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_GET_ELEMENT:
     case Opcode::OP_SET_ELEMENT:
     case Opcode::OP_INHERIT:
+    case Opcode::OP_JSON:
     {
         std::cout << "  " << instruction << std::endl;
         return offset + 1;

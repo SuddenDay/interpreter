@@ -10,14 +10,26 @@
 static void REPL() {
     VM vm;
     std::string line;
-    for (;;) {
-        std::cout << "> "; // Output the prompt
+    std::string codeBuffer;
 
+    while (true) {
+        std::cout << (codeBuffer.empty() ? "> " : "... "); // Different prompt for multiline
         if (!std::getline(std::cin, line)) {
             std::cout << std::endl;
             break; // Exit loop if input fails (e.g., EOF)
-        } 
-        vm.interpret(line);
+        }
+        
+        // Trim the line to remove unnecessary spaces
+        line.erase(line.find_last_not_of(" \n\r\t") + 1);
+        
+        // Check if the line indicates end of input (you can use other conditions here)
+        if (line.empty() || line.back() == ';') {
+            codeBuffer += line;
+            vm.interpret(codeBuffer); // Interpret the whole buffer
+            codeBuffer.clear(); // Reset buffer after interpreting
+        } else {
+            codeBuffer += line + "\n"; // Continue reading into the buffer
+        }
     }
 }
 
