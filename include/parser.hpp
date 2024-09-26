@@ -32,7 +32,7 @@ struct Parser
 
     Parser(const std::string_view&);
 
-    void errorAtCurrent(const std::string_view& message);
+    void error_at_current(const std::string_view& message);
     void error(const std::string_view& message);
 
     void errorAt(const Token &token, const std::string_view& message);
@@ -40,7 +40,7 @@ struct Parser
     Scanner scanner;
     Token current;
     Token previous;
-    bool hadError;
-    bool panicMode;
+    bool has_error;
+    bool panic_mode;
     int line;
 };

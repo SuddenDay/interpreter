@@ -29,7 +29,7 @@ auto delete_obj(Alloc<T>& a, T* ptr)
 struct ObjFunction : public Obj
 {
 	int arity = 0;
-	int upvalueCount = 0;
+	int upvalue_count = 0;
 	Chunk chunk;
 	ObjString* name = nullptr;
 
@@ -53,7 +53,7 @@ struct ObjNative : public Obj
 std::ostream& operator<<(std::ostream& os, const ObjNative& s);
 
 struct Upvalue {
-	bool isLocal;
+	bool is_local;
 	int index;
 };
 
@@ -75,9 +75,9 @@ struct ObjClosure : public Obj
 	ObjFunction* function;
 	std::vector<ObjUpvalue*, Allocator<ObjUpvalue*>> upvalues;
 
-	ObjClosure(ObjFunction* func) : Obj(ObjType::Closure), function(func), upvalues(func->upvalueCount, nullptr) {}
+	ObjClosure(ObjFunction* func) : Obj(ObjType::Closure), function(func), upvalues(func->upvalue_count, nullptr) {}
 
-	int upvalueCount() { return upvalues.size(); }
+	int upvalue_count() { return upvalues.size(); }
 };
 std::ostream& operator<<(std::ostream& os, const ObjClosure& s);
 

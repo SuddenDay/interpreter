@@ -6,7 +6,7 @@
 static const std::string_view error_message = "Unexpected character";
 Token Scanner::scanToken()
 {
-    skipSpace();
+    skip_space();
     start = current;
     if (isAtEnd())
         return makeToken(TOKEN_EOF);
@@ -69,7 +69,7 @@ char Scanner::advance()
     current++;
     return ch;
 }
-void Scanner::skipSpace()
+void Scanner::skip_space()
 {
     for (;;)
     {
@@ -86,7 +86,7 @@ void Scanner::skipSpace()
             advance();
             break;
         case '/':
-            if (peekNext() == '/')
+            if (peek_next() == '/')
             {
                 while (peek() != '\n' && !isAtEnd())
                     advance();
@@ -118,7 +118,7 @@ Token Scanner::makeToken(TokenType type)
 {
     return Token{type, std::string_view(start, std::distance(start, current)), line};
 }
-char Scanner::peekNext()
+char Scanner::peek_next()
 {
     if (isAtEnd())
         return '\0';
@@ -129,7 +129,7 @@ Token Scanner::number()
     while (std::isdigit(peek()))
         advance();
 
-    if (peek() == '.' && std::isdigit(peekNext()))
+    if (peek() == '.' && std::isdigit(peek_next()))
         advance();
 
     while (std::isdigit(peek()))
@@ -153,12 +153,12 @@ Token Scanner::identifier()
 {
     while (std::isalpha(peek()) || std::isdigit(peek()) || peek() == '_')
         advance();
-    return makeToken(identifierType());
+    return makeToken(identifier_type());
 }
-TokenType Scanner::identifierType()
+TokenType Scanner::identifier_type()
 {
     auto str = std::string_view(start, std::distance(start, current));
-    return checkKeyword.find(str) != checkKeyword.end()
-               ? checkKeyword.at(str)
+    return check_keyword.find(str) != check_keyword.end()
+               ? check_keyword.at(str)
                : TOKEN_IDENTIFIER;
 }

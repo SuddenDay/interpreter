@@ -42,6 +42,8 @@
     X(OP_GET_ELEMENT) \
     X(OP_SET_ELEMENT) \
     X(OP_FUNCTION) \
+    X(OP_CONTINUE) \
+    X(OP_BREAK) \
 
 enum Opcode
 {

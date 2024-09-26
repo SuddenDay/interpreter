@@ -4,12 +4,12 @@
 #include "tokentype.hpp"
 #include <iostream>
 
-Parser::Parser(const std::string_view& source) : scanner(source), hadError(false), panicMode(false)
+Parser::Parser(const std::string_view& source) : scanner(source), has_error(false), panic_mode(false)
 {
 
 }
 
-void Parser::errorAtCurrent(const std::string_view &message)
+void Parser::error_at_current(const std::string_view &message)
 {
     errorAt(current, message);
 }
@@ -21,9 +21,9 @@ void Parser::error(const std::string_view& message)
 
 void Parser::errorAt(const Token &token, const std::string_view& message)
 {
-    if (panicMode)
+    if (panic_mode)
         return;
-    panicMode = true;
+    panic_mode = true;
     std::cerr << "[line " << token.line << "] Error";
 
     if (token.type == TokenType::TOKEN_EOF)
@@ -36,5 +36,5 @@ void Parser::errorAt(const Token &token, const std::string_view& message)
     }
 
     std::cerr << ": " << message << std::endl;
-    hadError = true;
+    has_error = true;
 }

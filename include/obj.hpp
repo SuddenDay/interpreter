@@ -30,7 +30,6 @@ struct Obj
 		return this->type == type;
 	}
 
-//protected:
 	Obj(ObjType type) : type(type) {}
 };
 

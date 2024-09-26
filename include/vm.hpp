@@ -35,39 +35,39 @@ public:
     InterpretResult run();
 
     template <typename Operator>
-    bool Binary_OP(Operator op);
+    bool binary_op(Operator op);
    
     void push(Value value);
-    void resetStack();
+    void reset_stack();
     Value pop();
     Value peek(int distance);
-    void closeUpvalues(Value* last);
-    void defineMethod(ObjString* name);
-    bool bindMethod(ObjClass* klass, ObjString* name);
+    void close_upvalues(Value* last);
+    void define_method(ObjString* name);
+    bool bind_method(ObjClass* klass, ObjString* name);
 
-    bool callValue(const Value& callee, uint8_t arg_count);
+    bool call_value(const Value& callee, uint8_t arg_count);
     bool call(ObjClosure* closure, int argCount);
     bool invoke(ObjString* name, int argCount);
-    bool invokeFromClass(ObjClass* klass, ObjString* name,
+    bool invoke_from_class(ObjClass* klass, ObjString* name,
                             int argCount); 
 
 
-    ObjUpvalue* captureUpvalue(Value* local);
+    ObjUpvalue* capture_upvalue(Value* local);
 
 	template<typename... Args>
-	void runtimeError(Args&&... args);
+	void runtime_error(Args&&... args);
 
-    void defineNative(std::string_view name, NativeFn function);
+    void define_native(std::string_view name, NativeFn function);
 
     InterpretResult interpret(const std::string& source);
 
     Complication cu;
-    ObjString* initString = nullptr;
+    ObjString* init_string = nullptr;
     std::array<CallFrame, FRAMES_MAX> frames;
-    int frameCount = 0;
+    int frame_count = 0;
     Table globals;
     int top = 0;
-    ObjUpvalue* openUpvalues = nullptr;
+    ObjUpvalue* open_upvalues = nullptr;
     std::vector<Value> stack;
     GC gc;
 };

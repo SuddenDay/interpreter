@@ -6,7 +6,7 @@
 #include "memory.hpp"
 #include "vm.hpp"
 
-Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), getRule({
+Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), get_rule({
                                                                                     {TOKEN_LEFT_BRACKET, {&Complication::list, &Complication::get_or_set, PREC_CALL}},
                                                                                     {TOKEN_RIGHT_BRACKET, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_LEFT_PAREN, {&Complication::grouping, &Complication::call, PREC_CALL}},
@@ -57,26 +57,26 @@ Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), 
 ObjFunction *Complication::compile(const std::string_view &source)
 {
     parser = std::make_unique<Parser>(source);
-    initCompiler(TYPE_SCRIPT);
+    init_compiler(TYPE_SCRIPT);
     advance();
     while (!match(TOKEN_EOF))
         declaration();
     consume(TOKEN_EOF, "Expect EOF in the end.");
-    auto [function, done] = endCompiler();
-    return parser->hadError ? nullptr : function;
+    auto [function, done] = end_compiler();
+    return parser->has_error ? nullptr : function;
 }
 
-Chunk *Complication::currentChunk()
+Chunk *Complication::current_chunk()
 {
     return &current->function->chunk;
 }
 
-auto Complication::endCompiler() -> std::pair<ObjFunction *, std::unique_ptr<Compiler>>
+auto Complication::end_compiler() -> std::pair<ObjFunction *, std::unique_ptr<Compiler>>
 {
-    emitReturn();
+    emit_return();
     ObjFunction *function = current->function;
 #ifdef DEBUG_MODE
-    if (!parser->hadError)
+    if (!parser->has_error)
     {
         std::cout << "=== ";
         if (function->name != nullptr)
@@ -92,7 +92,7 @@ auto Complication::endCompiler() -> std::pair<ObjFunction *, std::unique_ptr<Com
 
 void Complication::synchronize()
 {
-    parser->panicMode = false;
+    parser->panic_mode = false;
 
     while (parser->current.type != TOKEN_EOF)
     {
@@ -126,7 +126,7 @@ void Complication::advance()
         if (parser->current.type != TOKEN_ERROR)
             break;
 
-        parser->errorAtCurrent("Get error token.");
+        parser->error_at_current("Get error token.");
     }
 }
 void Complication::consume(TokenType type, const std::string &message)
@@ -136,16 +136,16 @@ void Complication::consume(TokenType type, const std::string &message)
         advance();
         return;
     }
-    parser->errorAtCurrent(message);
+    parser->error_at_current(message);
 }
 void Complication::expression()
 {
-    parsePrecedence(PREC_ASSIGNMENT);
+    parse_precedence(PREC_ASSIGNMENT);
 }
-void Complication::parsePrecedence(Precedence precedence)
+void Complication::parse_precedence(Precedence precedence)
 {
     advance();
-    auto name = getRule.at(parser->previous.type);
+    auto name = get_rule.at(parser->previous.type);
     auto prefixRule = name.prefix;
     if (prefixRule == nullptr)
     {
@@ -154,10 +154,10 @@ void Complication::parsePrecedence(Precedence precedence)
     }
     bool canAssign = precedence <= PREC_ASSIGNMENT;
     prefixRule(*this, canAssign);
-    while (precedence <= getRule.at(parser->current.type).precedence)
+    while (precedence <= get_rule.at(parser->current.type).precedence)
     {
         advance();
-        auto infixRule = getRule.at(parser->previous.type).infix;
+        auto infixRule = get_rule.at(parser->previous.type).infix;
         infixRule(*this, canAssign);
     }
     if (canAssign && match(TOKEN_EQUAL)) // to detect a * b = c * d gramma error
@@ -166,45 +166,45 @@ void Complication::parsePrecedence(Precedence precedence)
 void Complication::number(bool canAssign)
 {
     Value value = std::stoi(std::string(parser->previous.string));
-    emitConstant(value);
+    emit_constant(value);
 }
 void Complication::binary(bool canAssign)
 {
     TokenType operatorType = parser->previous.type;
-    auto rule = getRule.at(operatorType);
-    parsePrecedence(static_cast<Precedence>(rule.precedence + 1));
+    auto rule = get_rule.at(operatorType);
+    parse_precedence(static_cast<Precedence>(rule.precedence + 1));
 
     switch (operatorType)
     {
     case TOKEN_BANG_EQUAL:
-        emitBytes(OP_EQUAL, OP_NOT);
+        emit_bytes(OP_EQUAL, OP_NOT);
         break;
     case TOKEN_EQUAL_EQUAL:
-        emitByte(OP_EQUAL);
+        emit_byte(OP_EQUAL);
         break;
     case TOKEN_GREATER:
-        emitByte(OP_GREATER);
+        emit_byte(OP_GREATER);
         break;
     case TOKEN_GREATER_EQUAL:
-        emitBytes(OP_LESS, OP_NOT);
+        emit_bytes(OP_LESS, OP_NOT);
         break;
     case TOKEN_LESS:
-        emitByte(OP_LESS);
+        emit_byte(OP_LESS);
         break;
     case TOKEN_LESS_EQUAL:
-        emitBytes(OP_GREATER, OP_NOT);
+        emit_bytes(OP_GREATER, OP_NOT);
         break;
     case TOKEN_PLUS:
-        emitByte(OP_ADD);
+        emit_byte(OP_ADD);
         break;
     case TOKEN_MINUS:
-        emitByte(OP_SUB);
+        emit_byte(OP_SUB);
         break;
     case TOKEN_STAR:
-        emitByte(OP_MUL);
+        emit_byte(OP_MUL);
         break;
     case TOKEN_SLASH:
-        emitByte(OP_DIV);
+        emit_byte(OP_DIV);
         break;
     default:
         return; // Unreachable.
@@ -217,10 +217,10 @@ void Complication::unary(bool canAssign)
     switch (operatorType)
     {
     case TOKEN_BANG:
-        emitByte(OP_NOT);
+        emit_byte(OP_NOT);
         break;
     case TOKEN_MINUS:
-        emitByte(OP_NEGATE);
+        emit_byte(OP_NEGATE);
         break;
     default:
         return; // Unreachable.
@@ -228,23 +228,23 @@ void Complication::unary(bool canAssign)
 }
 void Complication::and_(bool canAssign)
 {
-    int endJump = emitJump(OP_JUMP_IF_FALSE);
+    int endJump = emit_jump(OP_JUMP_IF_FALSE);
 
-    emitByte(OP_POP);
-    parsePrecedence(PREC_AND);
+    emit_byte(OP_POP);
+    parse_precedence(PREC_AND);
 
-    patchJump(endJump);
+    patch_jump(endJump);
 }
 void Complication::or_(bool canAssign)
 {
-    int elseJump = emitJump(OP_JUMP_IF_FALSE);
-    int endJump = emitJump(OP_JUMP);
+    int elseJump = emit_jump(OP_JUMP_IF_FALSE);
+    int endJump = emit_jump(OP_JUMP);
 
-    patchJump(elseJump);
-    emitByte(OP_POP);
+    patch_jump(elseJump);
+    emit_byte(OP_POP);
 
-    parsePrecedence(PREC_OR);
-    patchJump(endJump);
+    parse_precedence(PREC_OR);
+    patch_jump(endJump);
 }
 void Complication::grouping(bool canAssign)
 {
@@ -264,7 +264,7 @@ void Complication::list(bool canAssign)
             expression();
         } while (match(TOKEN_COMMA));
     }
-    emitBytes(OP_ARRAY, count);
+    emit_bytes(OP_ARRAY, count);
     consume(TOKEN_RIGHT_BRACKET, "Expect ']' to end array or list.");
 }
 
@@ -281,7 +281,7 @@ void Complication::json(bool canAssign)
             expression();
         } while (match(TOKEN_COMMA));
     }
-    emitBytes(OP_JSON, count);
+    emit_bytes(OP_JSON, count);
     consume(TOKEN_RIGHT_BRACE, "Expect '}' to end json.");
 }
 
@@ -292,13 +292,13 @@ void Complication::get_or_set(bool canAssign)
     if (match(TOKEN_EQUAL))
     {
         expression();
-        emitByte(OP_SET_ELEMENT);
+        emit_byte(OP_SET_ELEMENT);
     }
     else
-        emitByte(OP_GET_ELEMENT);
+        emit_byte(OP_GET_ELEMENT);
 }
 
-uint8_t Complication::argumentList()
+uint8_t Complication::argument_list()
 {
     uint8_t argCount = 0;
     if (!check(TOKEN_RIGHT_PAREN))
@@ -315,33 +315,33 @@ uint8_t Complication::argumentList()
 
 void Complication::super_(bool assign)
 {
-    if (currentClass == NULL)
+    if (current_class == NULL)
         parser->error("Can't use 'super' outside of a class.");
-    else if (!currentClass->hasSuperclass)
+    else if (!current_class->has_super_class)
         parser->error("Can't use 'super' in a class with no superclass.");
 
     consume(TOKEN_DOT, "Expect '.' after 'super'.");
     consume(TOKEN_IDENTIFIER, "Expect superclass method name.");
-    uint8_t name = identifierConstant(parser->previous);
-    namedVariable(syntheticToken("this"), false);
+    uint8_t name = identifier_constant(parser->previous);
+    name_variable(syntehtic_token("this"), false);
     if (match(TOKEN_LEFT_PAREN))
     {
-        uint8_t argCount = argumentList();
-        namedVariable(syntheticToken("super"), false);
-        emitBytes(OP_SUPER_INVOKE, name);
-        emitByte(argCount);
+        uint8_t argCount = argument_list();
+        name_variable(syntehtic_token("super"), false);
+        emit_bytes(OP_SUPER_INVOKE, name);
+        emit_byte(argCount);
     }
     else
     {
-        namedVariable(syntheticToken("super"), false);
-        emitBytes(OP_GET_SUPER, name);
+        name_variable(syntehtic_token("super"), false);
+        emit_bytes(OP_GET_SUPER, name);
     }
 }
 
 void Complication::call(bool canAssign)
 {
-    uint8_t argCount = argumentList();
-    emitBytes(OP_CALL, argCount);
+    uint8_t argCount = argument_list();
+    emit_bytes(OP_CALL, argCount);
 }
 
 void Complication::literal(bool canAssign)
@@ -349,13 +349,13 @@ void Complication::literal(bool canAssign)
     switch (parser->previous.type)
     {
     case TOKEN_FALSE:
-        emitByte(OP_FALSE);
+        emit_byte(OP_FALSE);
         break;
     case TOKEN_NIL:
-        emitByte(OP_NIL);
+        emit_byte(OP_NIL);
         break;
     case TOKEN_TRUE:
-        emitByte(OP_TRUE);
+        emit_byte(OP_TRUE);
         break;
     default:
         return; // Unreachable.
@@ -367,45 +367,63 @@ void Complication::string(bool canAssign)
     std::string_view text = parser->previous.string;
     std::string_view str = text.substr(1, text.size() - 2);
     auto obj = create_obj_string(str, vm);
-    emitConstant(obj);
+    emit_constant(obj);
 }
 
 void Complication::variable(bool canAssign)
 {
-    namedVariable(parser->previous, canAssign);
+    name_variable(parser->previous, canAssign);
 }
 
 void Complication::statement()
 {
     if (match(TOKEN_RETURN))
     {
-        returnStatement();
+        return_statement();
     }
     else if (match(TOKEN_PRINT))
     {
-        printStatement();
+        print_statement();
     }
     else if (match(TOKEN_IF))
     {
-        ifStatement();
+        if_statement();
     }
     else if (match(TOKEN_WHILE))
     {
-        whileStatement();
+        while_statement();
     }
     else if (match(TOKEN_FOR))
     {
-        forStatement();
+        for_statement();
     }
     else if (match(TOKEN_LEFT_BRACE))
     {
-        beginScope();
+        begin_scope();
         block();
-        endScope();
+        end_scope();
+    }
+    else if (match(TOKEN_CONTINUE))
+    {
+        if (current_loop == nullptr)
+            parser->error_at_current("continue should inside for or while");
+        consume(TOKEN_SEMICOLON, "after continue need ;");
+        emit_byte(OP_CONTINUE);
+        current_loop->offsets.push_back({current_chunk()->bytecode.size(), 0});
+        emit_bytes(0xff, 0xff);
+    }
+    else if (match(TOKEN_BREAK))
+    {
+        if (current_loop == nullptr)
+            parser->error_at_current("continue should inside for or while");
+        consume(TOKEN_SEMICOLON, "after break need ;");
+        emit_byte(OP_BREAK);
+        current_loop->offsets.push_back({current_chunk()->bytecode.size(), 1});
+        emit_bytes(0xff, 0xff);
     }
     else
     {
-        expressionStatement();
+        expression_statement();
     }
 }
 
@@ -419,44 +437,55 @@ void Complication::block()
 void Complication::dot(bool canAssign)
 {
     consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
-    uint8_t name = identifierConstant(parser->previous);
+    uint8_t name = identifier_constant(parser->previous);
 
     if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
-        emitBytes(OP_SET_PROPERTY, name);
+        emit_bytes(OP_SET_PROPERTY, name);
     }
     else if (match(TOKEN_LEFT_PAREN))
     {
-        uint8_t argCount = argumentList();
-        emitBytes(OP_INVOKE, name);
-        emitByte(argCount);
+        uint8_t argCount = argument_list();
+        emit_bytes(OP_INVOKE, name);
+        emit_byte(argCount);
     }
     else
     {
-        emitBytes(OP_GET_PROPERTY, name);
+        emit_bytes(OP_GET_PROPERTY, name);
     }
 }
 
-void Complication::whileStatement()
+void Complication::while_statement()
 {
-    int loopStart = currentChunk()->bytecode.size();
+    auto classLoop = std::make_unique<LoopCompiler>();
+    classLoop->outer = std::move(current_loop);
+    current_loop = std::move(classLoop);
+
+    int loopStart = current_chunk()->bytecode.size();
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
-    int exitJump = emitJump(OP_JUMP_IF_FALSE);
-    emitByte(OP_POP);
+    int exitJump = emit_jump(OP_JUMP_IF_FALSE);
+    emit_byte(OP_POP);
     statement();
-    emitLoop(loopStart);
+    emit_loop(loopStart);
+    patch_offset(loopStart, current_chunk()->bytecode.size());
 
-    patchJump(exitJump);
-    emitByte(OP_POP);
+    patch_jump(exitJump);
+    emit_byte(OP_POP);
+    current_loop = std::move(current_loop->outer);
 }
 
-void Complication::forStatement()
+void Complication::for_statement()
 {
-    beginScope();
+    begin_scope();
+
+    auto classLoop = std::make_unique<LoopCompiler>();
+    classLoop->outer = std::move(current_loop);
+    current_loop = std::move(classLoop);
+
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
     if (match(TOKEN_SEMICOLON))
     {
@@ -464,14 +493,14 @@ void Complication::forStatement()
     }
     else if (match(TOKEN_VAR))
     {
-        varDeclaration();
+        var_declaration();
     }
     else
     {
-        expressionStatement();
+        expression_statement();
     }
 
-    int loopStart = currentChunk()->bytecode.size();
+    int loopStart = current_chunk()->bytecode.size();
     int exitJump = -1;
     if (!match(TOKEN_SEMICOLON))
     {
@@ -479,54 +508,73 @@ void Complication::forStatement()
         consume(TOKEN_SEMICOLON, "Expect ';' after loop condition.");
 
         // Jump out of the loop if the condition is false.
-        exitJump = emitJump(OP_JUMP_IF_FALSE);
-        emitByte(OP_POP); // Condition.
+        exitJump = emit_jump(OP_JUMP_IF_FALSE);
+        emit_byte(OP_POP); // Condition.
     }
 
     if (!match(TOKEN_RIGHT_PAREN))
     {
-        int bodyJump = emitJump(OP_JUMP);
-        int incrementStart = currentChunk()->bytecode.size();
+        int bodyJump = emit_jump(OP_JUMP);
+        int incrementStart = current_chunk()->bytecode.size();
         expression();
-        emitByte(OP_POP);
+        emit_byte(OP_POP);
         consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
 
-        emitLoop(loopStart);
+        emit_loop(loopStart);
         loopStart = incrementStart;
-        patchJump(bodyJump);
+        patch_jump(bodyJump);
     }
 
     statement();
-    emitLoop(loopStart);
+    emit_loop(loopStart);
+    patch_offset(loopStart, current_chunk()->bytecode.size());
 
     if (exitJump != -1)
     {
-        patchJump(exitJump);
-        emitByte(OP_POP); // Condition.
+        patch_jump(exitJump);
+        emit_byte(OP_POP); // Condition.
     }
 
-    endScope();
+    current_loop = std::move(current_loop->outer);
+    end_scope();
 }
 
-void Complication::emitLoop(int loopStart)
+void Complication::patch_offset(int loopStart, int loopEnd)
 {
-    emitByte(OP_LOOP);
+    for (const auto &[offset, _] : current_loop->offsets)
+    {
+        if (_ == 0)
+        {
+            current_chunk()->bytecode[offset] = (loopStart >> 8) & 0xff;
+            current_chunk()->bytecode[offset + 1] = loopStart & 0xff;
+        }
+        else
+        {
+            current_chunk()->bytecode[offset] = (loopEnd >> 8) & 0xff;
+            current_chunk()->bytecode[offset + 1] = loopEnd & 0xff;
+        }
+    }
+}
 
-    int offset = currentChunk()->bytecode.size() - loopStart + 2;
+void Complication::emit_loop(int loopStart)
+{
+    emit_byte(OP_LOOP);
+
+    int offset = current_chunk()->bytecode.size() - loopStart + 2;
     if (offset > UINT16_MAX)
         parser->error("Loop body too large.");
 
-    emitByte((offset >> 8) & 0xff);
-    emitByte(offset & 0xff);
+    emit_byte((offset >> 8) & 0xff);
+    emit_byte(offset & 0xff);
 }
 
-void Complication::returnStatement()
+void Complication::return_statement()
 {
     if (current->type == TYPE_SCRIPT)
         parser->error("Can't return from top-level code.");
 
     if (match(TOKEN_SEMICOLON))
-        emitReturn();
+        emit_return();
     else
     {
         if (current->type == TYPE_INITIALIZER)
@@ -534,94 +582,94 @@ void Complication::returnStatement()
 
         expression();
         consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
-        emitByte(OP_RETURN);
+        emit_byte(OP_RETURN);
     }
 }
 
-void Complication::printStatement()
+void Complication::print_statement()
 {
     expression();
     consume(TOKEN_SEMICOLON, "At the end of statement required ;.");
-    emitByte(OP_PRINT);
+    emit_byte(OP_PRINT);
 }
 
-void Complication::ifStatement()
+void Complication::if_statement()
 {
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
-    int thenJump = emitJump(OP_JUMP_IF_FALSE);
-    emitByte(OP_POP);
+    int thenJump = emit_jump(OP_JUMP_IF_FALSE);
+    emit_byte(OP_POP);
     statement();
-    int elseJump = emitJump(OP_JUMP);
-    patchJump(thenJump);
-    emitByte(OP_POP);
+    int elseJump = emit_jump(OP_JUMP);
+    patch_jump(thenJump);
+    emit_byte(OP_POP);
 
     if (match(TOKEN_ELSE))
         statement();
-    patchJump(elseJump);
+    patch_jump(elseJump);
 }
 
-void Complication::expressionStatement()
+void Complication::expression_statement()
 {
     expression();
-    consume(TOKEN_SEMICOLON, "expressionStatement needs ;.");
-    emitByte(OP_POP);
+    consume(TOKEN_SEMICOLON, "expression_statement needs ;.");
+    emit_byte(OP_POP);
 }
 
-void Complication::varDeclaration()
+void Complication::var_declaration()
 {
-    uint8_t global = parseVariable("Expect variable declare.");
+    uint8_t global = parse_variable("Expect variable declare.");
     if (match(TOKEN_EQUAL))
     {
         expression();
     }
     else
     {
-        emitByte(OP_NIL);
+        emit_byte(OP_NIL);
     }
     consume(TOKEN_SEMICOLON, "Variable declaration needs ;.");
-    defineVariable(global);
+    define_variable(global);
 }
 
-void Complication::namedVariable(Token name, bool canAssign)
+void Complication::name_variable(Token name, bool canAssign)
 {
     Opcode getOp, setOp;
-    int arg = resolveLocal(current, name);
+    int arg = resolve_local(current, name);
     if (arg != -1)
     {
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
     }
-    else if ((arg = resolveUpvalue(current, name)) != -1)
+    else if ((arg = resolve_upvalue(current, name)) != -1)
     {
         getOp = OP_GET_UPVALUE;
         setOp = OP_SET_UPVALUE;
     }
     else
     {
-        arg = identifierConstant(name);
+        arg = identifier_constant(name);
         getOp = OP_GET_GLOBAL;
         setOp = OP_SET_GLOBAL;
     }
     if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
-        emitBytes(setOp, arg);
+        emit_bytes(setOp, arg);
     }
     else
     {
-        emitBytes(getOp, arg);
+        emit_bytes(getOp, arg);
     }
 }
 
-int Complication::resolveLocal(const std::unique_ptr<Compiler> &compiler, const Token &name)
+int Complication::resolve_local(const std::unique_ptr<Compiler> &compiler, const Token &name)
 {
-    for (int i = compiler->localCount - 1; i >= 0; i--)
+    for (int i = compiler->local_count - 1; i >= 0; i--)
     {
         Local &local = compiler->locals[i];
-        if (identifiersEqual(name, local.name))
+        if (identifier_equal(name, local.name))
         {
             if (local.depth == -1)
                 parser->error("var variable = variable is not allowed."); // var a = 1; {
@@ -634,15 +682,15 @@ int Complication::resolveLocal(const std::unique_ptr<Compiler> &compiler, const 
     return -1;
 }
 
-void Complication::markInitialized() // when define function and define local variable used
+void Complication::mark_initialize() // when define function and define local variable used
 {
-    if (current->scopeDepth == 0)
+    if (current->scope_depth == 0)
         return;
-    if (current->scopeDepth > 0) // at start all depth is -1
-        current->locals[current->localCount - 1].depth = current->scopeDepth;
+    if (current->scope_depth > 0) // at start all depth is -1
+        current->locals[current->local_count - 1].depth = current->scope_depth;
 }
 
-void Complication::initCompiler(FunctionType type)
+void Complication::init_compiler(FunctionType type)
 {
     auto compiler = std::make_unique<Compiler>();
     compiler->enclosing = std::move(current);
@@ -652,89 +700,89 @@ void Complication::initCompiler(FunctionType type)
 
     if (type != FunctionType::TYPE_SCRIPT)
         current->function->name = create_obj_string(parser->previous.string, vm);
-    Local &local = current->locals.at(current->localCount++); // for this pointer 
+    Local &local = current->locals.at(current->local_count++); // for this pointer
     local.depth = 0;
-    local.isCaptured = false;
+    local.is_captured = false;
     if (type != TYPE_FUNCTION)
         local.name.string = "this";
     else
         local.name.string = std::string_view();
 }
 
-int Complication::resolveUpvalue(const std::unique_ptr<Compiler> &compiler, Token &name)
+int Complication::resolve_upvalue(const std::unique_ptr<Compiler> &compiler, Token &name)
 {
     if (compiler->enclosing == nullptr)
         return -1;
-    int local = resolveLocal(compiler->enclosing, name);
+    int local = resolve_local(compiler->enclosing, name);
     if (local != -1)
     {
-        compiler->enclosing->locals[local].isCaptured = true;
-        return addUpvalue(compiler, local, true);
+        compiler->enclosing->locals[local].is_captured = true;
+        return add_upvalue(compiler, local, true);
     }
 
-    int upvalue = resolveUpvalue(compiler->enclosing, name); // layer-by-layer
-                                                             // to add upvalue
-                                                             // and ensure concerned func
-                                                             // all have upvalue
+    int upvalue = resolve_upvalue(compiler->enclosing, name); // layer-by-layer
+                                                              // to add upvalue
+                                                              // and ensure concerned func
+                                                              // all have upvalue
     if (upvalue != -1)
-        return addUpvalue(compiler, upvalue, false); // capture upvalue
+        return add_upvalue(compiler, upvalue, false); // capture upvalue
 
     return -1;
 }
 
-int Complication::addUpvalue(const std::unique_ptr<Compiler> &compiler, int index, bool isLocal)
+int Complication::add_upvalue(const std::unique_ptr<Compiler> &compiler, int index, bool is_local)
 {
-    int upvalueCount = compiler->function->upvalueCount; // outside function firstly add upvalue
-                                                         // and the outest one have 0 upvalueCount
-                                                         // because only after outside capture it,
-                                                         // can inside get upvalueCount and upvalue information
-    for (int i = 0; i < upvalueCount; i++)
+    int upvalue_count = compiler->function->upvalue_count; // outside function firstly add upvalue
+                                                           // and the outest one have 0 upvalue_count
+                                                           // because only after outside capture it,
+                                                           // can inside get upvalue_count and upvalue information
+    for (int i = 0; i < upvalue_count; i++)
     {
         Upvalue &upvalue = compiler->upvalues[i];
-        if (upvalue.index == index && upvalue.isLocal == isLocal) // index is about captured local-var
-            return i;                                             // isLocal is outside function's local-var
+        if (upvalue.index == index && upvalue.is_local == is_local) // index is about captured local-var
+            return i;                                               // is_local is outside function's local-var
     } // we shouldn't repeatedly add
-    if (upvalueCount == UINT8_MAX)
+    if (upvalue_count == UINT8_MAX)
     {
         parser->error("Too many closure variables in function.");
         return 0;
     }
-    compiler->upvalues[upvalueCount].isLocal = isLocal;
-    compiler->upvalues[upvalueCount].index = index;
-    return compiler->function->upvalueCount++;
+    compiler->upvalues[upvalue_count].is_local = is_local;
+    compiler->upvalues[upvalue_count].index = index;
+    return compiler->function->upvalue_count++;
 }
 
-uint8_t Complication::parseVariable(const std::string &message)
+uint8_t Complication::parse_variable(const std::string &message)
 {
     consume(TOKEN_IDENTIFIER, message);
-    declareVariable();           // this function define local
-    if (current->scopeDepth > 0) // below is to define global variable
+    declare_variable();           // this function define local
+    if (current->scope_depth > 0) // below is to define global variable
         return 0;
-    return identifierConstant(parser->previous);
+    return identifier_constant(parser->previous);
 }
 
-uint8_t Complication::identifierConstant(const Token &token)
+uint8_t Complication::identifier_constant(const Token &token)
 {
     auto name = create_obj_string(token.string, vm);
-    return makeConstant(name);
+    return make_constant(name);
 }
 
-int Complication::emitJump(Opcode instruction)
+int Complication::emit_jump(Opcode instruction)
 {
-    emitByte(instruction);
-    emitBytes(0xff, 0xff);
-    return currentChunk()->bytecode.size() - 2;
+    emit_byte(instruction);
+    emit_bytes(0xff, 0xff);
+    return current_chunk()->bytecode.size() - 2;
 }
 
-void Complication::patchJump(int offset)
+void Complication::patch_jump(int offset)
 {
-    int jump = currentChunk()->bytecode.size() - offset - 2;
+    int jump = current_chunk()->bytecode.size() - offset - 2;
 
     if (jump > UINT16_MAX)
         parser->error("Too much code to jump over.");
 
-    currentChunk()->bytecode[offset] = (jump >> 8) & 0xff;
-    currentChunk()->bytecode[offset + 1] = jump & 0xff;
+    current_chunk()->bytecode[offset] = (jump >> 8) & 0xff;
+    current_chunk()->bytecode[offset + 1] = jump & 0xff;
 }
 
 bool Complication::check(TokenType type)
@@ -754,15 +802,15 @@ void Complication::declaration()
 {
     if (match(TOKEN_CLASS))
     {
-        classDeclaration();
+        class_declaration();
     }
     else if (match(TOKEN_FUN))
     {
-        funDeclaration();
+        fun_declaration();
     }
     else if (match(TOKEN_VAR))
     {
-        varDeclaration();
+        var_declaration();
     }
     else
     {
@@ -770,58 +818,58 @@ void Complication::declaration()
     }
 }
 
-void Complication::declareVariable()
+void Complication::declare_variable()
 {
-    if (current->scopeDepth == 0)
+    if (current->scope_depth == 0)
         return;
 
     Token name = parser->previous;
-    for (int i = current->localCount - 1; i >= 0; i--)
+    for (int i = current->local_count - 1; i >= 0; i--)
     {
         Local local = current->locals[i];
-        if (local.depth != -1 && local.depth < current->scopeDepth)
+        if (local.depth != -1 && local.depth < current->scope_depth)
             break;
-        if (identifiersEqual(name, local.name))
+        if (identifier_equal(name, local.name))
             parser->error(std::string(name.string) + "has defined before.");
     }
-    addLocal(name);
+    add_local(name);
 }
 
-void Complication::classDeclaration()
+void Complication::class_declaration()
 {
     consume(TOKEN_IDENTIFIER, "Expect class name.");
     Token className = parser->previous;
-    uint8_t nameConstant = identifierConstant(parser->previous);
-    declareVariable();
+    uint8_t nameConstant = identifier_constant(parser->previous);
+    declare_variable();
 
-    emitBytes(OP_CLASS, nameConstant);
-    defineVariable(nameConstant);
+    emit_bytes(OP_CLASS, nameConstant);
+    define_variable(nameConstant);
 
     auto classCompiler = std::make_unique<ClassCompiler>();
-    classCompiler->enclosing = std::move(currentClass);
-    currentClass = std::move(classCompiler);
+    classCompiler->enclosing = std::move(current_class);
+    current_class = std::move(classCompiler);
 
     if (match(TOKEN_LESS)) // inherit
     {
         consume(TOKEN_IDENTIFIER, "Expect superclass name.");
-        namedVariable(parser->previous, false); // OP_GET a class_obj from upvalue or local or global
-                         // we wana in vm-stack obj_father is in front of obj_son
+        name_variable(parser->previous, false); // OP_GET a class_obj from upvalue or local or global
+                                                // we wana in vm-stack obj_father is in front of obj_son
 
         // B < A
         // className is B     previous is A
         if (className.string == parser->previous.string)
             parser->error("A class cannot inherit from itself.");
 
-        beginScope();
-        addLocal(syntheticToken("super"));
-        markInitialized();
+        begin_scope();
+        add_local(syntehtic_token("super"));
+        mark_initialize();
 
-        namedVariable(className, false);
-        emitByte(OP_INHERIT); // three opcode is for vm to create inherit realtion
-        currentClass->hasSuperclass = true;
+        name_variable(className, false);
+        emit_byte(OP_INHERIT); // three opcode is for vm to create inherit realtion
+        current_class->has_super_class = true;
     }
 
-    namedVariable(className, false);
+    name_variable(className, false);
 
     consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
 
@@ -829,29 +877,30 @@ void Complication::classDeclaration()
         method();
 
     consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
-    emitByte(OP_POP);
+    emit_byte(OP_POP);
 
-    if (currentClass->hasSuperclass)
-        endScope();
-    currentClass = std::move(currentClass->enclosing);
+    if (current_class->has_super_class)
+        end_scope();
+    current_class = std::move(current_class->enclosing);
 }
 
-void Complication::funDeclaration()
+void Complication::fun_declaration()
 {
-    uint8_t global = parseVariable("Expect function name."); // before closure all function is global
-    markInitialized();                                       // why initialize
+    uint8_t global = parse_variable("Expect function name."); // before closure all function is global
+    mark_initialize();                                        // why initialize
     function(TYPE_FUNCTION);
-    defineVariable(global);
+    define_variable(global);
 }
 
-void Complication::function_expr(bool assign) {
+void Complication::function_expr(bool assign)
+{
     function(FunctionType::TYPE_FUNCTION);
 }
 
 void Complication::function(FunctionType type)
 {
-    initCompiler(type);
-    beginScope();
+    init_compiler(type);
+    begin_scope();
 
     consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
     if (!check(TOKEN_RIGHT_PAREN))
@@ -860,39 +909,39 @@ void Complication::function(FunctionType type)
         {
             current->function->arity++;
             if (current->function->arity > 255)
-                parser->errorAtCurrent("Can't have more than 255 parameters.");
-            uint8_t constant = parseVariable("Expect parameter name.");
-            defineVariable(constant);
+                parser->error_at_current("Can't have more than 255 parameters.");
+            uint8_t constant = parse_variable("Expect parameter name.");
+            define_variable(constant);
         } while (match(TOKEN_COMMA));
     }
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
     consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
     block();
 
-    auto [function, done] = endCompiler();
-    // emitBytes(OP_CONSTANT, makeConstant(static_cast<Obj *>(function)));
-    emitBytes(OP_CLOSURE, makeConstant(function));
-    for (int i = 0; i < function->upvalueCount; i++)
+    auto [function, done] = end_compiler();
+    // emit_bytes(OP_CONSTANT, make_constant(static_cast<Obj *>(function)));
+    emit_bytes(OP_CLOSURE, make_constant(function));
+    for (int i = 0; i < function->upvalue_count; i++)
     {
-        emitByte(done->upvalues[i].isLocal ? 1 : 0);
-        emitByte(done->upvalues[i].index);
+        emit_byte(done->upvalues[i].is_local ? 1 : 0);
+        emit_byte(done->upvalues[i].index);
     }
 }
 
 void Complication::method()
 {
     consume(TOKEN_IDENTIFIER, "Expect method name.");
-    uint8_t constant = identifierConstant(parser->previous);
+    uint8_t constant = identifier_constant(parser->previous);
     FunctionType type = TYPE_METHOD;
     if (parser->previous.string == "init")
         type = TYPE_INITIALIZER;
     function(type);
-    emitBytes(OP_METHOD, constant);
+    emit_bytes(OP_METHOD, constant);
 }
 
 void Complication::this_(bool assign)
 {
-    if (currentClass == nullptr)
+    if (current_class == nullptr)
     {
         parser->error("Can't use 'this' outside of a class.");
         return;
@@ -900,79 +949,79 @@ void Complication::this_(bool assign)
     variable(false);
 }
 
-void Complication::addLocal(Token name)
+void Complication::add_local(Token name)
 {
-    if (current->localCount == UINT8_MAX)
+    if (current->local_count == UINT8_MAX)
     {
         parser->error("Local variable count has reached limit.");
         return;
     }
-    Local &local = current->locals[current->localCount++];
+    Local &local = current->locals[current->local_count++];
     local.name = name;
     local.depth = -1;
 }
 
-bool Complication::identifiersEqual(const Token &a, const Token &b)
+bool Complication::identifier_equal(const Token &a, const Token &b)
 {
     return a.string == b.string;
 }
 
-void Complication::defineVariable(uint8_t global)
+void Complication::define_variable(uint8_t global)
 {
-    if (current->scopeDepth > 0)
+    if (current->scope_depth > 0)
     {
-        markInitialized(); // begin all current local variable depth is -1
+        mark_initialize(); // begin all current local variable depth is -1
         return;            // local variable has been defined before
     }
-    emitBytes(OP_DEFINE_GLOBAL, global);
+    emit_bytes(OP_DEFINE_GLOBAL, global);
 }
 
-Token Complication::syntheticToken(const std::string_view text)
+Token Complication::syntehtic_token(const std::string_view text)
 {
     Token token;
     token.string = text;
     return token;
 }
 
-void Complication::writeChunk(uint8_t op, int line)
+void Complication::write_chunk(uint8_t op, int line)
 {
-    currentChunk()->bytecode.push_back(op);
-    currentChunk()->lines.push_back(line);
+    current_chunk()->bytecode.push_back(op);
+    current_chunk()->lines.push_back(line);
 }
 
-uint8_t Complication::addConstant(Value value)
+uint8_t Complication::add_constant(Value value)
 {
     vm.push(value);
-    currentChunk()->constants.push_back(value);
+    current_chunk()->constants.push_back(value);
     vm.pop();
-    return currentChunk()->constants.size() - 1;
+    return current_chunk()->constants.size() - 1;
 }
 
-void Complication::emitConstant(Value value)
+void Complication::emit_constant(Value value)
 {
-    emitBytes(OP_CONSTANT, makeConstant(value));
+    emit_bytes(OP_CONSTANT, make_constant(value));
 }
-void Complication::emitBytes(uint8_t byte1, uint8_t byte2)
+void Complication::emit_bytes(uint8_t byte1, uint8_t byte2)
 {
-    emitByte(byte1);
-    emitByte(byte2);
+    emit_byte(byte1);
+    emit_byte(byte2);
 }
-void Complication::emitReturn()
+void Complication::emit_return()
 {
     if (current->type == TYPE_INITIALIZER)
-        emitBytes(OP_GET_LOCAL, 0);
+        emit_bytes(OP_GET_LOCAL, 0);
     else
-        emitByte(OP_NIL);
-    emitByte(Opcode::OP_RETURN);
+        emit_byte(OP_NIL);
+    emit_byte(Opcode::OP_RETURN);
 }
-void Complication::emitByte(uint8_t byte)
+void Complication::emit_byte(uint8_t byte)
 {
-    writeChunk(byte, parser->previous.line);
+    write_chunk(byte, parser->previous.line);
 }
 
-uint8_t Complication::makeConstant(Value value)
+uint8_t Complication::make_constant(Value value)
 {
-    int constant = addConstant(value);
+    int constant = add_constant(value);
     if (constant > UINT8_MAX)
     {
         throw std::logic_error("Too many constants in one chunk.");

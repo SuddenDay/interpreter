@@ -25,15 +25,15 @@ void GC::mark_roots()
 	for (auto slot = 0; slot < vm.top; ++slot)
 		mark_value(vm.stack[slot]);
 
-	for (int i = 0; i < vm.frameCount; i++)
+	for (int i = 0; i < vm.frame_count; i++)
 		mark_object(std::remove_const_t<ObjClosure*>(vm.frames.at(i).closure));
 
-	for (auto upvalue = vm.openUpvalues; upvalue != nullptr; upvalue = upvalue->next)
+	for (auto upvalue = vm.open_upvalues; upvalue != nullptr; upvalue = upvalue->next)
 		mark_object(upvalue);
 
 	mark_table(vm.globals);
 	mark_compiler_roots();
-	mark_object(vm.initString);
+	mark_object(vm.init_string);
 }
 
 void GC::mark_array(const std::vector<Value, Allocator<Value>>& array)
