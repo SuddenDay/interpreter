@@ -31,6 +31,7 @@ if (true) return "true";
 else return "false";
 
 for (var i = 0; i < 10; i++);
+break; continue;
 
 while (true);
 ```
@@ -38,6 +39,7 @@ while (true);
 ### Functions
 
 ```javascript
+var lambda = fun() { };
 fun f(int x) {
     if (x == 1 || x == 2)
         return 1;
