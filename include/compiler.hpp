@@ -71,6 +71,7 @@ public:
     void string(bool canAssign);
     void variable(bool canAssign);
     void dot(bool canAssign);
+    void function_expr(bool assign);
     void statement();
     void block();
     void whileStatement();

@@ -41,6 +41,7 @@
     X(OP_JSON) \
     X(OP_GET_ELEMENT) \
     X(OP_SET_ELEMENT) \
+    X(OP_FUNCTION) \
 
 enum Opcode
 {

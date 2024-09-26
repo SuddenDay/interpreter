@@ -1,0 +1,9 @@
+var f = fun() {
+    print 1;
+};
+
+var f = fun() {
+    print 2;
+};
+
+f();

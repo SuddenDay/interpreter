@@ -6,6 +6,7 @@
 #include "object.hpp"
 #include "value.hpp"
 #include "native.hpp"
+#include <string_view>
 
 VM::VM() : cu(*this), globals(), stack(STACK_MAX), gc(*this)
 {
@@ -373,6 +374,12 @@ InterpretResult VM::run()
             frame = &frames[frameCount - 1]; // frame update, enter into function scope
             break;
         }
+        case OP_FUNCTION:
+        {
+            auto function = frame->read_constant().as_obj<ObjFunction>();
+            push(function);
+            break;
+        }
         case OP_CLOSURE:
         {
             auto function = frame->read_constant().as_obj<ObjFunction>();
@@ -534,7 +541,9 @@ InterpretResult VM::run()
                     runtimeError("Index is larger than array size.");
                 array->values.at(index) = value;
                 push(value);
-            } else {
+            }
+            else
+            {
                 auto value = pop();
                 auto key = pop();
                 pop().as_obj<ObjJson>()->kv.insert_or_assign(key, value);
@@ -564,14 +573,14 @@ InterpretResult VM::run()
 
 uint8_t CallFrame::read_byte()
 {
-    return closure->function->chunk.getCodeAt(ip++);
+    return closure->function->chunk.bytecode[ip++];
 }
 Value CallFrame::read_constant() { return closure->function->chunk.constants.at(read_byte()); }
 uint16_t CallFrame::read_short()
 {
     ip += 2;
-    auto a = closure->function->chunk.getCodeAt(ip - 2) << 8;
-    auto b = closure->function->chunk.getCodeAt(ip - 1);
+    auto a = closure->function->chunk.bytecode[ip - 2] << 8;
+    auto b = closure->function->chunk.bytecode[ip - 1];
     return static_cast<uint16_t>(a | b);
 };
 ObjString *CallFrame::read_string()

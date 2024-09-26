@@ -13,7 +13,7 @@ Token Scanner::scanToken()
     char ch = advance();
     if (std::isdigit(ch))
         return number();
-    if (std::isalpha(ch))
+    if (std::isalpha(ch) || ch == '_')
         return identifier();
 
     switch (ch)
@@ -151,7 +151,7 @@ Token Scanner::string()
 }
 Token Scanner::identifier()
 {
-    while (std::isalpha(peek()) || std::isdigit(peek()))
+    while (std::isalpha(peek()) || std::isdigit(peek()) || peek() == '_')
         advance();
     return makeToken(identifierType());
 }

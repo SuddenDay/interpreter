@@ -19,7 +19,5 @@ struct Chunk
     std::vector<int> lines;
 
     int getLineAt(int index);
-    uint8_t getCodeAt(int index) const;
-    Value getConstAt(int index) const;
     friend std::ostream &operator<<(std::ostream &os, const Chunk& chunk) ;
 };

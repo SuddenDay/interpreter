@@ -32,12 +32,3 @@ int Chunk::getLineAt(int index)
 {
     return lines[index];
 }
-uint8_t Chunk::getCodeAt(int index) const
-{
-    return bytecode.at(index);
-}
-
-Value Chunk::getConstAt(int index) const
-{
-    return constants.at(index);
-}

@@ -36,7 +36,7 @@ Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), 
                                                                                     {TOKEN_ELSE, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_FALSE, {&Complication::literal, nullptr, PREC_NONE}},
                                                                                     {TOKEN_FOR, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_FUN, {nullptr, nullptr, PREC_NONE}},
+                                                                                    {TOKEN_FUN, {&Complication::function_expr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_IF, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_NIL, {&Complication::literal, nullptr, PREC_NONE}},
                                                                                     {TOKEN_OR, {nullptr, &Complication::or_, PREC_OR}},
@@ -271,8 +271,10 @@ void Complication::list(bool canAssign)
 void Complication::json(bool canAssign)
 {
     int count = 0;
-    if(!check(TOKEN_RIGHT_BRACE)) {
-        do {
+    if (!check(TOKEN_RIGHT_BRACE))
+    {
+        do
+        {
             count++;
             expression();
             consume(TOKEN_COLON, "Expect ':' to set json value.");
@@ -287,7 +289,8 @@ void Complication::get_or_set(bool canAssign)
 {
     expression();
     consume(TOKEN_RIGHT_BRACKET, "Expect ']' to get list element.");
-    if(match(TOKEN_EQUAL)) {
+    if (match(TOKEN_EQUAL))
+    {
         expression();
         emitByte(OP_SET_ELEMENT);
     }
@@ -649,7 +652,7 @@ void Complication::initCompiler(FunctionType type)
 
     if (type != FunctionType::TYPE_SCRIPT)
         current->function->name = create_obj_string(parser->previous.string, vm);
-    Local &local = current->locals.at(current->localCount++); // why
+    Local &local = current->locals.at(current->localCount++); // for this pointer 
     local.depth = 0;
     local.isCaptured = false;
     if (type != TYPE_FUNCTION)
@@ -798,20 +801,23 @@ void Complication::classDeclaration()
     classCompiler->enclosing = std::move(currentClass);
     currentClass = std::move(classCompiler);
 
-    if (match(TOKEN_LESS))
+    if (match(TOKEN_LESS)) // inherit
     {
         consume(TOKEN_IDENTIFIER, "Expect superclass name.");
-        variable(false);
+        namedVariable(parser->previous, false); // OP_GET a class_obj from upvalue or local or global
+                         // we wana in vm-stack obj_father is in front of obj_son
 
+        // B < A
+        // className is B     previous is A
         if (className.string == parser->previous.string)
             parser->error("A class cannot inherit from itself.");
 
         beginScope();
         addLocal(syntheticToken("super"));
-        defineVariable(0);
+        markInitialized();
 
         namedVariable(className, false);
-        emitByte(OP_INHERIT);
+        emitByte(OP_INHERIT); // three opcode is for vm to create inherit realtion
         currentClass->hasSuperclass = true;
     }
 
@@ -836,6 +842,10 @@ void Complication::funDeclaration()
     markInitialized();                                       // why initialize
     function(TYPE_FUNCTION);
     defineVariable(global);
+}
+
+void Complication::function_expr(bool assign) {
+    function(FunctionType::TYPE_FUNCTION);
 }
 
 void Complication::function(FunctionType type)

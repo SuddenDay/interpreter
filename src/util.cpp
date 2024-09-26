@@ -4,7 +4,7 @@
 int Util::disassembleInstruction(const Chunk &chunk, int offset)
 {
     std::cout << std::setw(4) << std::setfill('0') << std::right << offset << " ";
-    Opcode instruction = static_cast<Opcode>(chunk.getCodeAt(offset));
+    Opcode instruction = static_cast<Opcode>(chunk.bytecode[offset]);
     auto jumpInstruction = [&](int sign, const Chunk& chunk, int offset) {
         uint16_t jump = (uint16_t)(chunk.bytecode[offset + 1] << 8);
         jump |= chunk.bytecode[offset + 2];
@@ -22,7 +22,7 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_GET_UPVALUE:
     case Opcode::OP_GET_SUPER:
     {
-        auto slot = chunk.getCodeAt(offset + 1);
+        auto slot = chunk.bytecode[offset + 1];
         std::cout << "  " << instruction << " [" << static_cast<int>(slot) << "] " << std::endl;
 	    return offset + 2;
     }
@@ -52,7 +52,7 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     }
     case Opcode::OP_ARRAY:
     {
-        int count = chunk.getCodeAt(offset + 1); // can't use uint8 because unsigned char is null
+        int count = chunk.bytecode[offset + 1]; // can't use uint8 because unsigned char is null
         std::cout << "  " << instruction << " size: " << count << std::endl;
         return offset + 2;
     }
@@ -64,9 +64,10 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     case Opcode::OP_SET_PROPERTY:
     case Opcode::OP_METHOD:
     case Opcode::OP_CLASS:
+    case Opcode::OP_FUNCTION:
     {
-        int index = chunk.getCodeAt(offset + 1); // can't use uint8 because unsigned char is null
-        std::cout << "  " << instruction << " [" << index << "] " << chunk.getConstAt(index)
+        int index = chunk.bytecode[offset + 1]; // can't use uint8 because unsigned char is null
+        std::cout << "  " << instruction << " [" << index << "] " << chunk.constants[index]
                   << std::endl;
         return offset + 2;
     }
@@ -86,8 +87,8 @@ int Util::disassembleInstruction(const Chunk &chunk, int offset)
     }
     case Opcode::OP_SUPER_INVOKE:
     case Opcode::OP_INVOKE: {
-        auto constant = chunk.getCodeAt(offset + 1);
-        auto argCount = chunk.getCodeAt(offset + 2);
+        auto constant = chunk.bytecode[offset + 1];
+        auto argCount = chunk.bytecode[offset + 2];
 	    std::cout << "  " << instruction << "(args: " << int(argCount) << ") [" << constant << "] " << chunk.constants[constant] << std::endl;
         return offset + 3;
     }

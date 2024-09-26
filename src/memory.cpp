@@ -13,7 +13,9 @@ void GC::collect()
 	trace_references();
 	remove_white_string();
 	sweep();
+	#ifdef DEBUG_MODE
 	std::cout << "gc collect " << before - bytes_allocated << " bytes" << std::endl;
+	#endif
 
 	next_gc = bytes_allocated * GC_HEAP_GROW_FACTOR;
 }
