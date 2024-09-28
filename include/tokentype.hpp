@@ -36,6 +36,7 @@
         TOKEN_FOR,
         TOKEN_FUN,
         TOKEN_IF,
+        TOKEN_ELIF,
         TOKEN_NIL,
         TOKEN_OR,
         TOKEN_PRINT,

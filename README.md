@@ -27,8 +27,13 @@ a = b;
 ### Control Flow
 
 ```cpp
-if (true) return "true";
-else return "false";
+if (true) return true;
+else if(false) return false;
+else return nil;
+
+if (true) return true;
+elif(false) return false;
+else return nil;
 
 for (var i = 0; i < 10; i++);
 break; continue;

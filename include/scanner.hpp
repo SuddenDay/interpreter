@@ -31,6 +31,7 @@ public:
         check_keyword.insert({"true", TOKEN_TRUE});
         check_keyword.insert({"fun", TOKEN_FUN});
         check_keyword.insert({"this", TOKEN_THIS});
+        check_keyword.insert({"elif", TOKEN_ELIF});
         check_keyword.insert({"var", TOKEN_VAR});
         check_keyword.insert({"for", TOKEN_FOR});
     }

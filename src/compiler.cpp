@@ -415,7 +415,7 @@ void Complication::statement()
     else if (match(TOKEN_BREAK))
     {
         if (current_loop == nullptr)
-            parser->error_at_current("continue should inside for or while");
+            parser->error_at_current("break should inside for or while");
         consume(TOKEN_SEMICOLON, "after break need ;");
         emit_byte(OP_BREAK);
         current_loop->offsets.push_back({current_chunk()->bytecode.size(), 1});
@@ -596,19 +596,48 @@ void Complication::print_statement()
 void Complication::if_statement()
 {
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
-    expression();
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
+    expression(); // Parse condition
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after if condition.");
 
-    int thenJump = emit_jump(OP_JUMP_IF_FALSE);
-    emit_byte(OP_POP);
+    // Compile the 'then' branch
+    int then_jump = emit_jump(OP_JUMP_IF_FALSE);
+    emit_byte(OP_POP); // Pop the condition
     statement();
-    int elseJump = emit_jump(OP_JUMP);
-    patch_jump(thenJump);
-    emit_byte(OP_POP);
 
-    if (match(TOKEN_ELSE))
+    // Handle multiple 'elif'
+    int else_jump = -1;
+    std::vector<int> patchs;
+    while (match(TOKEN_ELIF))
+    {
+        int elif_jump = emit_jump(OP_JUMP);
+        patchs.push_back(elif_jump);
+        patch_jump(then_jump);
+        emit_byte(OP_POP); // Pop the last 'if' condition
+
+        consume(TOKEN_LEFT_PAREN, "Expect '(' after 'elif'.");
+        expression(); // Parse elif condition
+        consume(TOKEN_RIGHT_PAREN, "Expect ')' after elif condition.");
+
+        then_jump = emit_jump(OP_JUMP_IF_FALSE);
+        emit_byte(OP_POP); // Pop elif condition
         statement();
-    patch_jump(elseJump);
+
+        patch_jump(then_jump);
+    }
+
+
+    if (else_jump == -1)
+        else_jump = emit_jump(OP_JUMP);
+    // Optional else
+    patch_jump(then_jump);
+    if (match(TOKEN_ELSE))
+    {
+        emit_byte(OP_POP); // Pop the last condition
+        statement();
+        patch_jump(else_jump);
+    }
+    for (auto &patch : patchs)
+        patch_jump(patch);
 }
 
 void Complication::expression_statement()
