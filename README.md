@@ -19,6 +19,7 @@ While no external libraries are required, some repositories were referenced for 
 var a = 1;
 a = "1";
 a = [1, 2, [3, 4]];
+a[0] += 1;
 a = { 1: "1", 2: "2" };
 fun b() { return nil; }
 a = b;

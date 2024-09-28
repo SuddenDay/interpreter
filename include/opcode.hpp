@@ -44,6 +44,7 @@
     X(OP_FUNCTION) \
     X(OP_CONTINUE) \
     X(OP_BREAK) \
+    X(OP_PEEK) \
 
 enum Opcode
 {

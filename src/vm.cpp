@@ -541,6 +541,11 @@ InterpretResult VM::run()
             }
             break;
         }
+        case OP_PEEK: 
+        {
+            push(peek(frame->read_byte()));
+            break;
+        }
         case OP_SET_ELEMENT:
         {
             if (peek(2).as<Obj *>()->is_type(objtype_of<ObjArray>()))
@@ -574,13 +579,6 @@ InterpretResult VM::run()
                 objJson->kv[key] = value;
             }
             push(objJson);
-            break;
-        }
-        case OP_ADD_EQUAL:
-        {
-            Value rhs = pop();  // Right-hand side value
-            Value lhs = peek(0);  // Left-hand side (stored in the same slot)
-            stack[top - 1] = (rhs + lhs);
             break;
         }
         default:

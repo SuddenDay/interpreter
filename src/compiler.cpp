@@ -121,6 +121,7 @@ void Complication::synchronize()
 
 void Complication::advance()
 {
+    parser->prev_previous = parser->previous;
     parser->previous = parser->current;
     while (true)
     {
@@ -295,6 +296,23 @@ void Complication::get_or_set(bool canAssign)
     if (match(TOKEN_EQUAL))
     {
         expression();
+        emit_byte(OP_SET_ELEMENT);
+    } else if(match(TOKEN_ADD_EQUAL)) 
+    {
+        emit_bytes(OP_PEEK, 1);
+        emit_bytes(OP_PEEK, 1);
+        emit_byte(OP_GET_ELEMENT);
+        expression();
+        emit_byte(OP_ADD);
+        emit_byte(OP_SET_ELEMENT);
+    }
+    else if(match(TOKEN_MINUS_EQUAL))
+    {
+        emit_bytes(OP_PEEK, 1);
+        emit_bytes(OP_PEEK, 1);
+        emit_byte(OP_GET_ELEMENT);
+        expression();
+        emit_byte(OP_SUB);
         emit_byte(OP_SET_ELEMENT);
     }
     else
@@ -695,8 +713,8 @@ void Complication::name_variable(Token name, bool canAssign)
     }
     else if (canAssign && match(TOKEN_MINUS_EQUAL))
     {
-        expression();
         emit_bytes(getOp, arg);
+        expression();
         emit_byte(OP_SUB);
         emit_bytes(setOp, arg);
     }

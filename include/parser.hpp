@@ -40,6 +40,7 @@ struct Parser
     Scanner scanner;
     Token current;
     Token previous;
+    Token prev_previous;
     bool has_error;
     bool panic_mode;
     int line;

@@ -41,8 +41,6 @@ int Util::disassemble_instruction(const Chunk &chunk, int offset)
     case Opcode::OP_LESS:
     case Opcode::OP_EQUAL:
     case Opcode::OP_RETURN:
-    case Opcode::OP_ADD_EQUAL:
-    case Opcode::OP_SUB_EQUAL:
     case Opcode::OP_PRINT:
     case Opcode::OP_POP:
     case Opcode::OP_GET_ELEMENT:
@@ -65,6 +63,7 @@ int Util::disassemble_instruction(const Chunk &chunk, int offset)
     case Opcode::OP_DEFINE_GLOBAL:
     case Opcode::OP_SET_GLOBAL:
     case Opcode::OP_CONSTANT:
+    case Opcode::OP_PEEK:
     case Opcode::OP_GET_PROPERTY:
     case Opcode::OP_SET_PROPERTY:
     case Opcode::OP_METHOD:
