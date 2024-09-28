@@ -576,6 +576,13 @@ InterpretResult VM::run()
             push(objJson);
             break;
         }
+        case OP_ADD_EQUAL:
+        {
+            Value rhs = pop();  // Right-hand side value
+            Value lhs = peek(0);  // Left-hand side (stored in the same slot)
+            stack[top - 1] = (rhs + lhs);
+            break;
+        }
         default:
             std::cout << Opcode(instruction) << " error" << std::endl;
             break;

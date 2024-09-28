@@ -3,5 +3,5 @@
 #include <vector>
 #include <ostream>
 
-// #define DEBUG_MODE
+#define DEBUG_MODE
 

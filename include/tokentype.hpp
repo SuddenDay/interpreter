@@ -12,6 +12,8 @@
         TOKEN_DOT,
         TOKEN_MINUS,
         TOKEN_PLUS,
+        TOKEN_ADD_EQUAL,
+        TOKEN_MINUS_EQUAL,
         TOKEN_SEMICOLON,
         TOKEN_SLASH,
         TOKEN_STAR,

@@ -16,6 +16,8 @@ Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), 
                                                                                     {TOKEN_COMMA, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_DOT, {nullptr, &Complication::dot, PREC_CALL}},
                                                                                     {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
+                                                                                    {TOKEN_ADD_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
+                                                                                    {TOKEN_MINUS_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
                                                                                     {TOKEN_PLUS, {nullptr, &Complication::binary, PREC_TERM}},
                                                                                     {TOKEN_SEMICOLON, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_SLASH, {nullptr, &Complication::binary, PREC_FACTOR}},
@@ -210,6 +212,7 @@ void Complication::binary(bool canAssign)
         return; // Unreachable.
     }
 }
+
 void Complication::unary(bool canAssign)
 {
     TokenType operatorType = parser->previous.type;
@@ -605,14 +608,13 @@ void Complication::if_statement()
     statement();
 
     // Handle multiple 'elif'
-    int else_jump = -1;
     std::vector<int> patchs;
     while (match(TOKEN_ELIF))
     {
-        int elif_jump = emit_jump(OP_JUMP);
+        int elif_jump = emit_jump(OP_JUMP); // if(true) jump out of if-elif-else
         patchs.push_back(elif_jump);
-        patch_jump(then_jump);
-        emit_byte(OP_POP); // Pop the last 'if' condition
+        patch_jump(then_jump); // if(false) jump next if-elif-else
+        emit_byte(OP_POP);     // Pop the last 'if' condition
 
         consume(TOKEN_LEFT_PAREN, "Expect '(' after 'elif'.");
         expression(); // Parse elif condition
@@ -624,10 +626,7 @@ void Complication::if_statement()
 
         patch_jump(then_jump);
     }
-
-
-    if (else_jump == -1)
-        else_jump = emit_jump(OP_JUMP);
+    int else_jump = emit_jump(OP_JUMP);
     // Optional else
     patch_jump(then_jump);
     if (match(TOKEN_ELSE))
@@ -685,6 +684,20 @@ void Complication::name_variable(Token name, bool canAssign)
     if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
+        emit_bytes(setOp, arg);
+    }
+    else if (canAssign && match(TOKEN_ADD_EQUAL))
+    {
+        expression();
+        emit_bytes(getOp, arg);
+        emit_byte(OP_ADD);
+        emit_bytes(setOp, arg);
+    }
+    else if (canAssign && match(TOKEN_MINUS_EQUAL))
+    {
+        expression();
+        emit_bytes(getOp, arg);
+        emit_byte(OP_SUB);
         emit_bytes(setOp, arg);
     }
     else

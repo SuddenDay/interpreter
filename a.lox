@@ -1,6 +1,3 @@
-for(var i = 0; i < 10; i = i + 1) {
-    if(i < 3)
-        print true;
-    else
-        print nil;
+for(var i = 0; i < 10; i += 1) {
+    print i;
 }

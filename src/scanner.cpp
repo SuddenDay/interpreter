@@ -39,8 +39,12 @@ Token Scanner::scanToken()
     case '.':
         return makeToken(TOKEN_DOT);
     case '-':
+        if(match('='))
+            return makeToken(TOKEN_MINUS_EQUAL);
         return makeToken(TOKEN_MINUS);
     case '+':
+        if(match('='))
+            return makeToken(TOKEN_ADD_EQUAL);
         return makeToken(TOKEN_PLUS);
     case '/':
         return makeToken(TOKEN_SLASH);
