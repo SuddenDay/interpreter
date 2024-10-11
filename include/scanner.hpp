@@ -35,20 +35,20 @@ public:
         check_keyword.insert({"var", TOKEN_VAR});
         check_keyword.insert({"for", TOKEN_FOR});
     }
-    Token scanToken();
+    Token scan_token();
 
 public:
     char peek();
     char advance();
     void skip_space();
     bool match(char wana);
-    bool isAtEnd();
+    bool is_at_end();
     char peek_next();
     Token number();
     Token string();
     Token identifier();
     TokenType identifier_type();
-    Token makeToken(TokenType type);
+    Token make_token(TokenType type);
     std::string_view source;
     std::string_view::const_iterator start;
     std::string_view::const_iterator current;

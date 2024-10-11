@@ -5,6 +5,12 @@
 #include <vector>
 
 struct Obj;
+struct Value;
+std::ostream &operator<<(std::ostream &os, const Value &value);
+bool operator==(const Value &v1, const Value &v2);
+bool operator!=(const Value &v1, const Value &v2);
+bool operator==(const std::monostate nil, const Obj* obj);
+bool operator==(const Obj* obj, const std::monostate nil);
 struct Value
 {
     bool operator!() const;
@@ -19,7 +25,7 @@ struct Value
     Value operator/(const Value &other) const;
 
     template <typename Op>
-    Value performOperation(const Value &other, Op op) const;
+    Value perform_operation(const Value &other, Op op) const;
 
     Value(bool value);
     Value();
@@ -44,12 +50,7 @@ struct Value
     value_type value;
 };
 
-std::ostream &operator<<(std::ostream &os, const Value &value);
 
-bool operator==(const Value &v1, const Value &v2);
-bool operator!=(const Value &v1, const Value &v2);
-bool operator==(const std::monostate nil, const Obj* obj);
-bool operator==(const Obj* obj, const std::monostate nil);
 
 namespace std {
     template <>

@@ -3,21 +3,33 @@
 #include "objstring.hpp"
 #include "object.hpp"
 
+bool operator==(const std::monostate nil, const Obj* obj) {
+	return obj == nullptr;
+}
+bool operator==(const Obj* obj, const std::monostate nil) {
+	return obj == nullptr;
+}
+
+bool operator==(const Value &v1, const Value &v2)
+{
+	return v1.value == v2.value;
+}
+
+bool operator!=(const Value &v1, const Value &v2)
+{
+	return !(v1 == v2);
+}
+
 bool Value::operator!() const
 {
 	if (is_number())
-	{
 		return !as<int>();
-	}
 	else if (is_bool())
-	{
 		return !as<bool>();
-	}
 	else if (is_nil())
-	{
 		return true;
-	}
-	throw std::runtime_error("Operand ! don't not fit");
+	else
+		return false;
 }
 bool Value::operator>(const Value &v) const
 {
@@ -36,33 +48,35 @@ bool Value::operator<(const Value &v) const
 {
 	if (is_number())
 		return as<int>() < v.as<int>();
-	throw std::runtime_error("Operator need to be a number.");
+	else
+		throw std::runtime_error("Operator need to be a number.");
 }
 Value Value::operator-() const
 {
 	if (is_number())
 		return Value(-as<int>());
-	throw std::runtime_error("Operator need to be a number.");
+	else
+		throw std::runtime_error("Operator need to be a number.");
 }
 
 Value Value::operator+(const Value &other) const
 {
-	return performOperation(other, std::plus<>());
+	return perform_operation(other, std::plus<>());
 }
 
 Value Value::operator-(const Value &other) const
 {
-	return performOperation(other, std::minus<>());
+	return perform_operation(other, std::minus<>());
 }
 
 Value Value::operator*(const Value &other) const
 {
-	return performOperation(other, std::multiplies<>());
+	return perform_operation(other, std::multiplies<>());
 }
 
 Value Value::operator/(const Value &other) const
 {
-	return performOperation(other, std::divides<>());
+	return perform_operation(other, std::divides<>());
 }
 
 Value::Value(bool value) : value(value) {}
@@ -110,29 +124,13 @@ auto Value::as_obj() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U
 		throw std::invalid_argument(std::string("Value is not a ") + nameof<U>().data());
 }
 
-bool operator==(const std::monostate nil, const Obj* obj) {
-	return obj == nullptr;
-}
-bool operator==(const Obj* obj, const std::monostate nil) {
-	return obj == nullptr;
-}
-
-bool operator==(const Value &v1, const Value &v2)
-{
-	return v1.value == v2.value;
-}
-
-bool operator!=(const Value &v1, const Value &v2)
-{
-	return !(v1 == v2);
-}
 
 template <typename Op>
-Value Value::performOperation(const Value &other, Op op) const
+Value Value::perform_operation(const Value &other, Op op) const
 {
 	if (is_number() && other.is_number())
 		return Value(op(as<int>(), other.as<int>()));
-	throw std::runtime_error("PerformOperation only used for number.");
+	throw std::runtime_error("perform_operation only used for number.");
 }
 
 
@@ -154,3 +152,4 @@ std::ostream &operator<<(std::ostream &os, const Value &value)
 
 	return os;
 }
+

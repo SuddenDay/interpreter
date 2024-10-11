@@ -264,6 +264,8 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   ../include/parser.hpp \
   ../include/scanner.hpp \
   ../include/tokentype.hpp \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../include/object.hpp \
   /usr/include/c++/11/fstream \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
@@ -789,6 +791,8 @@ CMakeFiles/main.dir/src/compiler.cpp.o: ../src/compiler.cpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
   ../include/obj.hpp \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../include/object.hpp \
   ../include/objstring.hpp \
   ../include/vm.hpp \
@@ -1058,7 +1062,9 @@ CMakeFiles/main.dir/src/memory.cpp.o: ../src/memory.cpp \
   ../include/compiler.hpp \
   ../include/parser.hpp \
   ../include/scanner.hpp \
-  ../include/tokentype.hpp
+  ../include/tokentype.hpp \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h
 
 CMakeFiles/main.dir/src/object.cpp.o: ../src/object.cpp \
   /usr/include/stdc-predef.h \
@@ -1324,7 +1330,9 @@ CMakeFiles/main.dir/src/object.cpp.o: ../src/object.cpp \
   ../include/compiler.hpp \
   ../include/parser.hpp \
   ../include/scanner.hpp \
-  ../include/tokentype.hpp
+  ../include/tokentype.hpp \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h
 
 CMakeFiles/main.dir/src/objstring.cpp.o: ../src/objstring.cpp \
   /usr/include/stdc-predef.h \
@@ -1590,7 +1598,9 @@ CMakeFiles/main.dir/src/objstring.cpp.o: ../src/objstring.cpp \
   ../include/compiler.hpp \
   ../include/parser.hpp \
   ../include/scanner.hpp \
-  ../include/tokentype.hpp
+  ../include/tokentype.hpp \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h
 
 CMakeFiles/main.dir/src/parser.cpp.o: ../src/parser.cpp \
   /usr/include/stdc-predef.h \
@@ -2572,7 +2582,9 @@ CMakeFiles/main.dir/src/value.cpp.o: ../src/value.cpp \
   ../include/compiler.hpp \
   ../include/parser.hpp \
   ../include/scanner.hpp \
-  ../include/tokentype.hpp
+  ../include/tokentype.hpp \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h
 
 CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
   /usr/include/stdc-predef.h \
@@ -2837,6 +2849,8 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
   ../include/parser.hpp \
   ../include/scanner.hpp \
   ../include/tokentype.hpp \
+  /usr/include/c++/11/unordered_set \
+  /usr/include/c++/11/bits/unordered_set.h \
   ../include/object.hpp \
   ../include/objstring.hpp \
   ../include/native.hpp \
@@ -2874,6 +2888,8 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
 /usr/include/c++/11/fstream:
 
 ../include/object.hpp:
+
+/usr/include/c++/11/bits/unordered_set.h:
 
 ../include/scanner.hpp:
 
@@ -2946,6 +2962,8 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
 
 /usr/include/c++/11/bits/stringfwd.h:
+
+/usr/include/c++/11/unordered_set:
 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
 

@@ -5,6 +5,7 @@
 #include "obj.hpp"
 #include "memory.hpp"
 #include "vm.hpp"
+#include <string_view>
 
 Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), get_rule({
                                                                                     {TOKEN_LEFT_BRACKET, {&Complication::list, &Complication::get_or_set, PREC_CALL}},
@@ -125,14 +126,14 @@ void Complication::advance()
     parser->previous = parser->current;
     while (true)
     {
-        parser->current = parser->scanner.scanToken();
+        parser->current = parser->scanner.scan_token();
         if (parser->current.type != TOKEN_ERROR)
             break;
 
         parser->error_at_current("Get error token.");
     }
 }
-void Complication::consume(TokenType type, const std::string &message)
+void Complication::consume(TokenType type, const std::string_view &message)
 {
     if (parser->current.type == type)
     {
@@ -457,23 +458,34 @@ void Complication::block()
 
 void Complication::dot(bool canAssign)
 {
-    consume(TOKEN_IDENTIFIER, "Expect property name after '.'.");
-    uint8_t name = identifier_constant(parser->previous);
+    consume(TOKEN_IDENTIFIER, "Expect property arg after '.'.");
+    uint8_t arg = identifier_constant(parser->previous);
 
     if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
-        emit_bytes(OP_SET_PROPERTY, name);
-    }
-    else if (match(TOKEN_LEFT_PAREN))
+        emit_bytes(OP_SET_PROPERTY, arg);
+    } else if(canAssign && match(TOKEN_ADD_EQUAL)) {
+        emit_bytes(OP_PEEK, 0);
+        emit_bytes(OP_GET_PROPERTY, arg);
+        expression();
+        emit_byte(OP_ADD);
+        emit_bytes(OP_SET_PROPERTY, arg);
+    } else if(canAssign && match(TOKEN_MINUS_EQUAL)) {
+        emit_bytes(OP_PEEK, 0);
+        emit_bytes(OP_GET_PROPERTY, arg);
+        expression();
+        emit_byte(OP_SUB);
+        emit_bytes(OP_SET_PROPERTY, arg);
+    } else if (match(TOKEN_LEFT_PAREN))
     {
         uint8_t argCount = argument_list();
-        emit_bytes(OP_INVOKE, name);
+        emit_bytes(OP_INVOKE, arg);
         emit_byte(argCount);
     }
     else
     {
-        emit_bytes(OP_GET_PROPERTY, name);
+        emit_bytes(OP_GET_PROPERTY, arg);
     }
 }
 
@@ -668,18 +680,14 @@ void Complication::var_declaration()
 {
     uint8_t global = parse_variable("Expect variable declare.");
     if (match(TOKEN_EQUAL))
-    {
         expression();
-    }
     else
-    {
         emit_byte(OP_NIL);
-    }
     consume(TOKEN_SEMICOLON, "Variable declaration needs ;.");
     define_variable(global);
 }
 
-void Complication::name_variable(Token name, bool canAssign)
+void Complication::name_variable(const Token& name, bool canAssign)
 {
     Opcode getOp, setOp;
     int arg = resolve_local(current, name);
@@ -699,6 +707,7 @@ void Complication::name_variable(Token name, bool canAssign)
         getOp = OP_GET_GLOBAL;
         setOp = OP_SET_GLOBAL;
     }
+
     if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
@@ -764,12 +773,12 @@ void Complication::init_compiler(FunctionType type)
     local.depth = 0;
     local.is_captured = false;
     if (type != TYPE_FUNCTION)
-        local.name.string = "this";
+        local.name.string = "this"; // every method has a local slot for this pointer
     else
-        local.name.string = std::string_view();
+        local.name.string = std::string_view(); // never used for other type
 }
 
-int Complication::resolve_upvalue(const std::unique_ptr<Compiler> &compiler, Token &name)
+int Complication::resolve_upvalue(const std::unique_ptr<Compiler> &compiler, const Token &name)
 {
     if (compiler->enclosing == nullptr)
         return -1;
@@ -812,7 +821,7 @@ int Complication::add_upvalue(const std::unique_ptr<Compiler> &compiler, int ind
     return compiler->function->upvalue_count++;
 }
 
-uint8_t Complication::parse_variable(const std::string &message)
+uint8_t Complication::parse_variable(const std::string_view &message)
 {
     consume(TOKEN_IDENTIFIER, message);
     declare_variable();           // this function define local
@@ -823,7 +832,8 @@ uint8_t Complication::parse_variable(const std::string &message)
 
 uint8_t Complication::identifier_constant(const Token &token)
 {
-    auto name = create_obj_string(token.string, vm);
+    std::string_view str = token.string;
+    auto name = create_obj_string(str, vm); // template deduce lead string_view decay to basic_string_view
     return make_constant(name);
 }
 
@@ -861,36 +871,31 @@ bool Complication::match(TokenType type)
 void Complication::declaration()
 {
     if (match(TOKEN_CLASS))
-    {
         class_declaration();
-    }
     else if (match(TOKEN_FUN))
-    {
         fun_declaration();
-    }
     else if (match(TOKEN_VAR))
-    {
         var_declaration();
-    }
     else
-    {
         statement();
-    }
 }
 
-void Complication::declare_variable()
+void Complication::declare_variable() // only register local
 {
-    if (current->scope_depth == 0)
+    if (current->scope_depth == 0) {
+        // global define use opcode::global_define in compile time can't check
+        // so global can define multi-times
         return;
+    }
 
     Token name = parser->previous;
     for (int i = current->local_count - 1; i >= 0; i--)
     {
-        Local local = current->locals[i];
-        if (local.depth != -1 && local.depth < current->scope_depth)
+        Local& local = current->locals[i];
+        if (local.depth != -1 && local.depth < current->scope_depth) // current scope is no name-conflict
             break;
         if (identifier_equal(name, local.name))
-            parser->error(std::string(name.string) + "has defined before.");
+            parser->error(std::string(name.string) + " has defined before.");
     }
     add_local(name);
 }
@@ -900,8 +905,8 @@ void Complication::class_declaration()
     consume(TOKEN_IDENTIFIER, "Expect class name.");
     Token className = parser->previous;
     uint8_t nameConstant = identifier_constant(parser->previous);
-    declare_variable();
 
+    declare_variable();
     emit_bytes(OP_CLASS, nameConstant);
     define_variable(nameConstant);
 
@@ -929,7 +934,7 @@ void Complication::class_declaration()
         current_class->has_super_class = true;
     }
 
-    name_variable(className, false);
+    name_variable(className, false); // generate get opcode
 
     consume(TOKEN_LEFT_BRACE, "Expect '{' before class body.");
 
@@ -1026,13 +1031,17 @@ bool Complication::identifier_equal(const Token &a, const Token &b)
     return a.string == b.string;
 }
 
-void Complication::define_variable(uint8_t global)
+void Complication::define_variable(uint8_t global) // only define global
 {
     if (current->scope_depth > 0)
     {
         mark_initialize(); // begin all current local variable depth is -1
         return;            // local variable has been defined before
     }
+    auto str = current_chunk()->constants[global].as_obj<ObjString>();
+    if(global_table.find(str) != global_table.end())
+        parser->error("Global variable has been defined before");
+    global_table.insert(str);
     emit_bytes(OP_DEFINE_GLOBAL, global);
 }
 
@@ -1049,7 +1058,7 @@ void Complication::write_chunk(uint8_t op, int line)
     current_chunk()->lines.push_back(line);
 }
 
-uint8_t Complication::add_constant(Value value)
+uint8_t Complication::add_constant(const Value& value)
 {
     vm.push(value);
     current_chunk()->constants.push_back(value);
@@ -1057,7 +1066,7 @@ uint8_t Complication::add_constant(Value value)
     return current_chunk()->constants.size() - 1;
 }
 
-void Complication::emit_constant(Value value)
+void Complication::emit_constant(const Value& value)
 {
     emit_bytes(OP_CONSTANT, make_constant(value));
 }

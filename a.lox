@@ -1,3 +1,9 @@
-var list = [0];
-var i = list[0] -= 1;
-print(i);
+class a {
+    method() {
+        this.x -= 1;
+        print this.x;
+    }
+}
+var A = a();
+A.x = 2;
+A.method();

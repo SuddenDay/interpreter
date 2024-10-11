@@ -5,8 +5,10 @@
 #include "scanner.hpp"
 #include "memory.hpp"
 #include <array>
+#include <unordered_set>
 #include "object.hpp"
 
+struct ObjString;
 struct VM;
 struct Local
 {
@@ -51,9 +53,8 @@ struct Compiler
     int scope_depth = 0;
 };
 
-class Complication
+struct Complication
 {
-public:
     Complication(VM &vm);
     ObjFunction *compile(const std::string_view &source);
     Chunk *current_chunk();
@@ -62,7 +63,7 @@ public:
 
     void synchronize();
     void advance();
-    void consume(TokenType type, const std::string &message);
+    void consume(TokenType type, const std::string_view &message);
     void expression();
     void parse_precedence(Precedence precedence);
     void number(bool canAssign);
@@ -95,8 +96,8 @@ public:
     void var_declaration();
     void function(FunctionType type);
     void method();
-    void name_variable(Token name, bool canAssign);
-    uint8_t parse_variable(const std::string &message);
+    void name_variable(const Token& name, bool canAssign);
+    uint8_t parse_variable(const std::string_view &message);
     uint8_t identifier_constant(const Token& token);
     int emit_jump(Opcode instruction);
     void patch_jump(int offset);
@@ -112,7 +113,7 @@ public:
     bool identifier_equal(const Token& a, const Token& b);
     void mark_initialize();
     void init_compiler(FunctionType type);
-    int resolve_upvalue(const std::unique_ptr<Compiler> &compiler, Token &name);
+    int resolve_upvalue(const std::unique_ptr<Compiler> &compiler, const Token &name);
     int resolve_local(const std::unique_ptr<Compiler> &compiler, const Token& name);
     int add_upvalue(const std::unique_ptr<Compiler> &compiler, int index,
                    bool is_local);
@@ -140,8 +141,8 @@ public:
     Token syntehtic_token(const std::string_view text);
 
     void write_chunk(uint8_t op, int line);
-    uint8_t add_constant(Value value);
-    void emit_constant(Value value);
+    uint8_t add_constant(const Value& value);
+    void emit_constant(const Value& value);
     void emit_bytes(uint8_t byte1, uint8_t byte2);
     void emit_return();
     void emit_byte(uint8_t byte);
@@ -152,6 +153,7 @@ public:
     std::unique_ptr<Parser> parser;
     VM &vm;
 
+    std::unordered_set<ObjString*> global_table; 
     std::unordered_map<TokenType, const Parser::ParseRule> get_rule;
     std::unique_ptr<LoopCompiler> current_loop = nullptr;
 };

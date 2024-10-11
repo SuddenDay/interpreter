@@ -11,15 +11,15 @@ Parser::Parser(const std::string_view& source) : scanner(source), has_error(fals
 
 void Parser::error_at_current(const std::string_view &message)
 {
-    errorAt(current, message);
+    error_at(current, message);
 }
 
 void Parser::error(const std::string_view& message)
 {
-    errorAt(previous, message);
+    error_at(previous, message);
 }
 
-void Parser::errorAt(const Token &token, const std::string_view& message)
+void Parser::error_at(const Token &token, const std::string_view& message)
 {
     if (panic_mode)
         return;
@@ -27,13 +27,9 @@ void Parser::errorAt(const Token &token, const std::string_view& message)
     std::cerr << "[line " << token.line << "] Error";
 
     if (token.type == TokenType::TOKEN_EOF)
-    {
         std::cerr << " at end";
-    }
     else if (token.type != TokenType::TOKEN_ERROR)
-    {
         std::cerr << " at '" << token.string << "'";
-    }
 
     std::cerr << ": " << message << std::endl;
     has_error = true;

@@ -35,7 +35,7 @@ struct Parser
     void error_at_current(const std::string_view& message);
     void error(const std::string_view& message);
 
-    void errorAt(const Token &token, const std::string_view& message);
+    void error_at(const Token &token, const std::string_view& message);
     
     Scanner scanner;
     Token current;

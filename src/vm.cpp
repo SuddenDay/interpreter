@@ -186,7 +186,7 @@ InterpretResult VM::run()
         uint8_t instruction = frame->read_byte();
         switch (instruction)
         {
-        case Opcode::OP_RETURN:
+        case OP_RETURN:
         {
             Value result = pop();
             close_upvalues(frame->slots);
@@ -201,7 +201,7 @@ InterpretResult VM::run()
             frame = &frames[frame_count - 1];
             break;
         }
-        case Opcode::OP_NEGATE:
+        case OP_NEGATE:
         {
             if (!peek(0).is_number())
             {
@@ -212,13 +212,14 @@ InterpretResult VM::run()
             push(Value(-a.as<int>()));
             break;
         }
-        case Opcode::OP_CONSTANT:
+        case OP_CONSTANT:
         {
             push(frame->read_constant());
             break;
         }
-        case Opcode::OP_ADD:
-        {
+        case OP_ADD:
+        { // clox string can always stay in memory cause of function.chunk.constants
+          // but like a + b can gc in next memory allocate if reach threshold 
             if (peek(0).is_obj_type<ObjString>() && peek(1).is_obj_type<ObjString>())
             {
                 auto b = peek(0).as_obj<ObjString>();
@@ -241,75 +242,75 @@ InterpretResult VM::run()
             }
             break;
         }
-        case Opcode::OP_SUB:
+        case OP_SUB:
         {
             if (!binary_op(std::minus<Value>()))
                 return INTERPRET_RUNTIME_ERROR;
             break;
         }
-        case Opcode::OP_MUL:
+        case OP_MUL:
         {
             if (!binary_op(std::multiplies<Value>()))
                 return INTERPRET_RUNTIME_ERROR;
             break;
         }
-        case Opcode::OP_DIV:
+        case OP_DIV:
         {
             if (!binary_op(std::divides<Value>()))
                 return INTERPRET_RUNTIME_ERROR;
             break;
         }
-        case Opcode::OP_TRUE:
+        case OP_TRUE:
         {
             push(Value(true));
             break;
         }
-        case Opcode::OP_FALSE:
+        case OP_FALSE:
         {
             push(Value(false));
             break;
         }
-        case Opcode::OP_NIL:
+        case OP_NIL:
         {
             push(Value());
             break;
         }
-        case Opcode::OP_NOT:
+        case OP_NOT:
         {
             push(is_falsey(pop()));
             break;
         }
-        case Opcode::OP_EQUAL:
+        case OP_EQUAL:
         {
             if (!binary_op(std::equal_to<Value>()))
                 return INTERPRET_RUNTIME_ERROR;
             break;
         }
-        case Opcode::OP_GREATER:
+        case OP_GREATER:
         {
             if (!binary_op(std::greater<Value>()))
                 return INTERPRET_RUNTIME_ERROR;
             break;
         }
-        case Opcode::OP_LESS:
+        case OP_LESS:
         {
             if (!binary_op(std::less<Value>()))
                 return INTERPRET_RUNTIME_ERROR;
             break;
         }
-        case Opcode::OP_PRINT:
+        case OP_PRINT:
         {
             std::cout << pop() << std::endl;
             break;
         }
-        case Opcode::OP_DEFINE_GLOBAL:
+        case OP_DEFINE_GLOBAL:
         {
             auto name = frame->read_string();
             globals.insert_or_assign(name, peek(0));
             pop();
             break;
         }
-        case Opcode::OP_GET_GLOBAL:
+        case OP_GET_GLOBAL:
         {
             auto name = frame->read_string();
             try
@@ -324,50 +325,50 @@ InterpretResult VM::run()
             }
             break;
         }
-        case Opcode::OP_SET_GLOBAL:
+        case OP_SET_GLOBAL:
         {
             auto name = frame->read_string();
             globals.insert_or_assign(name, peek(0)); // modify ?
             break;
         }
-        case Opcode::OP_POP:
+        case OP_POP:
         {
             pop();
             break;
         }
-        case Opcode::OP_GET_LOCAL:
+        case OP_GET_LOCAL:
         {
             int slot = frame->read_byte();
             push(frame->slots[slot]);
             break;
         }
-        case Opcode::OP_SET_LOCAL:
+        case OP_SET_LOCAL:
         {
             int slot = frame->read_byte();
             frame->slots[slot] = peek(0);
             break;
         }
-        case Opcode::OP_JUMP_IF_FALSE:
+        case OP_JUMP_IF_FALSE:
         {
             int offset = frame->read_short();
             if (is_falsey(peek(0)))
                 frame->ip += offset;
             break;
         }
-        case Opcode::OP_JUMP:
+        case OP_JUMP:
         {
             int offset = frame->read_short();
             frame->ip += offset;
             break;
         }
-        case Opcode::OP_LOOP:
+        case OP_LOOP:
         {
             int offset = frame->read_short();
             frame->ip -= offset;
             break;
         }
-        case Opcode::OP_CONTINUE:
-        case Opcode::OP_BREAK:
+        case OP_CONTINUE:
+        case OP_BREAK:
         {
             // int offset = Util::get_next_loop(frame->closure->function->chunk, frame->ip);
             // frame->ip += offset;
@@ -378,7 +379,7 @@ InterpretResult VM::run()
         }
             // int offset = Util::get_next_loop(frame->closure->function->chunk, frame->ip);
             // frame->ip += offset + 4;
-        case Opcode::OP_CALL:
+        case OP_CALL:
         {
             int argCount = frame->read_byte();
             if (!call_value(peek(argCount), argCount))
