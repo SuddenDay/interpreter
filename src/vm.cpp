@@ -629,7 +629,7 @@ void VM::close_upvalues(Value *last)
 }
 void VM::define_method(ObjString *name)
 {
-    Value method = peek(0);
+    const Value& method = peek(0);
     ObjClass *klass = peek(1).as_obj<ObjClass>();
     klass->methods.insert_or_assign(name, method);
     pop();

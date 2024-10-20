@@ -7,10 +7,12 @@
 struct Obj;
 struct Value;
 std::ostream &operator<<(std::ostream &os, const Value &value);
+
 bool operator==(const Value &v1, const Value &v2);
 bool operator!=(const Value &v1, const Value &v2);
 bool operator==(const std::monostate nil, const Obj* obj);
 bool operator==(const Obj* obj, const std::monostate nil);
+
 struct Value
 {
     bool operator!() const;

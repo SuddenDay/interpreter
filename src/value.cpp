@@ -3,10 +3,12 @@
 #include "objstring.hpp"
 #include "object.hpp"
 
-bool operator==(const std::monostate nil, const Obj* obj) {
+bool operator==(const std::monostate nil, const Obj *obj)
+{
 	return obj == nullptr;
 }
-bool operator==(const Obj* obj, const std::monostate nil) {
+bool operator==(const Obj *obj, const std::monostate nil)
+{
 	return obj == nullptr;
 }
 
@@ -87,22 +89,21 @@ Value::Value(Obj *obj) : value(obj) {}
 template auto Value::is_obj_type<ObjString>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjString> && !std::is_same_v<Obj, ObjString>, bool>;
 template auto Value::as_obj<ObjString>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjString> && !std::is_same_v<Obj, ObjString>, ObjString *>;
 template auto Value::is_obj_type<ObjFunction>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjFunction> && !std::is_same_v<Obj, ObjFunction>, bool>;
-template auto Value::as_obj<ObjFunction>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjFunction> && !std::is_same_v<Obj, ObjFunction>, ObjFunction*>;
+template auto Value::as_obj<ObjFunction>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjFunction> && !std::is_same_v<Obj, ObjFunction>, ObjFunction *>;
 template auto Value::is_obj_type<ObjNative>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjNative> && !std::is_same_v<Obj, ObjNative>, bool>;
-template auto Value::as_obj<ObjNative>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjNative> && !std::is_same_v<Obj, ObjNative>, ObjNative*>;
+template auto Value::as_obj<ObjNative>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjNative> && !std::is_same_v<Obj, ObjNative>, ObjNative *>;
 template auto Value::is_obj_type<ObjClosure>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClosure> && !std::is_same_v<Obj, ObjClosure>, bool>;
-template auto Value::as_obj<ObjClosure>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClosure> && !std::is_same_v<Obj, ObjClosure>, ObjClosure*>;
+template auto Value::as_obj<ObjClosure>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClosure> && !std::is_same_v<Obj, ObjClosure>, ObjClosure *>;
 template auto Value::is_obj_type<ObjClass>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClass> && !std::is_same_v<Obj, ObjClass>, bool>;
-template auto Value::as_obj<ObjClass>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClass> && !std::is_same_v<Obj, ObjClass>, ObjClass*>;
+template auto Value::as_obj<ObjClass>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjClass> && !std::is_same_v<Obj, ObjClass>, ObjClass *>;
 template auto Value::is_obj_type<ObjInstance>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjInstance> && !std::is_same_v<Obj, ObjInstance>, bool>;
-template auto Value::as_obj<ObjInstance>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjInstance> && !std::is_same_v<Obj, ObjInstance>, ObjInstance*>;
+template auto Value::as_obj<ObjInstance>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjInstance> && !std::is_same_v<Obj, ObjInstance>, ObjInstance *>;
 template auto Value::is_obj_type<ObjBoundMethod>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjBoundMethod> && !std::is_same_v<Obj, ObjBoundMethod>, bool>;
-template auto Value::as_obj<ObjBoundMethod>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjBoundMethod> && !std::is_same_v<Obj, ObjBoundMethod>, ObjBoundMethod*>;
+template auto Value::as_obj<ObjBoundMethod>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjBoundMethod> && !std::is_same_v<Obj, ObjBoundMethod>, ObjBoundMethod *>;
 template auto Value::is_obj_type<ObjArray>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjArray> && !std::is_same_v<Obj, ObjArray>, bool>;
-template auto Value::as_obj<ObjArray>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjArray> && !std::is_same_v<Obj, ObjArray>, ObjArray*>;
+template auto Value::as_obj<ObjArray>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjArray> && !std::is_same_v<Obj, ObjArray>, ObjArray *>;
 template auto Value::is_obj_type<ObjJson>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjJson> && !std::is_same_v<Obj, ObjJson>, bool>;
-template auto Value::as_obj<ObjJson>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjJson> && !std::is_same_v<Obj, ObjJson>, ObjJson*>;
-
+template auto Value::as_obj<ObjJson>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjJson> && !std::is_same_v<Obj, ObjJson>, ObjJson *>;
 
 template <typename U>
 auto Value::is_obj_type() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U> && !std::is_same_v<Obj, U>, bool>
@@ -121,9 +122,8 @@ auto Value::as_obj() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U
 	if (is_obj_type<U>())
 		return static_cast<U *>(as<Obj *>());
 	else
-		throw std::invalid_argument(std::string("Value is not a ") + nameof<U>().data());
+		throw std::runtime_error(std::string("Value is not a ") + nameof<U>().data());
 }
-
 
 template <typename Op>
 Value Value::perform_operation(const Value &other, Op op) const
@@ -132,7 +132,6 @@ Value Value::perform_operation(const Value &other, Op op) const
 		return Value(op(as<int>(), other.as<int>()));
 	throw std::runtime_error("perform_operation only used for number.");
 }
-
 
 std::ostream &operator<<(std::ostream &os, const Value &value)
 {
@@ -152,4 +151,3 @@ std::ostream &operator<<(std::ostream &os, const Value &value)
 
 	return os;
 }
-

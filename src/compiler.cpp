@@ -298,7 +298,8 @@ void Complication::get_or_set(bool canAssign)
     {
         expression();
         emit_byte(OP_SET_ELEMENT);
-    } else if(match(TOKEN_ADD_EQUAL)) 
+    }
+    else if (match(TOKEN_ADD_EQUAL))
     {
         emit_bytes(OP_PEEK, 1);
         emit_bytes(OP_PEEK, 1);
@@ -307,7 +308,7 @@ void Complication::get_or_set(bool canAssign)
         emit_byte(OP_ADD);
         emit_byte(OP_SET_ELEMENT);
     }
-    else if(match(TOKEN_MINUS_EQUAL))
+    else if (match(TOKEN_MINUS_EQUAL))
     {
         emit_bytes(OP_PEEK, 1);
         emit_bytes(OP_PEEK, 1);
@@ -432,7 +433,7 @@ void Complication::statement()
         consume(TOKEN_SEMICOLON, "after continue need ;");
         emit_byte(OP_CONTINUE);
         current_loop->offsets.push_back({current_chunk()->bytecode.size(), 0});
-        emit_bytes(0xff, 0xff);
+        emit_bytes(0xff, 0xff); // jump to the first instruction before next loop
     }
     else if (match(TOKEN_BREAK))
     {
@@ -441,7 +442,7 @@ void Complication::statement()
         consume(TOKEN_SEMICOLON, "after break need ;");
         emit_byte(OP_BREAK);
         current_loop->offsets.push_back({current_chunk()->bytecode.size(), 1});
-        emit_bytes(0xff, 0xff);
+        emit_bytes(0xff, 0xff); // jump out current loop
     }
     else
     {
@@ -465,19 +466,24 @@ void Complication::dot(bool canAssign)
     {
         expression();
         emit_bytes(OP_SET_PROPERTY, arg);
-    } else if(canAssign && match(TOKEN_ADD_EQUAL)) {
+    }
+    else if (canAssign && match(TOKEN_ADD_EQUAL))
+    {
         emit_bytes(OP_PEEK, 0);
         emit_bytes(OP_GET_PROPERTY, arg);
         expression();
         emit_byte(OP_ADD);
         emit_bytes(OP_SET_PROPERTY, arg);
-    } else if(canAssign && match(TOKEN_MINUS_EQUAL)) {
+    }
+    else if (canAssign && match(TOKEN_MINUS_EQUAL))
+    {
         emit_bytes(OP_PEEK, 0);
         emit_bytes(OP_GET_PROPERTY, arg);
         expression();
         emit_byte(OP_SUB);
         emit_bytes(OP_SET_PROPERTY, arg);
-    } else if (match(TOKEN_LEFT_PAREN))
+    }
+    else if (match(TOKEN_LEFT_PAREN))
     {
         uint8_t argCount = argument_list();
         emit_bytes(OP_INVOKE, arg);
@@ -687,7 +693,7 @@ void Complication::var_declaration()
     define_variable(global);
 }
 
-void Complication::name_variable(const Token& name, bool canAssign)
+void Complication::name_variable(const Token &name, bool canAssign)
 {
     Opcode getOp, setOp;
     int arg = resolve_local(current, name);
@@ -882,7 +888,8 @@ void Complication::declaration()
 
 void Complication::declare_variable() // only register local
 {
-    if (current->scope_depth == 0) {
+    if (current->scope_depth == 0)
+    {
         // global define use opcode::global_define in compile time can't check
         // so global can define multi-times
         return;
@@ -891,7 +898,7 @@ void Complication::declare_variable() // only register local
     Token name = parser->previous;
     for (int i = current->local_count - 1; i >= 0; i--)
     {
-        Local& local = current->locals[i];
+        Local &local = current->locals[i];
         if (local.depth != -1 && local.depth < current->scope_depth) // current scope is no name-conflict
             break;
         if (identifier_equal(name, local.name))
@@ -907,7 +914,7 @@ void Complication::class_declaration()
     uint8_t nameConstant = identifier_constant(parser->previous);
 
     declare_variable();
-    emit_bytes(OP_CLASS, nameConstant);
+    emit_bytes(OP_CLASS, nameConstant); // when execute this will push objclass 
     define_variable(nameConstant);
 
     auto classCompiler = std::make_unique<ClassCompiler>();
@@ -919,7 +926,7 @@ void Complication::class_declaration()
         consume(TOKEN_IDENTIFIER, "Expect superclass name.");
         name_variable(parser->previous, false); // OP_GET a class_obj from upvalue or local or global
                                                 // we wana in vm-stack obj_father is in front of obj_son
-
+                                                // this get son
         // B < A
         // className is B     previous is A
         if (className.string == parser->previous.string)
@@ -929,7 +936,7 @@ void Complication::class_declaration()
         add_local(syntehtic_token("super"));
         mark_initialize();
 
-        name_variable(className, false);
+        name_variable(className, false); // get father push objclass
         emit_byte(OP_INHERIT); // three opcode is for vm to create inherit realtion
         current_class->has_super_class = true;
     }
@@ -1039,7 +1046,7 @@ void Complication::define_variable(uint8_t global) // only define global
         return;            // local variable has been defined before
     }
     auto str = current_chunk()->constants[global].as_obj<ObjString>();
-    if(global_table.find(str) != global_table.end())
+    if (global_table.find(str) != global_table.end()) // don't expect redefintion
         parser->error("Global variable has been defined before");
     global_table.insert(str);
     emit_bytes(OP_DEFINE_GLOBAL, global);
@@ -1058,7 +1065,7 @@ void Complication::write_chunk(uint8_t op, int line)
     current_chunk()->lines.push_back(line);
 }
 
-uint8_t Complication::add_constant(const Value& value)
+uint8_t Complication::add_constant(const Value &value)
 {
     vm.push(value);
     current_chunk()->constants.push_back(value);
@@ -1066,7 +1073,7 @@ uint8_t Complication::add_constant(const Value& value)
     return current_chunk()->constants.size() - 1;
 }
 
-void Complication::emit_constant(const Value& value)
+void Complication::emit_constant(const Value &value)
 {
     emit_bytes(OP_CONSTANT, make_constant(value));
 }
