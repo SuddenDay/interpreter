@@ -54,4 +54,8 @@
         TOKEN_ERROR,
         TOKEN_EOF, 
         TOKEN_COLON,
+        // coroutine
+        TOKEN_COROUTINE,
+        TOKEN_YIELD,
+        TOKEN_RESUME,
     };

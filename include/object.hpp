@@ -7,19 +7,31 @@
 #include <functional>
 #include <unordered_map>
 
-template<typename T>
+template <typename T>
 struct Allocator;
 
 struct ObjString;
+struct ObjClosure;
 struct GC;
 struct Obj;
-using ObjDeleter = std::function<void(Obj*)>;
+using ObjDeleter = std::function<void(Obj *)>;
 
-void register_obj(std::unique_ptr<Obj, ObjDeleter>&& obj, GC& gc); 
+struct CallFrame {
+    ObjClosure* closure = nullptr;
+    uint8_t ip = 0;
+    Value* slots = nullptr;
 
-template<typename T, template<typename>typename Alloc = Allocator>
-auto delete_obj(Alloc<T>& a, T* ptr)
-->typename std::enable_if_t<std::is_base_of_v<Obj, T>, void>
+    uint8_t read_byte();
+	Value read_constant();
+	uint16_t read_short();
+	ObjString* read_string();
+};
+
+void register_obj(std::unique_ptr<Obj, ObjDeleter> &&obj, GC &gc);
+
+template <typename T, template <typename> typename Alloc = Allocator>
+auto delete_obj(Alloc<T> &a, T *ptr)
+	-> typename std::enable_if_t<std::is_base_of_v<Obj, T>, void>
 {
 	using AllocTraits = std::allocator_traits<Alloc<T>>;
 	AllocTraits::destroy(a, ptr);
@@ -31,14 +43,14 @@ struct ObjFunction : public Obj
 	int arity = 0;
 	int upvalue_count = 0;
 	Chunk chunk;
-	ObjString* name = nullptr;
+	ObjString *name = nullptr;
 
-	ObjFunction() :Obj(ObjType::Function) {}
+	ObjFunction() : Obj(ObjType::Function) {}
 };
 
-std::ostream& operator<<(std::ostream& os, const ObjFunction& f);
+std::ostream &operator<<(std::ostream &os, const ObjFunction &f);
 
-using NativeFn = std::function<Value(int argCount, Value* args)>;
+using NativeFn = std::function<Value(int argCount, Value *args)>;
 
 struct ObjNative : public Obj
 {
@@ -46,100 +58,123 @@ struct ObjNative : public Obj
 	std::string_view name;
 
 	ObjNative(NativeFn func, std::string_view name)
-		:Obj(ObjType::Native), function(func), name(name)
+		: Obj(ObjType::Native), function(func), name(name)
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& os, const ObjNative& s);
+std::ostream &operator<<(std::ostream &os, const ObjNative &s);
 
-struct Upvalue {
+struct Upvalue
+{
 	bool is_local;
 	int index;
 };
 
 struct ObjUpvalue : public Obj
 {
-	Value* location;
+	Value *location;
 	Value closed;
-	ObjUpvalue* next = nullptr;
+	ObjUpvalue *next = nullptr;
 
-	ObjUpvalue(Value* slot)
-		: Obj(ObjType::Upvalue),  location(slot), closed(Value())
+	ObjUpvalue(Value *slot)
+		: Obj(ObjType::Upvalue), location(slot), closed(Value())
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& os, const ObjUpvalue& s);
+std::ostream &operator<<(std::ostream &os, const ObjUpvalue &s);
 
 struct ObjClosure : public Obj
 {
-	ObjFunction* function;
-	std::vector<ObjUpvalue*, Allocator<ObjUpvalue*>> upvalues;
+	ObjFunction *function;
+	std::vector<ObjUpvalue *, Allocator<ObjUpvalue *>> upvalues;
 
-	ObjClosure(ObjFunction* func) : Obj(ObjType::Closure), function(func), upvalues(func->upvalue_count, nullptr) {}
+	ObjClosure(ObjFunction *func) : Obj(ObjType::Closure), function(func), upvalues(func->upvalue_count, nullptr) {}
 
 	int upvalue_count() { return upvalues.size(); }
 };
-std::ostream& operator<<(std::ostream& os, const ObjClosure& s);
+std::ostream &operator<<(std::ostream &os, const ObjClosure &s);
 
 struct ObjClass : public Obj
 {
-	ObjString* const name;
+	ObjString *const name;
 	Table methods;
 
-	ObjClass(ObjString* name) 
-		:Obj(ObjType::Class), name(name)
+	ObjClass(ObjString *name)
+		: Obj(ObjType::Class), name(name)
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& os, const ObjClass& c);
+std::ostream &operator<<(std::ostream &os, const ObjClass &c);
 
 struct ObjInstance : public Obj
 {
-	ObjClass* const objClass;
+	ObjClass *const objClass;
 	Table fields;
 
-	ObjInstance(ObjClass* objClass)
-		:Obj(ObjType::Instance), objClass(objClass)
+	ObjInstance(ObjClass *objClass)
+		: Obj(ObjType::Instance), objClass(objClass)
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& os, const ObjInstance& ins);
+std::ostream &operator<<(std::ostream &os, const ObjInstance &ins);
 
-struct ObjArray: public Obj
+struct ObjArray : public Obj
 {
 	std::vector<Value, Allocator<Value>> values;
 	ObjArray(int size)
-		:Obj(ObjType::Array), values(size)
+		: Obj(ObjType::Array), values(size)
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& os, const ObjArray& arr);
+std::ostream &operator<<(std::ostream &os, const ObjArray &arr);
 
-struct ObjJson: public Obj
+struct ObjJson : public Obj
 {
 	std::unordered_map<Value, Value, std::hash<Value>, std::equal_to<Value>, Allocator<std::pair<const Value, Value>>> kv;
 	ObjJson()
-		:Obj(ObjType::Json)
+		: Obj(ObjType::Json)
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& os, const ObjJson& json);
+std::ostream &operator<<(std::ostream &os, const ObjJson &json);
 
-struct ObjBoundMethod :public Obj
+struct ObjBoundMethod : public Obj
 {
 	Value receiver;
-	ObjClosure* const method;
+	ObjClosure *const method;
 
-	ObjBoundMethod(Value receiver, ObjClosure* method)
-		:Obj(ObjType::BoundMethod), receiver(std::move(receiver)), method(method) // why?
+	ObjBoundMethod(Value receiver, ObjClosure *method)
+		: Obj(ObjType::BoundMethod), receiver(std::move(receiver)), method(method) // why?
 	{
 	}
 };
-std::ostream& operator<<(std::ostream& os, const ObjBoundMethod& bm);
 
-template<typename T, template<typename> typename Alloc = Allocator, typename... Args>
-auto alloc_unique_obj(Args&&... args)
-->typename std::enable_if_t<std::is_base_of_v<Obj, T>, std::unique_ptr<Obj, ObjDeleter>>
+std::ostream &operator<<(std::ostream &os, const ObjBoundMethod &bm);
+
+enum class CoroutineStatus { RUNNING, SUSPENDED, FINISHED };
+
+struct ObjCoroutine : public Obj
+{
+	static const int FRAMES_MAX = 64;
+	ObjClosure* closure;
+	std::vector<Value> stack;
+	std::vector<CallFrame> frames;
+	
+	int frame_count;
+	int top;
+	CoroutineStatus status;
+	std::vector<Value> arguments;
+	bool is_main = false;
+	ObjCoroutine(ObjClosure *closure, const std::vector<Value>& arguments = {});
+
+};
+
+std::ostream &operator<<(std::ostream &os, const ObjCoroutine& co);
+
+
+template <typename T, template <typename> typename Alloc = Allocator, typename... Args>
+auto alloc_unique_obj(Args &&...args)
+	-> typename std::enable_if_t<std::is_base_of_v<Obj, T>, std::unique_ptr<Obj, ObjDeleter>>
 {
 	static Alloc<T> a;
 
@@ -147,29 +182,28 @@ auto alloc_unique_obj(Args&&... args)
 	auto p = AllocTraits::allocate(a, 1);
 	AllocTraits::construct(a, p, std::forward<Args>(args)...);
 
-	auto deleter = [](Obj* ptr)
+	auto deleter = [](Obj *ptr)
 	{
-		delete_obj(a, static_cast<T*>(ptr));
+		delete_obj(a, static_cast<T *>(ptr));
 	};
 
-	return { p, deleter };
+	return {p, deleter};
 }
 
-template<typename T, typename... Args>
-auto create_obj(GC& gc, Args&&... args)
-->typename std::enable_if_t<std::is_base_of_v<Obj, T>, T*>
+template <typename T, typename... Args>
+auto create_obj(GC &gc, Args &&...args)
+	-> typename std::enable_if_t<std::is_base_of_v<Obj, T>, T *>
 {
 	static_assert(std::is_constructible_v<T, Args...>);
 	auto p = alloc_unique_obj<T>(std::forward<Args>(args)...);
 	auto res = p.get();
 	register_obj(std::move(p), gc);
-	return static_cast<T*>(res);
+	return static_cast<T *>(res);
 }
 
-
-template<typename T>
+template <typename T>
 constexpr auto objtype_of()
-->typename std::enable_if_t<std::is_base_of_v<Obj, T> && !std::is_same_v<Obj, T>, ObjType>
+	-> typename std::enable_if_t<std::is_base_of_v<Obj, T> && !std::is_same_v<Obj, T>, ObjType>
 {
 	if constexpr (std::is_same_v<T, ObjBoundMethod>)
 		return ObjType::BoundMethod;
@@ -191,39 +225,43 @@ constexpr auto objtype_of()
 		return ObjType::Array;
 	else if constexpr (std::is_same_v<T, ObjJson>)
 		return ObjType::Json;
+	else if constexpr (std::is_same_v<T, ObjCoroutine>)
+		return ObjType::Coroutine;
 }
 
-template<typename T>
+template <typename T>
 constexpr auto nameof()
-->typename std::enable_if_t<std::is_base_of_v<Obj, T> && !std::is_same_v<Obj, T>, std::string_view>
+	-> typename std::enable_if_t<std::is_base_of_v<Obj, T> && !std::is_same_v<Obj, T>, std::string_view>
 {
 	using namespace std::literals;
 
 	switch (objtype_of<T>())
 	{
-		case ObjType::BoundMethod:
-			return "bound method"sv;
-		case ObjType::Class:
-			return "class"sv;
-		case ObjType::Closure:
-			return "closure"sv;
-		case ObjType::Function:
-			return "function"sv;
-		case ObjType::Instance:
-			return "instance"sv;
-		case ObjType::Native:
-			return "native function"sv;
-		case ObjType::String:
-			return "string"sv;
-		case ObjType::Upvalue:
-			return "upvalue"sv;
-		case ObjType::Array:
-			return "array"sv;
-		case ObjType::Json:
-			return "json"sv;
-		default:
-			return "unknown type";
+	case ObjType::BoundMethod:
+		return "bound method"sv;
+	case ObjType::Class:
+		return "class"sv;
+	case ObjType::Closure:
+		return "closure"sv;
+	case ObjType::Function:
+		return "function"sv;
+	case ObjType::Instance:
+		return "instance"sv;
+	case ObjType::Native:
+		return "native function"sv;
+	case ObjType::String:
+		return "string"sv;
+	case ObjType::Upvalue:
+		return "upvalue"sv;
+	case ObjType::Array:
+		return "array"sv;
+	case ObjType::Json:
+		return "json"sv;
+	case ObjType::Coroutine:
+		return "coroutine"sv;
+	default:
+		return "unknown type";
 	}
 }
 
-std::ostream& operator<<(std::ostream& os, const Obj& obj);
+std::ostream &operator<<(std::ostream &os, const Obj &obj);

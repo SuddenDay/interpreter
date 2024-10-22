@@ -66,6 +66,9 @@ struct Complication
     void consume(TokenType type, const std::string_view &message);
     void expression();
     void parse_precedence(Precedence precedence);
+    void yield();
+    void resume();
+    void coroutine(bool canAssign);
     void number(bool canAssign);
     void binary(bool canAssign);
     void unary(bool canAssign);

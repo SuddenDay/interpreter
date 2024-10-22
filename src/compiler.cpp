@@ -53,6 +53,9 @@ Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), 
                                                                                     {TOKEN_ERROR, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_EOF, {nullptr, nullptr, PREC_NONE}},
                                                                                     {TOKEN_COLON, {nullptr, nullptr, PREC_NONE}},
+                                                                                    {TOKEN_COROUTINE, {&Complication::coroutine, nullptr, PREC_NONE}},
+                                                                                    {TOKEN_YIELD, {nullptr, nullptr, PREC_NONE}},
+                                                                                    {TOKEN_RESUME, {nullptr, nullptr, PREC_NONE}},
                                                                                 })
 {
 }
@@ -78,6 +81,7 @@ auto Complication::end_compiler() -> std::pair<ObjFunction *, std::unique_ptr<Co
 {
     emit_return();
     ObjFunction *function = current->function;
+#if 0
 #ifdef DEBUG_MODE
     if (!parser->has_error)
     {
@@ -87,6 +91,7 @@ auto Complication::end_compiler() -> std::pair<ObjFunction *, std::unique_ptr<Co
         else
             std::cout << "<script>" << " ===\n";
     }
+#endif
 #endif
     std::unique_ptr<Compiler> done = std::move(current);
     current = std::move(done->enclosing);
@@ -167,6 +172,44 @@ void Complication::parse_precedence(Precedence precedence)
     if (canAssign && match(TOKEN_EQUAL)) // to detect a * b = c * d gramma error
         parser->error("Can't be assigned.");
 }
+
+void Complication::resume()
+{
+    consume(TOKEN_IDENTIFIER, "after resume need identifier");
+    variable(false);
+    consume(TOKEN_SEMICOLON, "need ; in the end of resume");
+    emit_byte(OP_RESUME_COROUTINE);
+}
+
+void Complication::yield()
+{
+    if (this->current->enclosing == nullptr)
+        parser->error("yield should be in function");
+    consume(TOKEN_SEMICOLON, "need ; after yield");
+    emit_byte(OP_YIELD_COROUTINE);
+}
+
+void Complication::coroutine(bool canAssign)
+{
+    int count = 0;
+    if (match(TOKEN_IDENTIFIER))
+        variable(false);
+    else if (match(TOKEN_FUN))
+        function_expr(false);
+    else
+        parser->error("Need function or function variable!");
+    if (match(TOKEN_LEFT_PAREN))
+        count = argument_list();
+    else
+        parser->error("Need argument for coroutine!");
+
+    // fun () {} or function_name_variable
+    // verify in vm
+    // first generater closure
+    emit_byte(OP_CREATE_COROUTINE); // then use it
+    emit_byte(count);
+}
+
 void Complication::number(bool canAssign)
 {
     Value value = std::stoi(std::string(parser->previous.string));
@@ -400,26 +443,20 @@ void Complication::variable(bool canAssign)
 
 void Complication::statement()
 {
-    if (match(TOKEN_RETURN))
-    {
+    if (match(TOKEN_RESUME))
+        resume();
+    else if (match(TOKEN_YIELD))
+        yield();
+    else if (match(TOKEN_RETURN))
         return_statement();
-    }
     else if (match(TOKEN_PRINT))
-    {
         print_statement();
-    }
     else if (match(TOKEN_IF))
-    {
         if_statement();
-    }
     else if (match(TOKEN_WHILE))
-    {
         while_statement();
-    }
     else if (match(TOKEN_FOR))
-    {
         for_statement();
-    }
     else if (match(TOKEN_LEFT_BRACE))
     {
         begin_scope();
@@ -445,9 +482,7 @@ void Complication::statement()
         emit_bytes(0xff, 0xff); // jump out current loop
     }
     else
-    {
         expression_statement();
-    }
 }
 
 void Complication::block()
@@ -914,7 +949,7 @@ void Complication::class_declaration()
     uint8_t nameConstant = identifier_constant(parser->previous);
 
     declare_variable();
-    emit_bytes(OP_CLASS, nameConstant); // when execute this will push objclass 
+    emit_bytes(OP_CLASS, nameConstant); // when execute this will push objclass
     define_variable(nameConstant);
 
     auto classCompiler = std::make_unique<ClassCompiler>();
@@ -937,7 +972,7 @@ void Complication::class_declaration()
         mark_initialize();
 
         name_variable(className, false); // get father push objclass
-        emit_byte(OP_INHERIT); // three opcode is for vm to create inherit realtion
+        emit_byte(OP_INHERIT);           // three opcode is for vm to create inherit realtion
         current_class->has_super_class = true;
     }
 

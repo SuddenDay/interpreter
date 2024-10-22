@@ -210,7 +210,8 @@ CMakeFiles/main.dir/main.cpp.o: /home/ace/interpreter/main.cpp \
  /home/ace/interpreter/include/tokentype.hpp \
  /usr/include/c++/11/unordered_set \
  /usr/include/c++/11/bits/unordered_set.h \
- /home/ace/interpreter/include/object.hpp /usr/include/c++/11/fstream \
+ /home/ace/interpreter/include/object.hpp \
+ /home/ace/interpreter/include/scheduler.hpp /usr/include/c++/11/fstream \
  /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
  /usr/include/x86_64-linux-gnu/c++/11/bits/c++io.h \
  /usr/include/c++/11/bits/fstream.tcc

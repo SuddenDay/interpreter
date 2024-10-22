@@ -49,6 +49,9 @@ int Util::disassemble_instruction(const Chunk &chunk, int offset)
     case Opcode::OP_JSON:
     case Opcode::OP_BREAK:
     case Opcode::OP_CONTINUE:
+    case Opcode::OP_RESUME_COROUTINE:
+    case Opcode::OP_CREATE_COROUTINE:
+    case Opcode::OP_YIELD_COROUTINE:
     {
         std::cout << "  " << instruction << std::endl;
         return offset + 1;

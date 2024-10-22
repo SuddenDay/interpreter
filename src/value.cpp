@@ -104,6 +104,8 @@ template auto Value::is_obj_type<ObjArray>() const -> typename std::enable_if_t<
 template auto Value::as_obj<ObjArray>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjArray> && !std::is_same_v<Obj, ObjArray>, ObjArray *>;
 template auto Value::is_obj_type<ObjJson>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjJson> && !std::is_same_v<Obj, ObjJson>, bool>;
 template auto Value::as_obj<ObjJson>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjJson> && !std::is_same_v<Obj, ObjJson>, ObjJson *>;
+template auto Value::is_obj_type<ObjCoroutine>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjCoroutine> && !std::is_same_v<Obj, ObjCoroutine>, bool>;
+template auto Value::as_obj<ObjCoroutine>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjCoroutine> && !std::is_same_v<Obj, ObjCoroutine>, ObjCoroutine *>;
 
 template <typename U>
 auto Value::is_obj_type() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U> && !std::is_same_v<Obj, U>, bool>

@@ -212,4 +212,5 @@ CMakeFiles/main.dir/src/compiler.cpp.o: \
  /usr/include/c++/11/bits/unordered_set.h \
  /home/ace/interpreter/include/object.hpp \
  /home/ace/interpreter/include/objstring.hpp \
- /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg
+ /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg \
+ /home/ace/interpreter/include/scheduler.hpp

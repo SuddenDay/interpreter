@@ -321,6 +321,30 @@ src/scanner.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.s
 .PHONY : src/scanner.cpp.s
 
+src/scheduler.o: src/scheduler.cpp.o
+.PHONY : src/scheduler.o
+
+# target to build an object file
+src/scheduler.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scheduler.cpp.o
+.PHONY : src/scheduler.cpp.o
+
+src/scheduler.i: src/scheduler.cpp.i
+.PHONY : src/scheduler.i
+
+# target to preprocess a source file
+src/scheduler.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scheduler.cpp.i
+.PHONY : src/scheduler.cpp.i
+
+src/scheduler.s: src/scheduler.cpp.s
+.PHONY : src/scheduler.s
+
+# target to generate assembly for a file
+src/scheduler.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scheduler.cpp.s
+.PHONY : src/scheduler.cpp.s
+
 src/util.o: src/util.cpp.o
 .PHONY : src/util.o
 
@@ -426,6 +450,9 @@ help:
 	@echo "... src/scanner.o"
 	@echo "... src/scanner.i"
 	@echo "... src/scanner.s"
+	@echo "... src/scheduler.o"
+	@echo "... src/scheduler.i"
+	@echo "... src/scheduler.s"
 	@echo "... src/util.o"
 	@echo "... src/util.i"
 	@echo "... src/util.s"

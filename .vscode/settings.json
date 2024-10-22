@@ -89,6 +89,9 @@
         "cfenv": "cpp",
         "typeindex": "cpp",
         "stack": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "unordered_set": "cpp",
+        "future": "cpp",
+        "scoped_allocator": "cpp"
     }
 }

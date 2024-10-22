@@ -1,19 +1,12 @@
-class A {
-  method() {
-    print "A method";
-  }
+fun a(x, y) {
+    print x;
+    yield;
+    print "resume";
+    yield;
+    print y;
 }
-
-class B < A {
-  method() {
-    print "B method";
-  }
-
-  test() {
-    super.method();
-  }
-}
-
-class C < B {}
-
-C().test();
+var co = coroutine a("Hello", "World");
+resume co;
+print "now";
+resume co;
+print "end";

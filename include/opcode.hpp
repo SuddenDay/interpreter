@@ -45,6 +45,9 @@
     X(OP_CONTINUE) \
     X(OP_BREAK) \
     X(OP_PEEK) \
+    X(OP_CREATE_COROUTINE) \
+    X(OP_YIELD_COROUTINE) \
+    X(OP_RESUME_COROUTINE) \
 
 enum Opcode
 {

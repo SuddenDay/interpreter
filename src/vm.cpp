@@ -8,7 +8,7 @@
 #include "native.hpp"
 #include <string_view>
 
-VM::VM() : cu(*this), globals(), stack(STACK_MAX), gc(*this)
+VM::VM() : cu(*this), frames(FRAMES_MAX), globals(), stack(STACK_MAX), gc(*this), scheduler(*this)
 {
     AllocBase::init(&gc);
     init_string = create_obj_string(std::string_view("init"), *this);
@@ -44,7 +44,7 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
             else if (argCount != 0)
             {
                 runtime_error("Expected 0 arguments but got %d.",
-                             argCount);
+                              argCount);
                 return false;
             }
             return true;
@@ -108,7 +108,7 @@ bool VM::invoke(ObjString *name, int argCount)
 }
 
 bool VM::invoke_from_class(ObjClass *klass, ObjString *name,
-                         int argCount)
+                           int argCount)
 {
     if (klass->methods.find(name) == klass->methods.end())
     {
@@ -160,9 +160,14 @@ InterpretResult VM::interpret(const std::string &source)
     push(function); // for garbage collect
     ObjClosure *closure = create_obj<ObjClosure>(gc, function);
     pop();
-    push(closure);
-    call(closure, 0); // generate latest frame
-    return run();
+    ObjCoroutine *co = create_obj<ObjCoroutine>(gc, closure); // modify
+    scheduler.addObjCoroutine(co);
+    co->is_main = true;
+    co->stack[0] = co->closure;
+    co->top = 1;
+    co->frame_count = 1;
+    call(co->closure, 0); // generate latest frame
+    return scheduler.resumeCoroutine(co);
 }
 
 bool is_falsey(const Value &value)
@@ -171,10 +176,14 @@ bool is_falsey(const Value &value)
            (value.is_bool() && !value.as<bool>());
 }
 
-InterpretResult VM::run()
+InterpretResult VM::run(ObjCoroutine *co)
 {
+    stack = co->stack;
+    frames = co->frames;
+    frame_count = co->frame_count;
+    top = co->top;
     CallFrame *frame = &frames[frame_count - 1];
-    for (;;)
+    while (co->status != CoroutineStatus::FINISHED)
     {
 #ifdef DEBUG_MODE
         printf("           stackframe: ");
@@ -193,8 +202,12 @@ InterpretResult VM::run()
             frame_count--; // leave current frame
             if (frame_count == 0)
             {
-                pop();
-                return INTERPRET_OK;
+                co->status = CoroutineStatus::FINISHED;
+                // pop();
+                if (co->is_main == true)
+                    return INTERPRET_OK;
+                else
+                    return scheduler.runNextObjCoroutine();
             }
             top = frame->slots - stack.data();
             push(result);
@@ -219,7 +232,7 @@ InterpretResult VM::run()
         }
         case OP_ADD:
         { // clox string can always stay in memory cause of function.chunk.constants
-          // but like a + b can gc in next memory allocate if reach threshold 
+          // but like a + b can gc in next memory allocate if reach threshold
             if (peek(0).is_obj_type<ObjString>() && peek(1).is_obj_type<ObjString>())
             {
                 auto b = peek(0).as_obj<ObjString>();
@@ -374,7 +387,7 @@ InterpretResult VM::run()
             // frame->ip += offset;
             int is_break = (instruction == OP_BREAK);
             int offset = frame->read_short();
-            frame->ip = offset + is_break;  
+            frame->ip = offset + is_break;
             break;
         }
             // int offset = Util::get_next_loop(frame->closure->function->chunk, frame->ip);
@@ -542,7 +555,7 @@ InterpretResult VM::run()
             }
             break;
         }
-        case OP_PEEK: 
+        case OP_PEEK:
         {
             push(peek(frame->read_byte()));
             break;
@@ -582,11 +595,59 @@ InterpretResult VM::run()
             push(objJson);
             break;
         }
+        case OP_CREATE_COROUTINE:
+        {
+            try
+            {
+                std::vector<Value> arguments;
+                auto count = frame->read_byte();
+                for (int i = 0; i < count; i++)
+                    arguments.push_back(pop());
+                auto closure = pop().as_obj<ObjClosure>();
+                auto coroutine = create_obj<ObjCoroutine>(gc, closure, arguments);
+                push(coroutine);
+                scheduler.addObjCoroutine(coroutine);
+            }
+            catch (const std::exception &e)
+            {
+                throw std::runtime_error("Only closure can be created as a coroutine.");
+            }
+            break;
+        }
+        case OP_YIELD_COROUTINE:
+        {
+            co->top = top;
+            co->stack = stack;
+            co->frames = frames;
+            co->frame_count = frame_count;
+            scheduler.yieldCurrentObjCoroutine();
+            return scheduler.runNextObjCoroutine();
+        }
+        case OP_RESUME_COROUTINE:
+        {
+            scheduler.yieldCurrentObjCoroutine();
+            try
+            {
+                auto targetCo = pop().as_obj<ObjCoroutine>();
+
+                co->top = top;
+                co->stack = stack;
+                co->frames = frames;
+                co->frame_count = frame_count;
+                scheduler.resumeCoroutine(targetCo);
+            }
+            catch (const std::exception &e)
+            {
+                throw std::runtime_error("Only closure can be created as a coroutine.");
+            }
+            break;
+        }
         default:
             std::cout << Opcode(instruction) << " error" << std::endl;
             break;
         }
     }
+    return INTERPRET_OK;
 }
 
 uint8_t CallFrame::read_byte()
@@ -629,7 +690,7 @@ void VM::close_upvalues(Value *last)
 }
 void VM::define_method(ObjString *name)
 {
-    const Value& method = peek(0);
+    const Value &method = peek(0);
     ObjClass *klass = peek(1).as_obj<ObjClass>();
     klass->methods.insert_or_assign(name, method);
     pop();

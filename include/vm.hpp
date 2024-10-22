@@ -8,31 +8,18 @@
 #include "table.hpp"
 #include "compiler.hpp"
 #include "object.hpp"
+#include "scheduler.hpp"
 
 #define FRAMES_MAX 64
 #define STACK_MAX (FRAMES_MAX * UINT8_MAX)
 struct GC;
-enum InterpretResult
-{
-    INTERPRET_OK,
-    INTERPRET_COMPILE_ERROR,
-    INTERPRET_RUNTIME_ERROR,
-};
-struct CallFrame {
-    ObjClosure* closure = nullptr;
-    uint8_t ip = 0;
-    Value* slots = nullptr;
 
-    uint8_t read_byte();
-	Value read_constant();
-	uint16_t read_short();
-	ObjString* read_string();
-};
+
 class VM
 {
 public:
     VM(); 
-    InterpretResult run();
+    InterpretResult run(ObjCoroutine* co);
 
     template <typename Operator>
     bool binary_op(Operator op);
@@ -63,11 +50,14 @@ public:
 
     Complication cu;
     ObjString* init_string = nullptr;
-    std::array<CallFrame, FRAMES_MAX> frames;
+    ObjCoroutine* currentCo;
+    std::vector<CallFrame> frames;
     int frame_count = 0;
     Table globals;
     int top = 0;
     ObjUpvalue* open_upvalues = nullptr;
     std::vector<Value> stack;
     GC gc;
+    Scheduler scheduler;
+    
 };

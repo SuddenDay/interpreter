@@ -211,6 +211,7 @@ CMakeFiles/main.dir/src/vm.cpp.o: /home/ace/interpreter/src/vm.cpp \
  /usr/include/c++/11/unordered_set \
  /usr/include/c++/11/bits/unordered_set.h \
  /home/ace/interpreter/include/object.hpp \
+ /home/ace/interpreter/include/scheduler.hpp \
  /home/ace/interpreter/include/objstring.hpp \
  /home/ace/interpreter/include/native.hpp /usr/include/c++/11/chrono \
  /usr/include/c++/11/ratio /usr/include/c++/11/limits

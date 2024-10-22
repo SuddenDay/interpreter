@@ -51,6 +51,11 @@
 },
 {
   "directory": "/home/ace/interpreter/build",
+  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/scheduler.cpp.o -c /home/ace/interpreter/src/scheduler.cpp",
+  "file": "/home/ace/interpreter/src/scheduler.cpp"
+},
+{
+  "directory": "/home/ace/interpreter/build",
   "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/main.cpp.o -c /home/ace/interpreter/main.cpp",
   "file": "/home/ace/interpreter/main.cpp"
 }

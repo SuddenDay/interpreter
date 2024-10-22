@@ -34,6 +34,9 @@ public:
         check_keyword.insert({"elif", TOKEN_ELIF});
         check_keyword.insert({"var", TOKEN_VAR});
         check_keyword.insert({"for", TOKEN_FOR});
+        check_keyword.insert({"coroutine", TOKEN_COROUTINE});
+        check_keyword.insert({"yield", TOKEN_YIELD});
+        check_keyword.insert({"resume", TOKEN_RESUME});
     }
     Token scan_token();
 
