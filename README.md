@@ -83,25 +83,20 @@ var method = jane.sayName;
 method();
 ```
 
-### Inheritance
+### Stackful Coroutine 
 
 ```javascript
-class Father {
-  local() {
-    print "local";
-  }
-
-  invoke() {
-    print "Dunk in the.";
-    this.local();
-  }
+fun a(x, y) {
+    print x;
+    yield;
+    print "resume";
+    yield;
+    print y;
 }
-
-class Son < Father {
-  invoke() {
-    super.invoke();
-  }
-}
+var co = coroutine a("Hello", "World");
+resume co;
+print "now";
+resume co;
+print "end";
 ```
-
 ---
