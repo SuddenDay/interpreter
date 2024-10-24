@@ -4,7 +4,7 @@
 #include <ostream>
 
 #define DEBUG_MODE
-// #define STRESS_TEST 
+#define STRESS_TEST 
 enum InterpretResult
 {
     INTERPRET_OK,

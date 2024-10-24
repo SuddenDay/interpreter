@@ -1,12 +1,7 @@
 fun a(x, y) {
     print x;
-    yield;
-    print "resume";
-    yield;
-    print y;
 }
 var co = coroutine a("Hello", "World");
 resume co;
-print "now";
-resume co;
-print "end";
+co = "3";
+var s = "1" + "2";

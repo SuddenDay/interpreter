@@ -159,8 +159,10 @@ InterpretResult VM::interpret(const std::string &source)
         return InterpretResult::INTERPRET_COMPILE_ERROR;
     push(function); // for garbage collect
     ObjClosure *closure = create_obj<ObjClosure>(gc, function);
-    pop();
+    push(closure); // bug fix here
     ObjCoroutine *co = create_obj<ObjCoroutine>(gc, closure); // modify
+    pop();
+    pop();
     scheduler.addObjCoroutine(co);
     co->is_main = true;
     co->stack[0] = co->closure;
@@ -203,7 +205,6 @@ InterpretResult VM::run(ObjCoroutine *co)
             if (frame_count == 0)
             {
                 co->status = CoroutineStatus::FINISHED;
-                // pop();
                 if (co->is_main == true)
                     return INTERPRET_OK;
                 else

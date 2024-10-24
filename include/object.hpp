@@ -148,7 +148,6 @@ struct ObjBoundMethod : public Obj
 	{
 	}
 };
-
 std::ostream &operator<<(std::ostream &os, const ObjBoundMethod &bm);
 
 enum class CoroutineStatus { RUNNING, SUSPENDED, FINISHED };

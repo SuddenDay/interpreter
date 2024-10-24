@@ -1,5 +1,6 @@
 #pragma once
 #include "object.hpp"
+#include "memory.hpp"
 #include <deque>
 class VM;
 struct Scheduler {
