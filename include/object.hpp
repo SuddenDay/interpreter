@@ -16,7 +16,8 @@ struct Obj;
 struct CallFrame {
     ObjClosure* closure_ = nullptr;
     uint8_t ip_ = 0;
-    Value* slots_ = nullptr;
+    // Value* slots_ = nullptr;
+    int slot_ = 0;
 
     uint8_t read_byte();
 	Value read_constant();

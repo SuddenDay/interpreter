@@ -108,6 +108,7 @@ void Complication::advance()
         parser_->error_at_current("Get error token.");
     }
 }
+
 void Complication::consume(TokenType type, const std::string_view &message)
 {
     if (parser_->current_.type == type)
@@ -117,10 +118,12 @@ void Complication::consume(TokenType type, const std::string_view &message)
     }
     parser_->error_at_current(message);
 }
+
 void Complication::expression()
 {
     parse_precedence(PREC_ASSIGNMENT);
 }
+
 void Complication::parse_precedence(Precedence precedence)
 {
     advance();
@@ -813,14 +816,14 @@ int Complication::resolve_upvalue(const std::unique_ptr<Compiler> &compiler, con
 int Complication::add_upvalue(const std::unique_ptr<Compiler> &compiler, int index, bool is_local)
 {
     int upvalue_count = compiler->function_->upvalue_count_; // outside function firstly add upvalue
-                                                            // and the outest one have 0 upvalue_count
-                                                            // because only after outside capture it,
-                                                            // can inside get upvalue_count and upvalue information
+                                                             // and the outest one have 0 upvalue_count
+                                                             // because only after outside capture it,
+                                                             // can inside get upvalue_count and upvalue information
     for (int i = 0; i < upvalue_count; i++)
     {
         Upvalue &upvalue = compiler->upvalues_[i];
         if (upvalue.index_ == index && upvalue.is_local_ == is_local) // index is about captured local-var
-            return i;                                               // is_local is outside function's local-var
+            return i;                                                 // is_local is outside function's local-var
     } // we shouldn't repeatedly add
     if (upvalue_count == UINT8_MAX)
     {
@@ -930,8 +933,8 @@ void Complication::class_declaration()
     {
         consume(TOKEN_IDENTIFIER, "Expect superclass name.");
         name_variable(parser_->previous_, false); // OP_GET a class_obj from upvalue or local or global
-                                                 // we wana in vm-stack obj_father is in front of obj_son
-                                                 // this get son
+                                                  // we wana in vm-stack obj_father is in front of obj_son
+                                                  // this get son
         // B < A
         // className is B     previous is A
         if (className.string == parser_->previous_.string)

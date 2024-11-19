@@ -143,6 +143,6 @@ ObjCoroutine::ObjCoroutine(ObjClosure *closure, const std::vector<Value>& argume
 	stack_[top_++] = Value();
 	for(auto arg = arguments.rbegin(); arg != arguments.rend(); arg++)
 		stack_[top_++] = *arg;
-	frame.slots_ = stack_.data();
+	// frame.slots_ = stack_.data();
 	frames_[frame_count_++] = frame;
 }

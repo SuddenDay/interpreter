@@ -48,7 +48,7 @@ public:
 
     Complication cu_;
     ObjString* init_string_ = nullptr;
-    ObjCoroutine* currentCo_;
+    ObjCoroutine* current_coroutine_;
     std::vector<CallFrame> frames_;
     int frame_count_ = 0;
     Table globals_;

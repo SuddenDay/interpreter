@@ -83,7 +83,7 @@ bool VM::call(ObjClosure *closure, int argCount)
     CallFrame &frame = frames_[frame_count_++];
     frame.closure_ = closure;
     frame.ip_ = 0;
-    frame.slots_ = stack_.data() + top_ - argCount - 1;
+    frame.slot_ = top_ - argCount - 1;
     return true;
 }
 
@@ -168,7 +168,9 @@ InterpretResult VM::interpret(const std::string &source)
     co->stack_[0] = co->closure_;
     co->top_ = 1;
     co->frame_count_ = 1;
-    call(co->closure_, 0); // generate latest frame
+    co->frames_[0].closure_ = closure;
+    co->frames_[0].ip_ = 0;
+    co->frames_[0].slot_ = 0;
     return scheduler_.resumeCoroutine(co);
 }
 
@@ -185,6 +187,7 @@ InterpretResult VM::run(ObjCoroutine *co)
     frame_count_ = co->frame_count_;
     top_ = co->top_;
     CallFrame *frame = &frames_[frame_count_ - 1];
+
     while (co->status_ != CoroutineStatus::FINISHED)
     {
 #ifdef DEBUG_MODE
@@ -200,7 +203,7 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_RETURN:
         {
             Value result = pop();
-            close_upvalues(frame->slots_);
+            close_upvalues(stack_.data() + frame->slot_);
             frame_count_--; // leave current frame
             if (frame_count_ == 0)
             {
@@ -210,7 +213,8 @@ InterpretResult VM::run(ObjCoroutine *co)
                 else
                     return scheduler_.runNextObjCoroutine();
             }
-            top_ = frame->slots_ - stack_.data();
+            // top_ = frame->slot_ - stack_.data();
+            top_ = frame->slot_;
             push(result);
             frame = &frames_[frame_count_ - 1];
             break;
@@ -353,13 +357,15 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_GET_LOCAL:
         {
             int slot = frame->read_byte();
-            push(frame->slots_[slot]);
+            // push(frame->slots_[slot]);
+            push(stack_[frame->slot_ + slot]);
             break;
         }
         case OP_SET_LOCAL:
         {
             int slot = frame->read_byte();
-            frame->slots_[slot] = peek(0);
+            // frame->slots_[slot] = peek(0);
+            stack_[frame->slot_ + slot] = peek(0);
             break;
         }
         case OP_JUMP_IF_FALSE:
@@ -417,7 +423,7 @@ InterpretResult VM::run(ObjCoroutine *co)
                 auto is_local = frame->read_byte();
                 auto index = frame->read_byte();
                 if (is_local)
-                    closure->upvalues_.at(i) = capture_upvalue(frame->slots_ + index);
+                    closure->upvalues_.at(i) = capture_upvalue(stack_.data() + frame->slot_ + index);
                 else
                     closure->upvalues_.at(i) = frame->closure_->upvalues_.at(index);
             }

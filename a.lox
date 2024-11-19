@@ -1,5 +1,16 @@
-fun a(x) {
-    print x;
+fun a() {
+    print b();
+    print "before";
+    yield;
+    print "after";
 }
-var co = coroutine a("Hello");
+
+fun b() {
+    print "here is b";
+}
+
+var co = coroutine a();
 resume co;
+print "middle";
+resume co;
+print "end";
