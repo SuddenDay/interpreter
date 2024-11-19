@@ -1,6 +1,5 @@
 #pragma once
 #include "util.hpp"
-#include "common.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
 #include "memory.hpp"
@@ -12,9 +11,9 @@ struct ObjString;
 struct VM;
 struct Local
 {
-    Token name;
-    int depth = -1;
-    bool is_captured = false;
+    Token name_;
+    int depth_ = -1;
+    bool is_captured_ = false;
 };
 
 enum FunctionType
@@ -25,32 +24,32 @@ enum FunctionType
     TYPE_SCRIPT
 };
 
-struct BorC{
-    BorC(int offset, int is_break) : offset(offset), is_break(is_break) {}
-    int offset;
-    int is_break;
+struct BreakAndContinue{
+    BreakAndContinue(int offset, int is_break) : offset_(offset), is_break_(is_break) {}
+    int offset_;
+    int is_break_;
 };
 
 struct LoopCompiler {
-    std::unique_ptr<LoopCompiler> outer = nullptr;
-    std::vector<BorC> offsets;
+    std::unique_ptr<LoopCompiler> outer_ = nullptr;
+    std::vector<BreakAndContinue> offsets_;
 };
 
 struct ClassCompiler {
-    std::unique_ptr<ClassCompiler> enclosing = nullptr;
-	Token name;
-	bool has_super_class = false;
+    std::unique_ptr<ClassCompiler> enclosing_ = nullptr;
+	Token name_;
+	bool has_super_class_ = false;
 };
 
 struct Compiler
 {
-    std::unique_ptr<Compiler> enclosing = nullptr;
-    ObjFunction *function = nullptr;
-    FunctionType type;
-    std::array<Upvalue, UINT8_MAX> upvalues;
-    std::array<Local, UINT8_MAX> locals;
-    int local_count = 0;
-    int scope_depth = 0;
+    std::unique_ptr<Compiler> enclosing_ = nullptr;
+    ObjFunction *function_ = nullptr;
+    FunctionType type_;
+    std::array<Upvalue, UINT8_MAX> upvalues_;
+    std::array<Local, UINT8_MAX> locals_;
+    int local_count_ = 0;
+    int scope_depth_ = 0;
 };
 
 struct Complication
@@ -61,7 +60,6 @@ struct Complication
 
     auto end_compiler() -> std::pair<ObjFunction*, std::unique_ptr<Compiler>>;
 
-    void synchronize();
     void advance();
     void consume(TokenType type, const std::string_view &message);
     void expression();
@@ -123,21 +121,21 @@ struct Complication
 
     void begin_scope()
     {
-        current->scope_depth++;
+        current_->scope_depth_++;
     }
 
     void end_scope()
     {
-        current->scope_depth--;
-        while (current->local_count > 0 &&
-               current->locals[current->local_count - 1].depth >
-                   current->scope_depth)
+        current_->scope_depth_--;
+        while (current_->local_count_ > 0 &&
+               current_->locals_[current_->local_count_ - 1].depth_ >
+                   current_->scope_depth_)
         {
-            if(current->locals[current->local_count - 1].is_captured)
+            if(current_->locals_[current_->local_count_ - 1].is_captured_)
                 emit_byte(OP_CLOSE_UPVALUE);
             else
                 emit_byte(OP_POP);
-            current->local_count--;
+            current_->local_count_--;
         }
     }
 
@@ -151,12 +149,12 @@ struct Complication
     void emit_byte(uint8_t byte);
     uint8_t make_constant(Value value);
 
-    std::unique_ptr<ClassCompiler> current_class = nullptr;
-    std::unique_ptr<Compiler> current;
-    std::unique_ptr<Parser> parser;
-    VM &vm;
+    std::unique_ptr<ClassCompiler> current_class_ = nullptr;
+    std::unique_ptr<Compiler> current_;
+    std::unique_ptr<Parser> parser_;
+    VM &vm_;
 
-    std::unordered_set<ObjString*> global_table; 
-    std::unordered_map<TokenType, const Parser::ParseRule> get_rule;
-    std::unique_ptr<LoopCompiler> current_loop = nullptr;
+    std::unordered_set<ObjString*> global_table_; 
+    std::unordered_map<TokenType, const Parser::ParseRule> get_rule_;
+    std::unique_ptr<LoopCompiler> current_loop_ = nullptr;
 };

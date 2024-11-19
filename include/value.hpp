@@ -1,5 +1,4 @@
 #pragma once
-#include "common.hpp"
 #include <ostream>
 #include <variant>
 #include <vector>
@@ -35,12 +34,12 @@ struct Value
     Value(Obj *obj); 
 
     template <typename T>
-    T as() const { return std::get<T>(value); }
+    T as() const { return std::get<T>(value_); }
 
-    bool is_bool() const { return std::holds_alternative<bool>(value); }
-    bool is_nil() const { return std::holds_alternative<std::monostate>(value); }
-    bool is_number() const { return std::holds_alternative<int>(value); }
-    bool is_obj() const { return std::holds_alternative<Obj *>(value); }
+    bool is_bool() const { return std::holds_alternative<bool>(value_); }
+    bool is_nil() const { return std::holds_alternative<std::monostate>(value_); }
+    bool is_number() const { return std::holds_alternative<int>(value_); }
+    bool is_obj() const { return std::holds_alternative<Obj *>(value_); }
 
     template <typename U>
     auto is_obj_type() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U> && !std::is_same_v<Obj, U>, bool>;
@@ -49,7 +48,7 @@ struct Value
     auto as_obj() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U> && !std::is_same_v<Obj, U>, U *>;
 
     using value_type = std::variant<bool, int, std::monostate, Obj *>;
-    value_type value;
+    value_type value_;
 };
 
 
@@ -69,7 +68,7 @@ namespace std {
                 } else if constexpr (std::is_same_v<T, Obj *>) {
                     return std::hash<Obj*>{}(arg);
                 }
-            }, v.value);
+            }, v.value_);
         }
     };
 }

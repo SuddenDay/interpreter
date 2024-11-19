@@ -14,7 +14,7 @@ bool operator==(const Obj *obj, const std::monostate nil)
 
 bool operator==(const Value &v1, const Value &v2)
 {
-	return v1.value == v2.value;
+	return v1.value_ == v2.value_;
 }
 
 bool operator!=(const Value &v1, const Value &v2)
@@ -39,11 +39,11 @@ bool Value::operator>(const Value &v) const
 }
 bool Value::operator>=(const Value &v) const
 {
-	return *this > v || this->value == v.value;
+	return *this > v || this->value_ == v.value_;
 }
 bool Value::operator<=(const Value &v) const
 {
-	return *this < v || this->value == v.value;
+	return *this < v || this->value_ == v.value_;
 }
 
 bool Value::operator<(const Value &v) const
@@ -81,10 +81,10 @@ Value Value::operator/(const Value &other) const
 	return perform_operation(other, std::divides<>());
 }
 
-Value::Value(bool value) : value(value) {}
-Value::Value() : value(std::monostate()) {}
-Value::Value(int value) : value(value) {}
-Value::Value(Obj *obj) : value(obj) {}
+Value::Value(bool value) : value_(value) {}
+Value::Value() : value_(std::monostate()) {}
+Value::Value(int value) : value_(value) {}
+Value::Value(Obj *obj) : value_(obj) {}
 
 template auto Value::is_obj_type<ObjString>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjString> && !std::is_same_v<Obj, ObjString>, bool>;
 template auto Value::as_obj<ObjString>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjString> && !std::is_same_v<Obj, ObjString>, ObjString *>;
@@ -149,7 +149,7 @@ std::ostream &operator<<(std::ostream &os, const Value &value)
                    else if constexpr (std::is_same_v<T, Obj*>) {
                        os << *arg;
                    } },
-			   value.value);
+			   value.value_);
 
 	return os;
 }

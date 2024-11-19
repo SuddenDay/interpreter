@@ -7,145 +7,115 @@
 #include "vm.hpp"
 #include <string_view>
 
-Complication::Complication(VM &vm) : current(nullptr), parser(nullptr), vm(vm), get_rule({
-                                                                                    {TOKEN_LEFT_BRACKET, {&Complication::list, &Complication::get_or_set, PREC_CALL}},
-                                                                                    {TOKEN_RIGHT_BRACKET, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_LEFT_PAREN, {&Complication::grouping, &Complication::call, PREC_CALL}},
-                                                                                    {TOKEN_RIGHT_PAREN, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_LEFT_BRACE, {&Complication::json, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_RIGHT_BRACE, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_COMMA, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_DOT, {nullptr, &Complication::dot, PREC_CALL}},
-                                                                                    {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
-                                                                                    {TOKEN_ADD_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
-                                                                                    {TOKEN_MINUS_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
-                                                                                    {TOKEN_PLUS, {nullptr, &Complication::binary, PREC_TERM}},
-                                                                                    {TOKEN_SEMICOLON, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_SLASH, {nullptr, &Complication::binary, PREC_FACTOR}},
-                                                                                    {TOKEN_STAR, {nullptr, &Complication::binary, PREC_FACTOR}},
-                                                                                    {TOKEN_BANG, {&Complication::unary, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_BANG_EQUAL, {nullptr, &Complication::binary, PREC_EQUALITY}},
-                                                                                    {TOKEN_EQUAL, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_EQUAL_EQUAL, {nullptr, &Complication::binary, PREC_EQUALITY}},
-                                                                                    {TOKEN_GREATER, {nullptr, &Complication::binary, PREC_COMPARISON}},
-                                                                                    {TOKEN_GREATER_EQUAL, {nullptr, &Complication::binary, PREC_COMPARISON}},
-                                                                                    {TOKEN_LESS, {nullptr, &Complication::binary, PREC_COMPARISON}},
-                                                                                    {TOKEN_LESS_EQUAL, {nullptr, &Complication::binary, PREC_COMPARISON}},
-                                                                                    {TOKEN_IDENTIFIER, {&Complication::variable, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_STRING, {&Complication::string, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_NUMBER, {&Complication::number, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_AND, {nullptr, &Complication::and_, PREC_AND}},
-                                                                                    {TOKEN_CLASS, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_ELSE, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_FALSE, {&Complication::literal, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_FOR, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_FUN, {&Complication::function_expr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_IF, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_NIL, {&Complication::literal, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_OR, {nullptr, &Complication::or_, PREC_OR}},
-                                                                                    {TOKEN_PRINT, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_RETURN, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_SUPER, {&Complication::super_, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_THIS, {&Complication::this_, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_TRUE, {&Complication::literal, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_VAR, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_WHILE, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_ERROR, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_EOF, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_COLON, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_COROUTINE, {&Complication::coroutine, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_YIELD, {nullptr, nullptr, PREC_NONE}},
-                                                                                    {TOKEN_RESUME, {nullptr, nullptr, PREC_NONE}},
-                                                                                })
+Complication::Complication(VM &vm) : current_(nullptr), parser_(nullptr), vm_(vm), get_rule_({
+                                                                                       {TOKEN_LEFT_BRACKET, {&Complication::list, &Complication::get_or_set, PREC_CALL}},
+                                                                                       {TOKEN_RIGHT_BRACKET, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_LEFT_PAREN, {&Complication::grouping, &Complication::call, PREC_CALL}},
+                                                                                       {TOKEN_RIGHT_PAREN, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_LEFT_BRACE, {&Complication::json, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_RIGHT_BRACE, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_COMMA, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_DOT, {nullptr, &Complication::dot, PREC_CALL}},
+                                                                                       {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
+                                                                                       {TOKEN_ADD_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
+                                                                                       {TOKEN_MINUS_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
+                                                                                       {TOKEN_PLUS, {nullptr, &Complication::binary, PREC_TERM}},
+                                                                                       {TOKEN_SEMICOLON, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_SLASH, {nullptr, &Complication::binary, PREC_FACTOR}},
+                                                                                       {TOKEN_STAR, {nullptr, &Complication::binary, PREC_FACTOR}},
+                                                                                       {TOKEN_BANG, {&Complication::unary, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_BANG_EQUAL, {nullptr, &Complication::binary, PREC_EQUALITY}},
+                                                                                       {TOKEN_EQUAL, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_EQUAL_EQUAL, {nullptr, &Complication::binary, PREC_EQUALITY}},
+                                                                                       {TOKEN_GREATER, {nullptr, &Complication::binary, PREC_COMPARISON}},
+                                                                                       {TOKEN_GREATER_EQUAL, {nullptr, &Complication::binary, PREC_COMPARISON}},
+                                                                                       {TOKEN_LESS, {nullptr, &Complication::binary, PREC_COMPARISON}},
+                                                                                       {TOKEN_LESS_EQUAL, {nullptr, &Complication::binary, PREC_COMPARISON}},
+                                                                                       {TOKEN_IDENTIFIER, {&Complication::variable, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_STRING, {&Complication::string, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_NUMBER, {&Complication::number, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_AND, {nullptr, &Complication::and_, PREC_AND}},
+                                                                                       {TOKEN_CLASS, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_ELSE, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_FALSE, {&Complication::literal, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_FOR, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_FUN, {&Complication::function_expr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_IF, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_NIL, {&Complication::literal, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_OR, {nullptr, &Complication::or_, PREC_OR}},
+                                                                                       {TOKEN_PRINT, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_RETURN, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_SUPER, {&Complication::super_, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_THIS, {&Complication::this_, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_TRUE, {&Complication::literal, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_VAR, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_WHILE, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_ERROR, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_EOF, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_COLON, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_COROUTINE, {&Complication::coroutine, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_YIELD, {nullptr, nullptr, PREC_NONE}},
+                                                                                       {TOKEN_RESUME, {nullptr, nullptr, PREC_NONE}},
+                                                                                   })
 {
 }
 
 ObjFunction *Complication::compile(const std::string_view &source)
 {
-    parser = std::make_unique<Parser>(source);
+    parser_ = std::make_unique<Parser>(source);
     init_compiler(TYPE_SCRIPT);
     advance();
     while (!match(TOKEN_EOF))
         declaration();
     consume(TOKEN_EOF, "Expect EOF in the end.");
     auto [function, done] = end_compiler();
-    return parser->has_error ? nullptr : function;
+    return parser_->has_error_ ? nullptr : function;
 }
 
 Chunk *Complication::current_chunk()
 {
-    return &current->function->chunk;
+    return &current_->function_->chunk_;
 }
 
 auto Complication::end_compiler() -> std::pair<ObjFunction *, std::unique_ptr<Compiler>>
 {
     emit_return();
-    ObjFunction *function = current->function;
-#if 0
+    ObjFunction *function = current_->function_;
 #ifdef DEBUG_MODE
-    if (!parser->has_error)
+    if (!parser_->has_error_)
     {
         std::cout << "=== ";
-        if (function->name != nullptr)
-            std::cout << *function->name << "===\n";
+        if (function->name_ != nullptr)
+            std::cout << *function->name_ << "===\n";
         else
             std::cout << "<script>" << " ===\n";
     }
 #endif
-#endif
-    std::unique_ptr<Compiler> done = std::move(current);
-    current = std::move(done->enclosing);
+    std::unique_ptr<Compiler> done = std::move(current_);
+    current_ = std::move(done->enclosing_);
     return {function, std::move(done)};
-}
-
-void Complication::synchronize()
-{
-    parser->panic_mode = false;
-
-    while (parser->current.type != TOKEN_EOF)
-    {
-        if (parser->previous.type == TOKEN_SEMICOLON)
-            return;
-        switch (parser->current.type)
-        {
-        case TOKEN_CLASS:
-        case TOKEN_FUN:
-        case TOKEN_VAR:
-        case TOKEN_FOR:
-        case TOKEN_IF:
-        case TOKEN_WHILE:
-        case TOKEN_PRINT:
-        case TOKEN_RETURN:
-            return;
-
-        default:; // Do nothing.
-        }
-
-        advance();
-    }
 }
 
 void Complication::advance()
 {
-    parser->prev_previous = parser->previous;
-    parser->previous = parser->current;
+    parser_->previous_ = parser_->current_;
     while (true)
     {
-        parser->current = parser->scanner.scan_token();
-        if (parser->current.type != TOKEN_ERROR)
+        parser_->current_ = parser_->scanner_.scan_token();
+        if (parser_->current_.type != TOKEN_ERROR)
             break;
 
-        parser->error_at_current("Get error token.");
+        parser_->error_at_current("Get error token.");
     }
 }
 void Complication::consume(TokenType type, const std::string_view &message)
 {
-    if (parser->current.type == type)
+    if (parser_->current_.type == type)
     {
         advance();
         return;
     }
-    parser->error_at_current(message);
+    parser_->error_at_current(message);
 }
 void Complication::expression()
 {
@@ -154,23 +124,23 @@ void Complication::expression()
 void Complication::parse_precedence(Precedence precedence)
 {
     advance();
-    auto name = get_rule.at(parser->previous.type);
-    auto prefixRule = name.prefix;
+    auto name = get_rule_.at(parser_->previous_.type);
+    auto prefixRule = name.prefix_;
     if (prefixRule == nullptr)
     {
-        parser->error("No suitable prefixRule for " + std::string(parser->previous.string));
+        parser_->error("No suitable prefixRule for " + std::string(parser_->previous_.string));
         return;
     }
     bool canAssign = precedence <= PREC_ASSIGNMENT;
     prefixRule(*this, canAssign);
-    while (precedence <= get_rule.at(parser->current.type).precedence)
+    while (precedence <= get_rule_.at(parser_->current_.type).precedence_)
     {
         advance();
-        auto infixRule = get_rule.at(parser->previous.type).infix;
+        auto infixRule = get_rule_.at(parser_->previous_.type).infix_;
         infixRule(*this, canAssign);
     }
     if (canAssign && match(TOKEN_EQUAL)) // to detect a * b = c * d gramma error
-        parser->error("Can't be assigned.");
+        parser_->error("Can't be assigned.");
 }
 
 void Complication::resume()
@@ -183,8 +153,8 @@ void Complication::resume()
 
 void Complication::yield()
 {
-    if (this->current->enclosing == nullptr)
-        parser->error("yield should be in function");
+    if (this->current_->enclosing_ == nullptr)
+        parser_->error("yield should be in function");
     consume(TOKEN_SEMICOLON, "need ; after yield");
     emit_byte(OP_YIELD_COROUTINE);
 }
@@ -197,11 +167,11 @@ void Complication::coroutine(bool canAssign)
     else if (match(TOKEN_FUN))
         function_expr(false);
     else
-        parser->error("Need function or function variable!");
+        parser_->error("Need function or function variable!");
     if (match(TOKEN_LEFT_PAREN))
         count = argument_list();
     else
-        parser->error("Need argument for coroutine!");
+        parser_->error("Need argument for coroutine!");
 
     // fun () {} or function_name_variable
     // verify in vm
@@ -212,14 +182,14 @@ void Complication::coroutine(bool canAssign)
 
 void Complication::number(bool canAssign)
 {
-    Value value = std::stoi(std::string(parser->previous.string));
+    Value value = std::stoi(std::string(parser_->previous_.string));
     emit_constant(value);
 }
 void Complication::binary(bool canAssign)
 {
-    TokenType operatorType = parser->previous.type;
-    auto rule = get_rule.at(operatorType);
-    parse_precedence(static_cast<Precedence>(rule.precedence + 1));
+    TokenType operatorType = parser_->previous_.type;
+    auto rule = get_rule_.at(operatorType);
+    parse_precedence(static_cast<Precedence>(rule.precedence_ + 1));
 
     switch (operatorType)
     {
@@ -260,7 +230,7 @@ void Complication::binary(bool canAssign)
 
 void Complication::unary(bool canAssign)
 {
-    TokenType operatorType = parser->previous.type;
+    TokenType operatorType = parser_->previous_.type;
     expression();
     switch (operatorType)
     {
@@ -381,14 +351,14 @@ uint8_t Complication::argument_list()
 
 void Complication::super_(bool assign)
 {
-    if (current_class == NULL)
-        parser->error("Can't use 'super' outside of a class.");
-    else if (!current_class->has_super_class)
-        parser->error("Can't use 'super' in a class with no superclass.");
+    if (current_class_ == NULL)
+        parser_->error("Can't use 'super' outside of a class.");
+    else if (!current_class_->has_super_class_)
+        parser_->error("Can't use 'super' in a class with no superclass.");
 
     consume(TOKEN_DOT, "Expect '.' after 'super'.");
     consume(TOKEN_IDENTIFIER, "Expect superclass method name.");
-    uint8_t name = identifier_constant(parser->previous);
+    uint8_t name = identifier_constant(parser_->previous_);
     name_variable(syntehtic_token("this"), false);
     if (match(TOKEN_LEFT_PAREN))
     {
@@ -412,7 +382,7 @@ void Complication::call(bool canAssign)
 
 void Complication::literal(bool canAssign)
 {
-    switch (parser->previous.type)
+    switch (parser_->previous_.type)
     {
     case TOKEN_FALSE:
         emit_byte(OP_FALSE);
@@ -430,15 +400,15 @@ void Complication::literal(bool canAssign)
 
 void Complication::string(bool canAssign)
 {
-    std::string_view text = parser->previous.string;
+    std::string_view text = parser_->previous_.string;
     std::string_view str = text.substr(1, text.size() - 2);
-    auto obj = create_obj_string(str, vm);
+    auto obj = create_obj_string(str, vm_);
     emit_constant(obj);
 }
 
 void Complication::variable(bool canAssign)
 {
-    name_variable(parser->previous, canAssign);
+    name_variable(parser_->previous_, canAssign);
 }
 
 void Complication::statement()
@@ -465,20 +435,20 @@ void Complication::statement()
     }
     else if (match(TOKEN_CONTINUE))
     {
-        if (current_loop == nullptr)
-            parser->error_at_current("continue should inside for or while");
+        if (current_loop_ == nullptr)
+            parser_->error_at_current("continue should inside for or while");
         consume(TOKEN_SEMICOLON, "after continue need ;");
         emit_byte(OP_CONTINUE);
-        current_loop->offsets.push_back({current_chunk()->bytecode.size(), 0});
+        current_loop_->offsets_.push_back({current_chunk()->bytecode_.size(), 0});
         emit_bytes(0xff, 0xff); // jump to the first instruction before next loop
     }
     else if (match(TOKEN_BREAK))
     {
-        if (current_loop == nullptr)
-            parser->error_at_current("break should inside for or while");
+        if (current_loop_ == nullptr)
+            parser_->error_at_current("break should inside for or while");
         consume(TOKEN_SEMICOLON, "after break need ;");
         emit_byte(OP_BREAK);
-        current_loop->offsets.push_back({current_chunk()->bytecode.size(), 1});
+        current_loop_->offsets_.push_back({current_chunk()->bytecode_.size(), 1});
         emit_bytes(0xff, 0xff); // jump out current loop
     }
     else
@@ -495,7 +465,7 @@ void Complication::block()
 void Complication::dot(bool canAssign)
 {
     consume(TOKEN_IDENTIFIER, "Expect property arg after '.'.");
-    uint8_t arg = identifier_constant(parser->previous);
+    uint8_t arg = identifier_constant(parser_->previous_);
 
     if (canAssign && match(TOKEN_EQUAL))
     {
@@ -533,10 +503,10 @@ void Complication::dot(bool canAssign)
 void Complication::while_statement()
 {
     auto classLoop = std::make_unique<LoopCompiler>();
-    classLoop->outer = std::move(current_loop);
-    current_loop = std::move(classLoop);
+    classLoop->outer_ = std::move(current_loop_);
+    current_loop_ = std::move(classLoop);
 
-    int loopStart = current_chunk()->bytecode.size();
+    int loopStart = current_chunk()->bytecode_.size();
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'while'.");
     expression();
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
@@ -545,11 +515,11 @@ void Complication::while_statement()
     emit_byte(OP_POP);
     statement();
     emit_loop(loopStart);
-    patch_offset(loopStart, current_chunk()->bytecode.size());
+    patch_offset(loopStart, current_chunk()->bytecode_.size());
 
     patch_jump(exitJump);
     emit_byte(OP_POP);
-    current_loop = std::move(current_loop->outer);
+    current_loop_ = std::move(current_loop_->outer_);
 }
 
 void Complication::for_statement()
@@ -557,8 +527,8 @@ void Complication::for_statement()
     begin_scope();
 
     auto classLoop = std::make_unique<LoopCompiler>();
-    classLoop->outer = std::move(current_loop);
-    current_loop = std::move(classLoop);
+    classLoop->outer_ = std::move(current_loop_);
+    current_loop_ = std::move(classLoop);
 
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'for'.");
     if (match(TOKEN_SEMICOLON))
@@ -574,7 +544,7 @@ void Complication::for_statement()
         expression_statement();
     }
 
-    int loopStart = current_chunk()->bytecode.size();
+    int loopStart = current_chunk()->bytecode_.size();
     int exitJump = -1;
     if (!match(TOKEN_SEMICOLON))
     {
@@ -589,7 +559,7 @@ void Complication::for_statement()
     if (!match(TOKEN_RIGHT_PAREN))
     {
         int bodyJump = emit_jump(OP_JUMP);
-        int incrementStart = current_chunk()->bytecode.size();
+        int incrementStart = current_chunk()->bytecode_.size();
         expression();
         emit_byte(OP_POP);
         consume(TOKEN_RIGHT_PAREN, "Expect ')' after for clauses.");
@@ -601,7 +571,7 @@ void Complication::for_statement()
 
     statement();
     emit_loop(loopStart);
-    patch_offset(loopStart, current_chunk()->bytecode.size());
+    patch_offset(loopStart, current_chunk()->bytecode_.size());
 
     if (exitJump != -1)
     {
@@ -609,23 +579,23 @@ void Complication::for_statement()
         emit_byte(OP_POP); // Condition.
     }
 
-    current_loop = std::move(current_loop->outer);
+    current_loop_ = std::move(current_loop_->outer_);
     end_scope();
 }
 
 void Complication::patch_offset(int loopStart, int loopEnd)
 {
-    for (const auto &[offset, _] : current_loop->offsets)
+    for (const auto &[offset, _] : current_loop_->offsets_)
     {
         if (_ == 0)
         {
-            current_chunk()->bytecode[offset] = (loopStart >> 8) & 0xff;
-            current_chunk()->bytecode[offset + 1] = loopStart & 0xff;
+            current_chunk()->bytecode_[offset] = (loopStart >> 8) & 0xff;
+            current_chunk()->bytecode_[offset + 1] = loopStart & 0xff;
         }
         else
         {
-            current_chunk()->bytecode[offset] = (loopEnd >> 8) & 0xff;
-            current_chunk()->bytecode[offset + 1] = loopEnd & 0xff;
+            current_chunk()->bytecode_[offset] = (loopEnd >> 8) & 0xff;
+            current_chunk()->bytecode_[offset + 1] = loopEnd & 0xff;
         }
     }
 }
@@ -634,9 +604,9 @@ void Complication::emit_loop(int loopStart)
 {
     emit_byte(OP_LOOP);
 
-    int offset = current_chunk()->bytecode.size() - loopStart + 2;
+    int offset = current_chunk()->bytecode_.size() - loopStart + 2;
     if (offset > UINT16_MAX)
-        parser->error("Loop body too large.");
+        parser_->error("Loop body too large.");
 
     emit_byte((offset >> 8) & 0xff);
     emit_byte(offset & 0xff);
@@ -644,15 +614,15 @@ void Complication::emit_loop(int loopStart)
 
 void Complication::return_statement()
 {
-    if (current->type == TYPE_SCRIPT)
-        parser->error("Can't return from top-level code.");
+    if (current_->type_ == TYPE_SCRIPT)
+        parser_->error("Can't return from top-level code.");
 
     if (match(TOKEN_SEMICOLON))
         emit_return();
     else
     {
-        if (current->type == TYPE_INITIALIZER)
-            parser->error("Can't return a value from an initializer.");
+        if (current_->type_ == TYPE_INITIALIZER)
+            parser_->error("Can't return a value from an initializer.");
 
         expression();
         consume(TOKEN_SEMICOLON, "Expect ';' after return value.");
@@ -731,13 +701,13 @@ void Complication::var_declaration()
 void Complication::name_variable(const Token &name, bool canAssign)
 {
     Opcode getOp, setOp;
-    int arg = resolve_local(current, name);
+    int arg = resolve_local(current_, name);
     if (arg != -1)
     {
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
     }
-    else if ((arg = resolve_upvalue(current, name)) != -1)
+    else if ((arg = resolve_upvalue(current_, name)) != -1)
     {
         getOp = OP_GET_UPVALUE;
         setOp = OP_SET_UPVALUE;
@@ -776,16 +746,16 @@ void Complication::name_variable(const Token &name, bool canAssign)
 
 int Complication::resolve_local(const std::unique_ptr<Compiler> &compiler, const Token &name)
 {
-    for (int i = compiler->local_count - 1; i >= 0; i--)
+    for (int i = compiler->local_count_ - 1; i >= 0; i--)
     {
-        Local &local = compiler->locals[i];
-        if (identifier_equal(name, local.name))
+        Local &local = compiler->locals_[i];
+        if (identifier_equal(name, local.name_))
         {
-            if (local.depth == -1)
-                parser->error("var variable = variable is not allowed."); // var a = 1; {
-                                                                          //     var a = a;  // we first define a and search a but this is not initialized
-                                                                          //                 // if we first expression not define can get a = 1 result
-                                                                          // }
+            if (local.depth_ == -1)
+                parser_->error("var variable = variable is not allowed."); // var a = 1; {
+                                                                           //     var a = a;  // we first define a and search a but this is not initialized
+                                                                           //                 // if we first expression not define can get a = 1 result
+                                                                           // }
             return i;
         }
     }
@@ -794,46 +764,46 @@ int Complication::resolve_local(const std::unique_ptr<Compiler> &compiler, const
 
 void Complication::mark_initialize() // when define function and define local variable used
 {
-    if (current->scope_depth == 0)
+    if (current_->scope_depth_ == 0)
         return;
-    if (current->scope_depth > 0) // at start all depth is -1
-        current->locals[current->local_count - 1].depth = current->scope_depth;
+    if (current_->scope_depth_ > 0) // at start all depth is -1
+        current_->locals_[current_->local_count_ - 1].depth_ = current_->scope_depth_;
 }
 
 void Complication::init_compiler(FunctionType type)
 {
     auto compiler = std::make_unique<Compiler>();
-    compiler->enclosing = std::move(current);
-    current = std::move(compiler);
-    current->function = create_obj<ObjFunction>(vm.gc);
-    current->type = type;
+    compiler->enclosing_ = std::move(current_);
+    current_ = std::move(compiler);
+    current_->function_ = create_obj<ObjFunction>(vm_.gc_);
+    current_->type_ = type;
 
     if (type != FunctionType::TYPE_SCRIPT)
-        current->function->name = create_obj_string(parser->previous.string, vm);
-    Local &local = current->locals.at(current->local_count++); // for this pointer
-    local.depth = 0;
-    local.is_captured = false;
+        current_->function_->name_ = create_obj_string(parser_->previous_.string, vm_);
+    Local &local = current_->locals_.at(current_->local_count_++); // for this pointer
+    local.depth_ = 0;
+    local.is_captured_ = false;
     if (type != TYPE_FUNCTION)
-        local.name.string = "this"; // every method has a local slot for this pointer
+        local.name_.string = "this"; // every method has a local slot for this pointer
     else
-        local.name.string = std::string_view(); // never used for other type
+        local.name_.string = std::string_view(); // never used for other type
 }
 
 int Complication::resolve_upvalue(const std::unique_ptr<Compiler> &compiler, const Token &name)
 {
-    if (compiler->enclosing == nullptr)
+    if (compiler->enclosing_ == nullptr)
         return -1;
-    int local = resolve_local(compiler->enclosing, name);
+    int local = resolve_local(compiler->enclosing_, name);
     if (local != -1)
     {
-        compiler->enclosing->locals[local].is_captured = true;
+        compiler->enclosing_->locals_[local].is_captured_ = true;
         return add_upvalue(compiler, local, true);
     }
 
-    int upvalue = resolve_upvalue(compiler->enclosing, name); // layer-by-layer
-                                                              // to add upvalue
-                                                              // and ensure concerned func
-                                                              // all have upvalue
+    int upvalue = resolve_upvalue(compiler->enclosing_, name); // layer-by-layer
+                                                               // to add upvalue
+                                                               // and ensure concerned func
+                                                               // all have upvalue
     if (upvalue != -1)
         return add_upvalue(compiler, upvalue, false); // capture upvalue
 
@@ -842,39 +812,39 @@ int Complication::resolve_upvalue(const std::unique_ptr<Compiler> &compiler, con
 
 int Complication::add_upvalue(const std::unique_ptr<Compiler> &compiler, int index, bool is_local)
 {
-    int upvalue_count = compiler->function->upvalue_count; // outside function firstly add upvalue
-                                                           // and the outest one have 0 upvalue_count
-                                                           // because only after outside capture it,
-                                                           // can inside get upvalue_count and upvalue information
+    int upvalue_count = compiler->function_->upvalue_count_; // outside function firstly add upvalue
+                                                            // and the outest one have 0 upvalue_count
+                                                            // because only after outside capture it,
+                                                            // can inside get upvalue_count and upvalue information
     for (int i = 0; i < upvalue_count; i++)
     {
-        Upvalue &upvalue = compiler->upvalues[i];
-        if (upvalue.index == index && upvalue.is_local == is_local) // index is about captured local-var
+        Upvalue &upvalue = compiler->upvalues_[i];
+        if (upvalue.index_ == index && upvalue.is_local_ == is_local) // index is about captured local-var
             return i;                                               // is_local is outside function's local-var
     } // we shouldn't repeatedly add
     if (upvalue_count == UINT8_MAX)
     {
-        parser->error("Too many closure variables in function.");
+        parser_->error("Too many closure variables in function.");
         return 0;
     }
-    compiler->upvalues[upvalue_count].is_local = is_local;
-    compiler->upvalues[upvalue_count].index = index;
-    return compiler->function->upvalue_count++;
+    compiler->upvalues_[upvalue_count].is_local_ = is_local;
+    compiler->upvalues_[upvalue_count].index_ = index;
+    return compiler->function_->upvalue_count_++;
 }
 
 uint8_t Complication::parse_variable(const std::string_view &message)
 {
     consume(TOKEN_IDENTIFIER, message);
-    declare_variable();           // this function define local
-    if (current->scope_depth > 0) // below is to define global variable
+    declare_variable();             // this function define local
+    if (current_->scope_depth_ > 0) // below is to define global variable
         return 0;
-    return identifier_constant(parser->previous);
+    return identifier_constant(parser_->previous_);
 }
 
 uint8_t Complication::identifier_constant(const Token &token)
 {
     std::string_view str = token.string;
-    auto name = create_obj_string(str, vm); // template deduce lead string_view decay to basic_string_view
+    auto name = create_obj_string(str, vm_); // template deduce lead string_view decay to basic_string_view
     return make_constant(name);
 }
 
@@ -882,23 +852,23 @@ int Complication::emit_jump(Opcode instruction)
 {
     emit_byte(instruction);
     emit_bytes(0xff, 0xff);
-    return current_chunk()->bytecode.size() - 2;
+    return current_chunk()->bytecode_.size() - 2;
 }
 
 void Complication::patch_jump(int offset)
 {
-    int jump = current_chunk()->bytecode.size() - offset - 2;
+    int jump = current_chunk()->bytecode_.size() - offset - 2;
 
     if (jump > UINT16_MAX)
-        parser->error("Too much code to jump over.");
+        parser_->error("Too much code to jump over.");
 
-    current_chunk()->bytecode[offset] = (jump >> 8) & 0xff;
-    current_chunk()->bytecode[offset + 1] = jump & 0xff;
+    current_chunk()->bytecode_[offset] = (jump >> 8) & 0xff;
+    current_chunk()->bytecode_[offset + 1] = jump & 0xff;
 }
 
 bool Complication::check(TokenType type)
 {
-    return parser->current.type == type;
+    return parser_->current_.type == type;
 }
 
 bool Complication::match(TokenType type)
@@ -923,21 +893,21 @@ void Complication::declaration()
 
 void Complication::declare_variable() // only register local
 {
-    if (current->scope_depth == 0)
+    if (current_->scope_depth_ == 0)
     {
         // global define use opcode::global_define in compile time can't check
         // so global can define multi-times
         return;
     }
 
-    Token name = parser->previous;
-    for (int i = current->local_count - 1; i >= 0; i--)
+    Token name = parser_->previous_;
+    for (int i = current_->local_count_ - 1; i >= 0; i--)
     {
-        Local &local = current->locals[i];
-        if (local.depth != -1 && local.depth < current->scope_depth) // current scope is no name-conflict
+        Local &local = current_->locals_[i];
+        if (local.depth_ != -1 && local.depth_ < current_->scope_depth_) // current scope is no name-conflict
             break;
-        if (identifier_equal(name, local.name))
-            parser->error(std::string(name.string) + " has defined before.");
+        if (identifier_equal(name, local.name_))
+            parser_->error(std::string(name.string) + " has defined before.");
     }
     add_local(name);
 }
@@ -945,27 +915,27 @@ void Complication::declare_variable() // only register local
 void Complication::class_declaration()
 {
     consume(TOKEN_IDENTIFIER, "Expect class name.");
-    Token className = parser->previous;
-    uint8_t nameConstant = identifier_constant(parser->previous);
+    Token className = parser_->previous_;
+    uint8_t nameConstant = identifier_constant(parser_->previous_);
 
     declare_variable();
     emit_bytes(OP_CLASS, nameConstant); // when execute this will push objclass
     define_variable(nameConstant);
 
     auto classCompiler = std::make_unique<ClassCompiler>();
-    classCompiler->enclosing = std::move(current_class);
-    current_class = std::move(classCompiler);
+    classCompiler->enclosing_ = std::move(current_class_);
+    current_class_ = std::move(classCompiler);
 
     if (match(TOKEN_LESS)) // inherit
     {
         consume(TOKEN_IDENTIFIER, "Expect superclass name.");
-        name_variable(parser->previous, false); // OP_GET a class_obj from upvalue or local or global
-                                                // we wana in vm-stack obj_father is in front of obj_son
-                                                // this get son
+        name_variable(parser_->previous_, false); // OP_GET a class_obj from upvalue or local or global
+                                                 // we wana in vm-stack obj_father is in front of obj_son
+                                                 // this get son
         // B < A
         // className is B     previous is A
-        if (className.string == parser->previous.string)
-            parser->error("A class cannot inherit from itself.");
+        if (className.string == parser_->previous_.string)
+            parser_->error("A class cannot inherit from itself.");
 
         begin_scope();
         add_local(syntehtic_token("super"));
@@ -973,7 +943,7 @@ void Complication::class_declaration()
 
         name_variable(className, false); // get father push objclass
         emit_byte(OP_INHERIT);           // three opcode is for vm to create inherit realtion
-        current_class->has_super_class = true;
+        current_class_->has_super_class_ = true;
     }
 
     name_variable(className, false); // generate get opcode
@@ -986,9 +956,9 @@ void Complication::class_declaration()
     consume(TOKEN_RIGHT_BRACE, "Expect '}' after class body.");
     emit_byte(OP_POP);
 
-    if (current_class->has_super_class)
+    if (current_class_->has_super_class_)
         end_scope();
-    current_class = std::move(current_class->enclosing);
+    current_class_ = std::move(current_class_->enclosing_);
 }
 
 void Complication::fun_declaration()
@@ -1014,9 +984,9 @@ void Complication::function(FunctionType type)
     {
         do
         {
-            current->function->arity++;
-            if (current->function->arity > 255)
-                parser->error_at_current("Can't have more than 255 parameters.");
+            current_->function_->arity_++;
+            if (current_->function_->arity_ > 255)
+                parser_->error_at_current("Can't have more than 255 parameters.");
             uint8_t constant = parse_variable("Expect parameter name.");
             define_variable(constant);
         } while (match(TOKEN_COMMA));
@@ -1028,19 +998,19 @@ void Complication::function(FunctionType type)
     auto [function, done] = end_compiler();
     // emit_bytes(OP_CONSTANT, make_constant(static_cast<Obj *>(function)));
     emit_bytes(OP_CLOSURE, make_constant(function));
-    for (int i = 0; i < function->upvalue_count; i++)
+    for (int i = 0; i < function->upvalue_count_; i++)
     {
-        emit_byte(done->upvalues[i].is_local ? 1 : 0);
-        emit_byte(done->upvalues[i].index);
+        emit_byte(done->upvalues_[i].is_local_ ? 1 : 0);
+        emit_byte(done->upvalues_[i].index_);
     }
 }
 
 void Complication::method()
 {
     consume(TOKEN_IDENTIFIER, "Expect method name.");
-    uint8_t constant = identifier_constant(parser->previous);
+    uint8_t constant = identifier_constant(parser_->previous_);
     FunctionType type = TYPE_METHOD;
-    if (parser->previous.string == "init")
+    if (parser_->previous_.string == "init")
         type = TYPE_INITIALIZER;
     function(type);
     emit_bytes(OP_METHOD, constant);
@@ -1048,9 +1018,9 @@ void Complication::method()
 
 void Complication::this_(bool assign)
 {
-    if (current_class == nullptr)
+    if (current_class_ == nullptr)
     {
-        parser->error("Can't use 'this' outside of a class.");
+        parser_->error("Can't use 'this' outside of a class.");
         return;
     }
     variable(false);
@@ -1058,14 +1028,14 @@ void Complication::this_(bool assign)
 
 void Complication::add_local(Token name)
 {
-    if (current->local_count == UINT8_MAX)
+    if (current_->local_count_ == UINT8_MAX)
     {
-        parser->error("Local variable count has reached limit.");
+        parser_->error("Local variable count has reached limit.");
         return;
     }
-    Local &local = current->locals[current->local_count++];
-    local.name = name;
-    local.depth = -1;
+    Local &local = current_->locals_[current_->local_count_++];
+    local.name_ = name;
+    local.depth_ = -1;
 }
 
 bool Complication::identifier_equal(const Token &a, const Token &b)
@@ -1075,15 +1045,15 @@ bool Complication::identifier_equal(const Token &a, const Token &b)
 
 void Complication::define_variable(uint8_t global) // only define global
 {
-    if (current->scope_depth > 0)
+    if (current_->scope_depth_ > 0)
     {
         mark_initialize(); // begin all current local variable depth is -1
         return;            // local variable has been defined before
     }
-    auto str = current_chunk()->constants[global].as_obj<ObjString>();
-    if (global_table.find(str) != global_table.end()) // don't expect redefintion
-        parser->error("Global variable has been defined before");
-    global_table.insert(str);
+    auto str = current_chunk()->constants_[global].as_obj<ObjString>();
+    if (global_table_.find(str) != global_table_.end()) // don't expect redefintion
+        parser_->error("Global variable has been defined before");
+    global_table_.insert(str);
     emit_bytes(OP_DEFINE_GLOBAL, global);
 }
 
@@ -1096,16 +1066,16 @@ Token Complication::syntehtic_token(const std::string_view text)
 
 void Complication::write_chunk(uint8_t op, int line)
 {
-    current_chunk()->bytecode.push_back(op);
-    current_chunk()->lines.push_back(line);
+    current_chunk()->bytecode_.push_back(op);
+    current_chunk()->lines_.push_back(line);
 }
 
 uint8_t Complication::add_constant(const Value &value)
 {
-    vm.push(value);
-    current_chunk()->constants.push_back(value);
-    vm.pop();
-    return current_chunk()->constants.size() - 1;
+    vm_.push(value);
+    current_chunk()->constants_.push_back(value);
+    vm_.pop();
+    return current_chunk()->constants_.size() - 1;
 }
 
 void Complication::emit_constant(const Value &value)
@@ -1119,7 +1089,7 @@ void Complication::emit_bytes(uint8_t byte1, uint8_t byte2)
 }
 void Complication::emit_return()
 {
-    if (current->type == TYPE_INITIALIZER)
+    if (current_->type_ == TYPE_INITIALIZER)
         emit_bytes(OP_GET_LOCAL, 0);
     else
         emit_byte(OP_NIL);
@@ -1127,7 +1097,7 @@ void Complication::emit_return()
 }
 void Complication::emit_byte(uint8_t byte)
 {
-    write_chunk(byte, parser->previous.line);
+    write_chunk(byte, parser_->previous_.line);
 }
 
 uint8_t Complication::make_constant(Value value)

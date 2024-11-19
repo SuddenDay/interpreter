@@ -16,7 +16,7 @@ enum Precedence
     PREC_TERM,       // + -
     PREC_FACTOR,     // * /
     PREC_UNARY,      // ! -
-    PREC_CALL,       // . ()
+    PREC_CALL,       // . () []
     PREC_PRIMARY
 };
 
@@ -25,9 +25,9 @@ struct Parser
     using ParseFn = std::function<void(Complication&, bool)>;
     struct ParseRule
     {
-        ParseFn prefix;
-        ParseFn infix;
-        Precedence precedence;
+        ParseFn prefix_;
+        ParseFn infix_;
+        Precedence precedence_;
     };
 
     Parser(const std::string_view&);
@@ -37,11 +37,10 @@ struct Parser
 
     void error_at(const Token &token, const std::string_view& message);
     
-    Scanner scanner;
-    Token current;
-    Token previous;
-    Token prev_previous;
-    bool has_error;
-    bool panic_mode;
-    int line;
+    Scanner scanner_;
+    Token current_;
+    Token previous_;
+    bool has_error_;
+    bool panic_mode_;
+    int line_;
 };

@@ -188,14 +188,17 @@ CMakeFiles/main.dir/src/memory.cpp.o: \
  /home/ace/interpreter/include/table.hpp /usr/include/c++/11/map \
  /usr/include/c++/11/bits/stl_map.h \
  /usr/include/c++/11/bits/stl_multimap.h \
- /home/ace/interpreter/include/value.hpp \
- /home/ace/interpreter/include/common.hpp /usr/include/c++/11/variant \
+ /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
  /home/ace/interpreter/include/obj.hpp \
  /home/ace/interpreter/include/object.hpp \
  /home/ace/interpreter/include/chunk.hpp \
- /home/ace/interpreter/include/util.hpp \
- /home/ace/interpreter/include/opcode.hpp /usr/include/c++/11/iomanip \
+ /home/ace/interpreter/include/opcode.hpp \
+ /home/ace/interpreter/include/common.hpp \
+ /home/ace/interpreter/include/objstring.hpp \
+ /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg \
+ /home/ace/interpreter/include/compiler.hpp \
+ /home/ace/interpreter/include/util.hpp /usr/include/c++/11/iomanip \
  /usr/include/c++/11/locale \
  /usr/include/c++/11/bits/locale_facets_nonio.h /usr/include/c++/11/ctime \
  /usr/include/x86_64-linux-gnu/c++/11/bits/time_members.h \
@@ -205,9 +208,6 @@ CMakeFiles/main.dir/src/memory.cpp.o: \
  /usr/include/c++/11/bits/locale_conv.h \
  /usr/include/c++/11/bits/quoted_string.h /usr/include/c++/11/sstream \
  /usr/include/c++/11/bits/sstream.tcc \
- /home/ace/interpreter/include/objstring.hpp \
- /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg \
- /home/ace/interpreter/include/compiler.hpp \
  /home/ace/interpreter/include/parser.hpp \
  /home/ace/interpreter/include/scanner.hpp \
  /home/ace/interpreter/include/tokentype.hpp \

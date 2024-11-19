@@ -4,17 +4,17 @@
 
 void Scheduler::addObjCoroutine(ObjCoroutine *coroutine)
 {
-    coroutines.push_back(coroutine);
+    coroutines_.push_back(coroutine);
 }
 
 InterpretResult Scheduler::runNextObjCoroutine()
 {
     ObjCoroutine *front = nullptr;
-    while (!coroutines.empty())
+    while (!coroutines_.empty())
     {
-        front = coroutines.front();
-        coroutines.pop_front();
-        if (front->status != CoroutineStatus::FINISHED)
+        front = coroutines_.front();
+        coroutines_.pop_front();
+        if (front->status_ != CoroutineStatus::FINISHED)
             break;
     }
     return resumeCoroutine(front);
@@ -22,27 +22,27 @@ InterpretResult Scheduler::runNextObjCoroutine()
 
 void Scheduler::yieldCurrentObjCoroutine()
 {
-    if (current_coroutine->status == CoroutineStatus::FINISHED)
+    if (current_coroutine_->status_ == CoroutineStatus::FINISHED)
     {
         ;
     }
     else
     {
-        current_coroutine->status = CoroutineStatus::SUSPENDED;
-        addObjCoroutine(current_coroutine);
+        current_coroutine_->status_ = CoroutineStatus::SUSPENDED;
+        addObjCoroutine(current_coroutine_);
     }
 }
 
 InterpretResult Scheduler::resumeCoroutine(ObjCoroutine *coroutine)
 {
-    if (coroutine->status == CoroutineStatus::SUSPENDED)
+    if (coroutine->status_ == CoroutineStatus::SUSPENDED)
     {
-        current_coroutine = coroutine;
-        current_coroutine->status = CoroutineStatus::RUNNING;
-        for (auto it = coroutines.begin(); it != coroutines.end(); it++)
+        current_coroutine_ = coroutine;
+        current_coroutine_->status_ = CoroutineStatus::RUNNING;
+        for (auto it = coroutines_.begin(); it != coroutines_.end(); it++)
             if (*it == coroutine)
             {
-                coroutines.erase(it);
+                coroutines_.erase(it);
                 break;
             }
         return vm.run(coroutine); // Resume coroutine execution

@@ -2,18 +2,16 @@
 #include "chunk.hpp"
 #include <iostream>
 #include <cstdarg>
-#include "common.hpp"
 #include "memory.hpp"
 #include "value.hpp"
 #include "table.hpp"
 #include "compiler.hpp"
 #include "object.hpp"
 #include "scheduler.hpp"
+#include "common.hpp"
 
-#define FRAMES_MAX 64
-#define STACK_MAX (FRAMES_MAX * UINT8_MAX)
+
 struct GC;
-
 
 class VM
 {
@@ -48,16 +46,16 @@ public:
 
     InterpretResult interpret(const std::string& source);
 
-    Complication cu;
-    ObjString* init_string = nullptr;
-    ObjCoroutine* currentCo;
-    std::vector<CallFrame> frames;
-    int frame_count = 0;
-    Table globals;
-    int top = 0;
-    ObjUpvalue* open_upvalues = nullptr;
-    std::vector<Value> stack;
-    GC gc;
-    Scheduler scheduler;
+    Complication cu_;
+    ObjString* init_string_ = nullptr;
+    ObjCoroutine* currentCo_;
+    std::vector<CallFrame> frames_;
+    int frame_count_ = 0;
+    Table globals_;
+    int top_ = 0;
+    ObjUpvalue* open_upvalues_ = nullptr;
+    std::vector<Value> stack_;
+    GC gc_;
+    Scheduler scheduler_;
     
 };

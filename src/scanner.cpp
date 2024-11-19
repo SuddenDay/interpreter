@@ -112,7 +112,7 @@ bool Scanner::match(char wana)
 }
 bool Scanner::is_at_end()
 {
-    return current == source.end() || *current == '\0';
+    return current == source_.end() || *current == '\0';
 }
 Token Scanner::make_token(TokenType type)
 {

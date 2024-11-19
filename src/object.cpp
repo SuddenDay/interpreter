@@ -6,56 +6,56 @@
 
 void register_obj(std::unique_ptr<Obj, ObjDeleter> &&obj, GC &gc)
 {
-	obj->next = std::move(gc.objects);
-	gc.objects = std::move(obj);
+	obj->next_ = std::move(gc.objects_);
+	gc.objects_ = std::move(obj);
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjFunction &f)
 {
-	if (f.name == nullptr)
+	if (f.name_ == nullptr)
 		os << "<script>";
 	else
-		os << "<fn " << *f.name << ">";
+		os << "<fn " << *f.name_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjNative &s)
 {
-	os << "<native " << s.name << ">";
+	os << "<native " << s.name_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjUpvalue &s)
 {
-	os << "<upvalue " << s.closed << ">";
+	os << "<upvalue " << s.closed_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjClosure &s)
 {
-	os << "<closure " << *s.function << ">";
+	os << "<closure " << *s.function_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjClass &c)
 {
-	os << "<class " << *c.name << ">";
+	os << "<class " << *c.name_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjInstance &ins)
 {
-	os << "<instance " << *ins.objClass << ">";
+	os << "<instance " << *ins.objClass_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjArray &arr)
 {
 	os << "[";
-	int n = arr.values.size();
+	int n = arr.values_.size();
 	for (int i = 0; i < n; i++)
 	{
-		os << arr.values[i];
+		os << arr.values_[i];
 		if (i != n - 1)
 			os << ", ";
 	}
@@ -66,9 +66,9 @@ std::ostream &operator<<(std::ostream &os, const ObjArray &arr)
 std::ostream &operator<<(std::ostream &os, const ObjJson &json)
 {
 	os << "{";
-	int n = json.kv.size();
+	int n = json.kv_.size();
 	int i = 0;
-	for (const auto &[k, v] : json.kv)
+	for (const auto &[k, v] : json.kv_)
 	{
 		os << k << " : " << v;
 		if (i != n - 1)
@@ -81,19 +81,19 @@ std::ostream &operator<<(std::ostream &os, const ObjJson &json)
 
 std::ostream &operator<<(std::ostream &os, const ObjBoundMethod &bm)
 {
-	os << "<method " << *bm.method->function << ">";
+	os << "<method " << *bm.method_->function_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const ObjCoroutine &co)
 {
-	os << "<coroutine " << *co.closure << ">";
+	os << "<coroutine " << *co.closure_ << ">";
 	return os;
 }
 
 std::ostream &operator<<(std::ostream &os, const Obj &obj)
 {
-	switch (obj.type)
+	switch (obj.type_)
 	{
 	case ObjType::Class:
 		os << static_cast<const ObjClass &>(obj);
@@ -135,14 +135,14 @@ std::ostream &operator<<(std::ostream &os, const Obj &obj)
 }
 
 ObjCoroutine::ObjCoroutine(ObjClosure *closure, const std::vector<Value>& arguments)
-	: Obj(ObjType::Coroutine), closure(closure), stack(1024), frames(FRAMES_MAX), frame_count(0), top(0), status(CoroutineStatus::SUSPENDED), arguments(arguments)
+	: Obj(ObjType::Coroutine), closure_(closure), stack_(1024), frames_(FRAMES_MAX), frame_count_(0), top_(0), status_(CoroutineStatus::SUSPENDED), arguments_(arguments)
 {
 	CallFrame frame;
-	frame.closure = closure;
-	frame.ip = 0;
-	stack[top++] = Value();
+	frame.closure_ = closure;
+	frame.ip_ = 0;
+	stack_[top_++] = Value();
 	for(auto arg = arguments.rbegin(); arg != arguments.rend(); arg++)
-		stack[top++] = *arg;
-	frame.slots = stack.data();
-	frames[frame_count++] = frame;
+		stack_[top_++] = *arg;
+	frame.slots_ = stack_.data();
+	frames_[frame_count_++] = frame;
 }

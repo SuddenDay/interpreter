@@ -8,10 +8,10 @@
 #include "native.hpp"
 #include <string_view>
 
-VM::VM() : cu(*this), frames(FRAMES_MAX), globals(), stack(STACK_MAX), gc(*this), scheduler(*this)
+VM::VM() : cu_(*this), frames_(FRAMES_MAX), globals_(), stack_(STACK_MAX), gc_(*this), scheduler_(*this)
 {
-    AllocBase::init(&gc);
-    init_string = create_obj_string(std::string_view("init"), *this);
+    AllocBase::init(&gc_);
+    init_string_ = create_obj_string(std::string_view("init"), *this);
     define_native("clock", Native::clock);
     define_native("insert", Native::insert);
     define_native("erase", Native::erase);
@@ -23,22 +23,22 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
 {
     if (callee.is_obj())
     {
-        switch (callee.as<Obj *>()->type)
+        switch (callee.as<Obj *>()->type_)
         {
         case ObjType::BoundMethod:
         {
             auto bound = callee.as_obj<ObjBoundMethod>();
-            stack[top - argCount - 1] = bound->receiver;
-            return call(bound->method, argCount);
+            stack_[top_ - argCount - 1] = bound->receiver_;
+            return call(bound->method_, argCount);
         }
         case ObjType::Class:
         {
             auto klass = callee.as_obj<ObjClass>();
-            stack.at(top - 1 - argCount) = create_obj<ObjInstance>(gc, klass);
+            stack_.at(top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass);
             Value initializer;
-            if (klass->methods.find(init_string) != klass->methods.end())
+            if (klass->methods_.find(init_string_) != klass->methods_.end())
             {
-                initializer = klass->methods.at(init_string);
+                initializer = klass->methods_.at(init_string_);
                 return call(initializer.as_obj<ObjClosure>(), argCount);
             }
             else if (argCount != 0)
@@ -53,9 +53,9 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
             return call(callee.as_obj<ObjClosure>(), argCount); // add new frame
         case ObjType::Native:
         {
-            auto native = callee.as_obj<ObjNative>()->function;
-            auto result = native(argCount, stack.data() + top - argCount);
-            top -= argCount + 1;
+            auto native = callee.as_obj<ObjNative>()->function_;
+            auto result = native(argCount, stack_.data() + top_ - argCount);
+            top_ -= argCount + 1;
             push(result);
             return true;
         }
@@ -70,20 +70,20 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
 
 bool VM::call(ObjClosure *closure, int argCount)
 {
-    if (argCount != closure->function->arity)
+    if (argCount != closure->function_->arity_)
     {
-        runtime_error("Expected ", closure->function->arity, " arguments but got", argCount);
+        runtime_error("Expected ", closure->function_->arity_, " arguments but got", argCount);
         return false;
     }
-    if (frame_count >= FRAMES_MAX)
+    if (frame_count_ >= FRAMES_MAX)
     {
         runtime_error("Stack overflow.");
         return false;
     }
-    CallFrame &frame = frames[frame_count++];
-    frame.closure = closure;
-    frame.ip = 0;
-    frame.slots = stack.data() + top - argCount - 1;
+    CallFrame &frame = frames_[frame_count_++];
+    frame.closure_ = closure;
+    frame.ip_ = 0;
+    frame.slots_ = stack_.data() + top_ - argCount - 1;
     return true;
 }
 
@@ -97,48 +97,48 @@ bool VM::invoke(ObjString *name, int argCount)
     }
     ObjInstance *instance = receiver.as_obj<ObjInstance>();
 
-    if (instance->fields.find(name) != instance->fields.end())
+    if (instance->fields_.find(name) != instance->fields_.end())
     {
-        Value value = instance->fields.at(name);
-        stack[top - argCount - 1] = value;
+        Value value = instance->fields_.at(name);
+        stack_[top_ - argCount - 1] = value;
         return call_value(value, argCount);
     }
 
-    return invoke_from_class(instance->objClass, name, argCount);
+    return invoke_from_class(instance->objClass_, name, argCount);
 }
 
 bool VM::invoke_from_class(ObjClass *klass, ObjString *name,
                            int argCount)
 {
-    if (klass->methods.find(name) == klass->methods.end())
+    if (klass->methods_.find(name) == klass->methods_.end())
     {
         runtime_error("Undefined property ", name, ".");
         return false;
     }
-    auto method = klass->methods.at(name);
+    auto method = klass->methods_.at(name);
     return call(method.as_obj<ObjClosure>(), argCount);
 }
 
 ObjUpvalue *VM::capture_upvalue(Value *local)
 {
     ObjUpvalue *prevUpvalue = NULL;
-    ObjUpvalue *upvalue = open_upvalues;
-    while (upvalue != nullptr && upvalue->location > local)
+    ObjUpvalue *upvalue = open_upvalues_;
+    while (upvalue != nullptr && upvalue->location_ > local)
     {
         prevUpvalue = upvalue;
-        upvalue = upvalue->next;
+        upvalue = upvalue->next_;
     }
 
-    if (upvalue != NULL && upvalue->location == local)
+    if (upvalue != NULL && upvalue->location_ == local)
         return upvalue;
 
-    ObjUpvalue *createdUpvalue = create_obj<ObjUpvalue>(gc, local);
-    createdUpvalue->next = upvalue;
+    ObjUpvalue *createdUpvalue = create_obj<ObjUpvalue>(gc_, local);
+    createdUpvalue->next_ = upvalue;
 
     if (prevUpvalue == NULL)
-        open_upvalues = createdUpvalue;
+        open_upvalues_ = createdUpvalue;
     else
-        prevUpvalue->next = createdUpvalue;
+        prevUpvalue->next_ = createdUpvalue;
 
     return createdUpvalue;
 }
@@ -146,30 +146,30 @@ ObjUpvalue *VM::capture_upvalue(Value *local)
 void VM::define_native(std::string_view name, NativeFn function)
 {
     push(create_obj_string(name, *this));
-    push(create_obj<ObjNative>(gc, function, name));
-    globals.insert_or_assign(stack.at(0).as_obj<ObjString>(), stack.at(1));
+    push(create_obj<ObjNative>(gc_, function, name));
+    globals_.insert_or_assign(stack_.at(0).as_obj<ObjString>(), stack_.at(1));
     pop();
     pop();
 }
 
 InterpretResult VM::interpret(const std::string &source)
 {
-    ObjFunction *function = cu.compile(source);
+    ObjFunction *function = cu_.compile(source);
     if (function == nullptr)
         return InterpretResult::INTERPRET_COMPILE_ERROR;
     push(function); // for garbage collect
-    ObjClosure *closure = create_obj<ObjClosure>(gc, function);
+    ObjClosure *closure = create_obj<ObjClosure>(gc_, function);
     push(closure); // bug fix here
-    ObjCoroutine *co = create_obj<ObjCoroutine>(gc, closure); // modify
+    ObjCoroutine *co = create_obj<ObjCoroutine>(gc_, closure); // modify
     pop();
     pop();
-    scheduler.addObjCoroutine(co);
-    co->is_main = true;
-    co->stack[0] = co->closure;
-    co->top = 1;
-    co->frame_count = 1;
-    call(co->closure, 0); // generate latest frame
-    return scheduler.resumeCoroutine(co);
+    scheduler_.addObjCoroutine(co);
+    co->is_main_ = true;
+    co->stack_[0] = co->closure_;
+    co->top_ = 1;
+    co->frame_count_ = 1;
+    call(co->closure_, 0); // generate latest frame
+    return scheduler_.resumeCoroutine(co);
 }
 
 bool is_falsey(const Value &value)
@@ -180,19 +180,19 @@ bool is_falsey(const Value &value)
 
 InterpretResult VM::run(ObjCoroutine *co)
 {
-    stack = co->stack;
-    frames = co->frames;
-    frame_count = co->frame_count;
-    top = co->top;
-    CallFrame *frame = &frames[frame_count - 1];
-    while (co->status != CoroutineStatus::FINISHED)
+    stack_ = co->stack_;
+    frames_ = co->frames_;
+    frame_count_ = co->frame_count_;
+    top_ = co->top_;
+    CallFrame *frame = &frames_[frame_count_ - 1];
+    while (co->status_ != CoroutineStatus::FINISHED)
     {
 #ifdef DEBUG_MODE
         printf("           stackframe: ");
-        for (int i = 0; i < top; i++)
-            std::cout << "[ " << stack.at(i) << " ]";
+        for (int i = 0; i < top_; i++)
+            std::cout << "[ " << stack_.at(i) << " ]";
         std::cout << "\n";
-        Util::disassemble_instruction(frame->closure->function->chunk, frame->ip);
+        Util::disassemble_instruction(frame->closure_->function_->chunk_, frame->ip_);
 #endif
         uint8_t instruction = frame->read_byte();
         switch (instruction)
@@ -200,19 +200,19 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_RETURN:
         {
             Value result = pop();
-            close_upvalues(frame->slots);
-            frame_count--; // leave current frame
-            if (frame_count == 0)
+            close_upvalues(frame->slots_);
+            frame_count_--; // leave current frame
+            if (frame_count_ == 0)
             {
-                co->status = CoroutineStatus::FINISHED;
-                if (co->is_main == true)
+                co->status_ = CoroutineStatus::FINISHED;
+                if (co->is_main_ == true)
                     return INTERPRET_OK;
                 else
-                    return scheduler.runNextObjCoroutine();
+                    return scheduler_.runNextObjCoroutine();
             }
-            top = frame->slots - stack.data();
+            top_ = frame->slots_ - stack_.data();
             push(result);
-            frame = &frames[frame_count - 1];
+            frame = &frames_[frame_count_ - 1];
             break;
         }
         case OP_NEGATE:
@@ -238,7 +238,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             {
                 auto b = peek(0).as_obj<ObjString>();
                 auto a = peek(1).as_obj<ObjString>();
-                auto res = create_obj_string(std::string_view(a->content + b->content), *this);
+                auto res = create_obj_string(std::string_view(a->content_ + b->content_), *this);
                 pop();
                 pop();
                 push(res);
@@ -320,7 +320,7 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_DEFINE_GLOBAL:
         {
             auto name = frame->read_string();
-            globals.insert_or_assign(name, peek(0));
+            globals_.insert_or_assign(name, peek(0));
             pop();
             break;
         }
@@ -329,7 +329,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             auto name = frame->read_string();
             try
             {
-                auto &value = globals.at(name);
+                auto &value = globals_.at(name);
                 push(value);
             }
             catch (const std::out_of_range &)
@@ -342,7 +342,7 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_SET_GLOBAL:
         {
             auto name = frame->read_string();
-            globals.insert_or_assign(name, peek(0)); // modify ?
+            globals_.insert_or_assign(name, peek(0)); // modify ?
             break;
         }
         case OP_POP:
@@ -353,32 +353,32 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_GET_LOCAL:
         {
             int slot = frame->read_byte();
-            push(frame->slots[slot]);
+            push(frame->slots_[slot]);
             break;
         }
         case OP_SET_LOCAL:
         {
             int slot = frame->read_byte();
-            frame->slots[slot] = peek(0);
+            frame->slots_[slot] = peek(0);
             break;
         }
         case OP_JUMP_IF_FALSE:
         {
             int offset = frame->read_short();
             if (is_falsey(peek(0)))
-                frame->ip += offset;
+                frame->ip_ += offset;
             break;
         }
         case OP_JUMP:
         {
             int offset = frame->read_short();
-            frame->ip += offset;
+            frame->ip_ += offset;
             break;
         }
         case OP_LOOP:
         {
             int offset = frame->read_short();
-            frame->ip -= offset;
+            frame->ip_ -= offset;
             break;
         }
         case OP_CONTINUE:
@@ -388,7 +388,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             // frame->ip += offset;
             int is_break = (instruction == OP_BREAK);
             int offset = frame->read_short();
-            frame->ip = offset + is_break;
+            frame->ip_ = offset + is_break;
             break;
         }
             // int offset = Util::get_next_loop(frame->closure->function->chunk, frame->ip);
@@ -398,7 +398,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             int argCount = frame->read_byte();
             if (!call_value(peek(argCount), argCount))
                 return INTERPRET_RUNTIME_ERROR;
-            frame = &frames[frame_count - 1]; // frame update, enter into function scope
+            frame = &frames_[frame_count_ - 1]; // frame update, enter into function scope
             break;
         }
         case OP_FUNCTION:
@@ -410,40 +410,40 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_CLOSURE:
         {
             auto function = frame->read_constant().as_obj<ObjFunction>();
-            auto closure = create_obj<ObjClosure>(gc, function);
+            auto closure = create_obj<ObjClosure>(gc_, function);
             push(closure);
             for (int i = 0; i < closure->upvalue_count(); i++)
             {
                 auto is_local = frame->read_byte();
                 auto index = frame->read_byte();
                 if (is_local)
-                    closure->upvalues.at(i) = capture_upvalue(frame->slots + index);
+                    closure->upvalues_.at(i) = capture_upvalue(frame->slots_ + index);
                 else
-                    closure->upvalues.at(i) = frame->closure->upvalues.at(index);
+                    closure->upvalues_.at(i) = frame->closure_->upvalues_.at(index);
             }
             break;
         }
         case OP_CLOSE_UPVALUE:
         {
-            close_upvalues(stack.data() + top - 1);
+            close_upvalues(stack_.data() + top_ - 1);
             pop();
             break;
         }
         case OP_GET_UPVALUE:
         {
             uint8_t slot = frame->read_byte();
-            push(*frame->closure->upvalues[slot]->location);
+            push(*frame->closure_->upvalues_[slot]->location_);
             break;
         }
         case OP_SET_UPVALUE:
         {
             uint8_t slot = frame->read_byte();
-            *frame->closure->upvalues[slot]->location = peek(0);
+            *frame->closure_->upvalues_[slot]->location_ = peek(0);
             break;
         }
         case OP_CLASS:
         {
-            push(create_obj<ObjClass>(gc, frame->read_string()));
+            push(create_obj<ObjClass>(gc_, frame->read_string()));
             break;
         }
         case OP_GET_PROPERTY:
@@ -458,13 +458,13 @@ InterpretResult VM::run(ObjCoroutine *co)
             auto name = frame->read_string();
             try
             {
-                auto &value = instance->fields.at(name);
+                auto &value = instance->fields_.at(name);
                 pop();
                 push(value);
             }
             catch (const std::out_of_range &)
             {
-                if (!bind_method(instance->objClass, name))
+                if (!bind_method(instance->objClass_, name))
                     return INTERPRET_RUNTIME_ERROR;
             }
             break;
@@ -472,7 +472,7 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_SET_PROPERTY:
         {
             auto instance = peek(1).as_obj<ObjInstance>();
-            instance->fields.insert_or_assign(frame->read_string(), peek(0));
+            instance->fields_.insert_or_assign(frame->read_string(), peek(0));
             Value value = pop();
             pop();
             push(value);
@@ -491,7 +491,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             {
                 return INTERPRET_RUNTIME_ERROR;
             }
-            frame = &frames[frame_count - 1];
+            frame = &frames_[frame_count_ - 1];
             break;
         }
         case OP_INHERIT:
@@ -503,9 +503,9 @@ InterpretResult VM::run(ObjCoroutine *co)
             }
             ObjClass *superclass = peek(1).as_obj<ObjClass>();
             ObjClass *subclass = peek(0).as_obj<ObjClass>();
-            for (const auto &[k, v] : superclass->methods)
+            for (const auto &[k, v] : superclass->methods_)
             {
-                subclass->methods.insert_or_assign(k, v);
+                subclass->methods_.insert_or_assign(k, v);
             }
             pop();
             break;
@@ -528,15 +528,15 @@ InterpretResult VM::run(ObjCoroutine *co)
             {
                 return INTERPRET_RUNTIME_ERROR;
             }
-            frame = &frames[frame_count - 1];
+            frame = &frames_[frame_count_ - 1];
             break;
         }
         case OP_ARRAY:
         {
             int count = frame->read_byte();
-            auto objArray = create_obj<ObjArray>(this->gc, count);
+            auto objArray = create_obj<ObjArray>(this->gc_, count);
             for (int i = 0; i < count; i++)
-                objArray->values.at(count - 1 - i) = pop();
+                objArray->values_.at(count - 1 - i) = pop();
             push(objArray);
             break;
         }
@@ -545,13 +545,13 @@ InterpretResult VM::run(ObjCoroutine *co)
             if (peek(1).as<Obj *>()->is_type(objtype_of<ObjArray>()))
             {
                 auto index = pop().as<int>();
-                auto value = pop().as_obj<ObjArray>()->values.at(index);
+                auto value = pop().as_obj<ObjArray>()->values_.at(index);
                 push(value);
             }
             else
             { // json
                 auto key = pop();
-                auto value = pop().as_obj<ObjJson>()->kv[key];
+                auto value = pop().as_obj<ObjJson>()->kv_[key];
                 push(value);
             }
             break;
@@ -568,17 +568,17 @@ InterpretResult VM::run(ObjCoroutine *co)
                 auto value = pop();
                 auto index = pop().as<int>();
                 auto array = pop().as_obj<ObjArray>();
-                int n = array->values.size();
+                int n = array->values_.size();
                 if (index >= n)
                     runtime_error("Index is larger than array size.");
-                array->values.at(index) = value;
+                array->values_.at(index) = value;
                 push(value);
             }
             else
             {
                 auto value = pop();
                 auto key = pop();
-                pop().as_obj<ObjJson>()->kv.insert_or_assign(key, value);
+                pop().as_obj<ObjJson>()->kv_.insert_or_assign(key, value);
                 push(value);
             }
             break;
@@ -586,12 +586,12 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_JSON:
         {
             int count = frame->read_byte();
-            auto objJson = create_obj<ObjJson>(this->gc);
+            auto objJson = create_obj<ObjJson>(this->gc_);
             for (int i = 0; i < count; i++)
             {
                 auto value = pop();
                 auto key = pop();
-                objJson->kv[key] = value;
+                objJson->kv_[key] = value;
             }
             push(objJson);
             break;
@@ -605,9 +605,9 @@ InterpretResult VM::run(ObjCoroutine *co)
                 for (int i = 0; i < count; i++)
                     arguments.push_back(pop());
                 auto closure = pop().as_obj<ObjClosure>();
-                auto coroutine = create_obj<ObjCoroutine>(gc, closure, arguments);
+                auto coroutine = create_obj<ObjCoroutine>(gc_, closure, arguments);
                 push(coroutine);
-                scheduler.addObjCoroutine(coroutine);
+                scheduler_.addObjCoroutine(coroutine);
             }
             catch (const std::exception &e)
             {
@@ -617,25 +617,25 @@ InterpretResult VM::run(ObjCoroutine *co)
         }
         case OP_YIELD_COROUTINE:
         {
-            co->top = top;
-            co->stack = stack;
-            co->frames = frames;
-            co->frame_count = frame_count;
-            scheduler.yieldCurrentObjCoroutine();
-            return scheduler.runNextObjCoroutine();
+            co->top_ = top_;
+            co->stack_ = stack_;
+            co->frames_ = frames_;
+            co->frame_count_ = frame_count_;
+            scheduler_.yieldCurrentObjCoroutine();
+            return scheduler_.runNextObjCoroutine();
         }
         case OP_RESUME_COROUTINE:
         {
-            scheduler.yieldCurrentObjCoroutine();
+            scheduler_.yieldCurrentObjCoroutine();
             try
             {
                 auto targetCo = pop().as_obj<ObjCoroutine>();
 
-                co->top = top;
-                co->stack = stack;
-                co->frames = frames;
-                co->frame_count = frame_count;
-                scheduler.resumeCoroutine(targetCo);
+                co->top_ = top_;
+                co->stack_ = stack_;
+                co->frames_ = frames_;
+                co->frame_count_ = frame_count_;
+                scheduler_.resumeCoroutine(targetCo);
             }
             catch (const std::exception &e)
             {
@@ -653,47 +653,47 @@ InterpretResult VM::run(ObjCoroutine *co)
 
 uint8_t CallFrame::read_byte()
 {
-    return closure->function->chunk.bytecode[ip++];
+    return closure_->function_->chunk_.bytecode_[ip_++];
 }
-Value CallFrame::read_constant() { return closure->function->chunk.constants.at(read_byte()); }
+Value CallFrame::read_constant() { return closure_->function_->chunk_.constants_.at(read_byte()); }
 uint16_t CallFrame::read_short()
 {
-    ip += 2;
-    auto a = closure->function->chunk.bytecode[ip - 2] << 8;
-    auto b = closure->function->chunk.bytecode[ip - 1];
+    ip_ += 2;
+    auto a = closure_->function_->chunk_.bytecode_[ip_ - 2] << 8;
+    auto b = closure_->function_->chunk_.bytecode_[ip_ - 1];
     return static_cast<uint16_t>(a | b);
 };
 ObjString *CallFrame::read_string()
 {
     return read_constant().as_obj<ObjString>();
 }
-void VM::push(Value value) { stack.at(top++) = value; }
+void VM::push(Value value) { stack_.at(top_++) = value; }
 void VM::reset_stack()
 {
-    top = frame_count = 0;
-    open_upvalues = nullptr;
+    top_ = frame_count_ = 0;
+    open_upvalues_ = nullptr;
 }
-Value VM::pop() { return stack.at(--top); }
+Value VM::pop() { return stack_.at(--top_); }
 Value VM::peek(int distance)
 {
-    return stack[top - 1 - distance];
+    return stack_[top_ - 1 - distance];
 }
 void VM::close_upvalues(Value *last)
 {
-    while (open_upvalues != NULL &&
-           open_upvalues->location >= last)
+    while (open_upvalues_ != NULL &&
+           open_upvalues_->location_ >= last)
     {
-        ObjUpvalue *upvalue = open_upvalues;
-        upvalue->closed = *upvalue->location;
-        upvalue->location = &upvalue->closed;
-        open_upvalues = upvalue->next;
+        ObjUpvalue *upvalue = open_upvalues_;
+        upvalue->closed_ = *upvalue->location_;
+        upvalue->location_ = &upvalue->closed_;
+        open_upvalues_ = upvalue->next_;
     }
 }
 void VM::define_method(ObjString *name)
 {
     const Value &method = peek(0);
     ObjClass *klass = peek(1).as_obj<ObjClass>();
-    klass->methods.insert_or_assign(name, method);
+    klass->methods_.insert_or_assign(name, method);
     pop();
 }
 
@@ -701,8 +701,8 @@ bool VM::bind_method(ObjClass *klass, ObjString *name)
 {
     try
     {
-        auto method = klass->methods.at(name);
-        auto bound = create_obj<ObjBoundMethod>(gc, peek(0), method.as_obj<ObjClosure>());
+        auto method = klass->methods_.at(name);
+        auto bound = create_obj<ObjBoundMethod>(gc_, peek(0), method.as_obj<ObjClosure>());
         pop();
         push(bound);
         return true;
@@ -741,17 +741,17 @@ void VM::runtime_error(Args &&...args)
     static_assert(sizeof...(Args) > 0);
     (std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
-    for (int i = frame_count - 1; i >= 0; i--)
+    for (int i = frame_count_ - 1; i >= 0; i--)
     {
-        const auto &frame = frames.at(i);
-        auto function = frame.closure->function;
-        auto instruction = frame.ip - 1;
-        auto line = function->chunk.lines.at(instruction);
+        const auto &frame = frames_.at(i);
+        auto function = frame.closure_->function_;
+        auto instruction = frame.ip_ - 1;
+        auto line = function->chunk_.lines_.at(instruction);
         std::cerr << "[line " << line << "] in ";
-        if (function->name == nullptr)
+        if (function->name_ == nullptr)
             std::cerr << "script\n";
         else
-            std::cerr << function->name->text() << "()\n";
+            std::cerr << function->name_->text() << "()\n";
     }
     reset_stack();
 }

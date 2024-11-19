@@ -1,7 +1,5 @@
-fun a(x, y) {
+fun a(x) {
     print x;
 }
-var co = coroutine a("Hello", "World");
+var co = coroutine a("Hello");
 resume co;
-co = "3";
-var s = "1" + "2";

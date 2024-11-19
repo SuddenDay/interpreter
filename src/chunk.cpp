@@ -34,7 +34,7 @@ std::ostream &operator<<(std::ostream &os, std::vector<Value, Allocator<Value>> 
 
 std::ostream &operator<<(std::ostream &os, const Chunk &chunk)
 {
-    for (int offset = 0; offset < static_cast<int>(chunk.bytecode.size()); )
+    for (int offset = 0; offset < static_cast<int>(chunk.bytecode_.size()); )
         offset = Util::disassemble_instruction(chunk, offset);
     return os;
 }

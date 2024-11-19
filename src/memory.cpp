@@ -8,38 +8,38 @@ constexpr auto GC_HEAP_GROW_FACTOR = 2;
 
 void GC::collect()
 {
-	auto before = bytes_allocated;
+	auto before = bytes_allocated_;
 	mark_roots();
 	trace_references();
 	remove_white_string();
 	sweep();
 #ifdef DEBUG_MODE
-	if(before - bytes_allocated != 0)
-		std::cout << "gc collect " << before - bytes_allocated << " bytes" << std::endl;
+	if (before - bytes_allocated_ != 0)
+		std::cout << "gc collect " << before - bytes_allocated_ << " bytes" << std::endl;
 #endif
 
-	next_gc = bytes_allocated * GC_HEAP_GROW_FACTOR;
+	next_gc_ = bytes_allocated_ * GC_HEAP_GROW_FACTOR;
 }
 
 void GC::mark_roots()
 {
-	for (auto slot = 0; slot < vm.top; ++slot)
-		mark_value(vm.stack[slot]);
+	for (auto slot = 0; slot < vm_.top_; ++slot)
+		mark_value(vm_.stack_[slot]);
 
-	for (int i = 0; i < vm.frame_count; i++)
-		mark_object(std::remove_const_t<ObjClosure *>(vm.frames.at(i).closure));
+	for (int i = 0; i < vm_.frame_count_; i++)
+		mark_object(std::remove_const_t<ObjClosure *>(vm_.frames_.at(i).closure_));
 
-	for (auto upvalue = vm.open_upvalues; upvalue != nullptr; upvalue = upvalue->next)
+	for (auto upvalue = vm_.open_upvalues_; upvalue != nullptr; upvalue = upvalue->next_)
 		mark_object(upvalue);
 
-	mark_object(vm.scheduler.current_coroutine);
-	for (auto co : vm.scheduler.coroutines)
-	 	if(co->status != CoroutineStatus::FINISHED)
-	 		mark_object(co);
+	mark_object(vm_.scheduler_.current_coroutine_);
+	for (auto co : vm_.scheduler_.coroutines_)
+		if (co->status_ != CoroutineStatus::FINISHED)
+			mark_object(co);
 
-	mark_table(vm.globals);
+	mark_table(vm_.globals_);
 	mark_compiler_roots();
-	mark_object(vm.init_string);
+	mark_object(vm_.init_string_);
 }
 
 void GC::mark_array(const std::vector<Value, Allocator<Value>> &array)
@@ -50,11 +50,11 @@ void GC::mark_array(const std::vector<Value, Allocator<Value>> &array)
 
 void GC::mark_compiler_roots()
 {
-	auto compiler = vm.cu.current.get();
+	auto compiler = vm_.cu_.current_.get();
 	while (compiler != nullptr)
 	{
-		mark_object(compiler->function);
-		compiler = compiler->enclosing.get();
+		mark_object(compiler->function_);
+		compiler = compiler->enclosing_.get();
 	}
 }
 
@@ -62,11 +62,11 @@ void GC::mark_object(Obj *const ptr)
 {
 	if (ptr == nullptr)
 		return;
-	if (ptr->is_marked)
+	if (ptr->is_marked_)
 		return;
 
-	ptr->is_marked = true;
-	gray_stack.push_back(ptr);
+	ptr->is_marked_ = true;
+	gray_stack_.push_back(ptr);
 }
 
 void GC::mark_value(const Value &value)
@@ -86,69 +86,69 @@ void GC::mark_table(const Table &table)
 
 void GC::trace_references()
 {
-	while (!gray_stack.empty())
+	while (!gray_stack_.empty())
 	{
-		auto obj = gray_stack.front();
+		auto obj = gray_stack_.front();
 		blacken_object(obj);
-		gray_stack.pop_front();
+		gray_stack_.pop_front();
 	}
 }
 
 void GC::blacken_object(Obj *ptr)
 {
-	switch (ptr->type)
+	switch (ptr->type_)
 	{
 	case ObjType::BoundMethod:
 	{
 		auto bound = static_cast<ObjBoundMethod *>(ptr);
-		mark_value(bound->receiver);
-		mark_object(bound->method);
+		mark_value(bound->receiver_);
+		mark_object(bound->method_);
 		break;
 	}
 	case ObjType::Class:
 	{
 		auto objClass = static_cast<ObjClass *>(ptr);
-		mark_object(objClass->name);
-		mark_table(objClass->methods);
+		mark_object(objClass->name_);
+		mark_table(objClass->methods_);
 		break;
 	}
 	case ObjType::Closure:
 	{
 		auto closure = static_cast<ObjClosure *>(ptr);
-		mark_object(closure->function);
-		for (auto v : closure->upvalues)
+		mark_object(closure->function_);
+		for (auto v : closure->upvalues_)
 			mark_object(v);
 		break;
 	}
 	case ObjType::Function:
 	{
 		auto function = static_cast<ObjFunction *>(ptr);
-		mark_object(function->name);
-		mark_array(function->chunk.constants);
+		mark_object(function->name_);
+		mark_array(function->chunk_.constants_);
 		break;
 	}
 	case ObjType::Instance:
 	{
 		auto instance = static_cast<ObjInstance *>(ptr);
-		mark_object(instance->objClass);
-		mark_table(instance->fields);
+		mark_object(instance->objClass_);
+		mark_table(instance->fields_);
 		break;
 	}
 	case ObjType::Upvalue:
 	{
-		mark_value(static_cast<ObjUpvalue *>(ptr)->closed);
+		mark_value(static_cast<ObjUpvalue *>(ptr)->closed_);
 		break;
 	}
 	case ObjType::Array:
 	{
 		auto arrayPtr = static_cast<ObjArray *>(ptr);
-		mark_array(arrayPtr->values);
+		mark_array(arrayPtr->values_);
 		break;
 	}
 	case ObjType::Json:
 	{
 		auto jsonPtr = static_cast<ObjJson *>(ptr);
-		for (const auto &[k, v] : jsonPtr->kv)
+		for (const auto &[k, v] : jsonPtr->kv_)
 		{
 			mark_value(k);
 			mark_value(v);
@@ -158,15 +158,15 @@ void GC::blacken_object(Obj *ptr)
 	case ObjType::Coroutine:
 	{
 		auto coPtr = static_cast<ObjCoroutine *>(ptr);
-		if (coPtr->status != CoroutineStatus::FINISHED)
+		if (coPtr->status_ != CoroutineStatus::FINISHED)
 		{
-			mark_object(coPtr->closure);
-			for (int i = 0; i < coPtr->top; i++)
-				mark_value(coPtr->stack.at(i));
-			for (auto &arg : coPtr->arguments)
+			mark_object(coPtr->closure_);
+			for (int i = 0; i < coPtr->top_; i++)
+				mark_value(coPtr->stack_.at(i));
+			for (auto &arg : coPtr->arguments_)
 				mark_value(arg);
-			for (int i = 0; i < coPtr->frame_count; i++)
-				mark_object(std::remove_const_t<ObjClosure *>(coPtr->frames.at(i).closure));
+			for (int i = 0; i < coPtr->frame_count_; i++)
+				mark_object(std::remove_const_t<ObjClosure *>(coPtr->frames_.at(i).closure_));
 		}
 		break;
 	}
@@ -180,10 +180,10 @@ void GC::blacken_object(Obj *ptr)
 
 void GC::remove_white_string() noexcept
 {
-	for (auto it = strings.begin(); it != strings.end();)
+	for (auto it = strings_.begin(); it != strings_.end();)
 	{
-		if (*it != nullptr && !(*it)->is_marked)
-			it = strings.erase(it);
+		if (*it != nullptr && !(*it)->is_marked_)
+			it = strings_.erase(it);
 		else
 			++it;
 	}
@@ -192,28 +192,38 @@ void GC::remove_white_string() noexcept
 void GC::sweep()
 {
 	Obj *previous = nullptr;
-	Obj *object = objects.get();
+	Obj *object = objects_.get();
 	while (object != nullptr)
 	{
-		if (object->is_marked)
+		if (object->is_marked_)
 		{
-			object->is_marked = false;
+			object->is_marked_ = false;
 			previous = object;
-			object = object->next.get();
+			object = object->next_.get();
 		}
 		else
 		{
-			decltype(object->next) temp = std::move(object->next);
+			decltype(object->next_) temp = std::move(object->next_);
 			if (previous == nullptr)
 			{
-				objects = std::move(temp);
-				object = objects.get();
+				objects_ = std::move(temp);
+				object = objects_.get();
 			}
 			else
 			{
-				previous->next = std::move(temp);
-				object = previous->next.get();
+				previous->next_ = std::move(temp);
+				object = previous->next_.get();
 			}
 		}
 	}
+}
+
+ObjString *GC::find_string(const std::string_view &str) const
+{
+	if (auto res = std::find_if(strings_.cbegin(), strings_.cend(),
+								[&str](const auto &it)
+								{ return it->content_ == str; });
+		res != strings_.end())
+		return *res;
+	return nullptr;
 }

@@ -17,8 +17,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/main.dir/src/scanner.cpp.o.d"
   "CMakeFiles/main.dir/src/scheduler.cpp.o"
   "CMakeFiles/main.dir/src/scheduler.cpp.o.d"
-  "CMakeFiles/main.dir/src/util.cpp.o"
-  "CMakeFiles/main.dir/src/util.cpp.o.d"
   "CMakeFiles/main.dir/src/value.cpp.o"
   "CMakeFiles/main.dir/src/value.cpp.o.d"
   "CMakeFiles/main.dir/src/vm.cpp.o"

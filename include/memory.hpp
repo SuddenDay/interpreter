@@ -16,10 +16,7 @@ struct Obj;
 
 struct AllocBase
 {
-protected:
 	inline static GC *gc = nullptr;
-
-public:
 	static void init(GC *value) noexcept
 	{
 		if (gc == nullptr && value != nullptr)
@@ -28,13 +25,13 @@ public:
 };
 
 template <typename T>
-struct Allocator : public AllocBase
+struct Allocator : AllocBase
 {
 	static_assert(!std::is_const_v<T>);
 
 	using value_type = T;
 
-	inline static std::allocator<T> worker = {};
+	inline static std::allocator<T> worker;
 	using worker_traits = std::allocator_traits<decltype(worker)>;
 
 	Allocator() {}
@@ -48,18 +45,17 @@ struct Allocator : public AllocBase
 
 struct GC
 {
-	using ObjDeleter = std::function<void(Obj *)>;
-	std::unique_ptr<Obj, ObjDeleter> objects = nullptr;
-	std::set<ObjString *, std::less<ObjString *>, Allocator<ObjString *>> strings;
-	std::deque<Obj *> gray_stack;
+	std::unique_ptr<Obj, ObjDeleter> objects_ = nullptr;
+	std::set<ObjString *, std::less<ObjString *>, Allocator<ObjString *>> strings_;
+	std::deque<Obj *> gray_stack_;
 
-	size_t bytes_allocated = 0;
-	size_t next_gc = 1024 * 1024;
+	size_t bytes_allocated_ = 0;
+	size_t next_gc_ = 1024 * 1024;
 
-	VM &vm;
+	VM &vm_;
 
 	explicit GC(VM &vm) noexcept
-		: vm(vm)
+		: vm_(vm)
 	{
 	}
 
@@ -80,29 +76,9 @@ private:
 	void sweep();
 
 public:
-	template <typename T>
-	ObjString *find_string(const T &str) const
-	{
-		if (auto res = std::find_if(strings.cbegin(), strings.cend(),
-									[&str](const auto &it)
-									{ return it->content == str; });
-			res != strings.end())
-			return *res;
-		return nullptr;
-	}
+	ObjString *find_string(const std::string_view &str) const;
+
 };
-
-template <typename T, typename U>
-bool operator==(const Allocator<T> &t, const Allocator<U> &u)
-{
-	return true;
-}
-
-template <typename T, typename U>
-bool operator!=(const Allocator<T> &t, const Allocator<U> &u)
-{
-	return false;
-}
 
 template <typename T>
 T *Allocator<T>::allocate(std::size_t n)
@@ -110,14 +86,16 @@ T *Allocator<T>::allocate(std::size_t n)
 	auto alloc_size = n * sizeof(T);
 	auto p = worker_traits::allocate(worker, n);
 
-	// std::cout<<"allocate: " << alloc_size << std::endl;
-	gc->bytes_allocated += alloc_size;
-#ifndef STRESS_TEST
-	if (gc->bytes_allocated > gc->next_gc)
+#ifdef STRESS_TEST
+	std::cout << "allocate: " << alloc_size << std::endl;
 #endif
-	gc->collect(); // if open this stress-test, when insert global variant,
-					   // // will call gc->collect meanwhile vm->stack has required objstring,
-					   // // and delete all in stack, maybe when callframe can fix it?
+	gc->bytes_allocated_ += alloc_size;
+#ifndef STRESS_TEST
+	if (gc->bytes_allocated_ > gc->next_gc_)
+#endif
+		gc->collect();
+	
+
 	return p;
 }
 
@@ -125,5 +103,5 @@ template <typename T>
 void Allocator<T>::deallocate(T *p, std::size_t n)
 {
 	worker_traits::deallocate(worker, p, n);
-	gc->bytes_allocated -= sizeof(T) * n;
+	gc->bytes_allocated_ -= sizeof(T) * n;
 }

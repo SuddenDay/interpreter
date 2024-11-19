@@ -21,11 +21,6 @@
 },
 {
   "directory": "/home/ace/interpreter/build",
-  "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/util.cpp.o -c /home/ace/interpreter/src/util.cpp",
-  "file": "/home/ace/interpreter/src/util.cpp"
-},
-{
-  "directory": "/home/ace/interpreter/build",
   "command": "/usr/bin/c++  -I/home/ace/interpreter/include -g -Wall -Wextra -pedantic -std=gnu++17 -o CMakeFiles/main.dir/src/scanner.cpp.o -c /home/ace/interpreter/src/scanner.cpp",
   "file": "/home/ace/interpreter/src/scanner.cpp"
 },

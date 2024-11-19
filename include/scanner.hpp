@@ -11,10 +11,10 @@ struct Token
 class Scanner
 {
 public:
-    Scanner(const std::string_view& str) : source(str), check_keyword()
+    Scanner(const std::string_view& str) : source_(str), check_keyword()
     {
-        start = source.cbegin();
-        current = source.cbegin();
+        start = source_.cbegin();
+        current = source_.cbegin();
         check_keyword.insert({"continue", TOKEN_CONTINUE});
         check_keyword.insert({"break", TOKEN_BREAK});
         check_keyword.insert({"and", TOKEN_AND});
@@ -52,7 +52,7 @@ public:
     Token identifier();
     TokenType identifier_type();
     Token make_token(TokenType type);
-    std::string_view source;
+    std::string_view source_;
     std::string_view::const_iterator start;
     std::string_view::const_iterator current;
     std::unordered_map<std::string_view, TokenType> check_keyword;
