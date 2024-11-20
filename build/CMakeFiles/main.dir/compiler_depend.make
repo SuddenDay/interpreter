@@ -243,6 +243,7 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
   ../include/obj.hpp \
+  ../include/common.hpp \
   ../include/vm.hpp \
   /usr/include/c++/11/cstdarg \
   ../include/compiler.hpp \
@@ -266,7 +267,6 @@ CMakeFiles/main.dir/main.cpp.o: ../main.cpp \
   /usr/include/c++/11/unordered_set \
   /usr/include/c++/11/bits/unordered_set.h \
   ../include/object.hpp \
-  ../include/common.hpp \
   ../include/scheduler.hpp \
   /usr/include/c++/11/fstream \
   /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h \
@@ -515,6 +515,7 @@ CMakeFiles/main.dir/src/chunk.cpp.o: ../src/chunk.cpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
   ../include/obj.hpp \
+  ../include/common.hpp \
   /usr/include/c++/11/iomanip \
   /usr/include/c++/11/locale \
   /usr/include/c++/11/bits/locale_facets_nonio.h \
@@ -787,13 +788,13 @@ CMakeFiles/main.dir/src/compiler.cpp.o: ../src/compiler.cpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
   ../include/obj.hpp \
+  ../include/common.hpp \
   ../include/parser.hpp \
   ../include/scanner.hpp \
   ../include/tokentype.hpp \
   /usr/include/c++/11/unordered_set \
   /usr/include/c++/11/bits/unordered_set.h \
   ../include/object.hpp \
-  ../include/common.hpp \
   ../include/objstring.hpp \
   ../include/vm.hpp \
   /usr/include/c++/11/cstdarg \
@@ -1039,10 +1040,10 @@ CMakeFiles/main.dir/src/memory.cpp.o: ../src/memory.cpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
   ../include/obj.hpp \
+  ../include/common.hpp \
   ../include/object.hpp \
   ../include/chunk.hpp \
   ../include/opcode.hpp \
-  ../include/common.hpp \
   ../include/objstring.hpp \
   ../include/vm.hpp \
   /usr/include/c++/11/cstdarg \
@@ -1578,10 +1579,10 @@ CMakeFiles/main.dir/src/objstring.cpp.o: ../src/objstring.cpp \
   ../include/value.hpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
+  ../include/common.hpp \
   ../include/object.hpp \
   ../include/chunk.hpp \
   ../include/opcode.hpp \
-  ../include/common.hpp \
   ../include/vm.hpp \
   /usr/include/c++/11/cstdarg \
   ../include/compiler.hpp \
@@ -1850,7 +1851,8 @@ CMakeFiles/main.dir/src/parser.cpp.o: ../src/parser.cpp \
   ../include/value.hpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
-  ../include/obj.hpp
+  ../include/obj.hpp \
+  ../include/common.hpp
 
 CMakeFiles/main.dir/src/scanner.cpp.o: ../src/scanner.cpp \
   /usr/include/stdc-predef.h \
@@ -2558,10 +2560,10 @@ CMakeFiles/main.dir/src/value.cpp.o: ../src/value.cpp \
   /usr/include/c++/11/map \
   /usr/include/c++/11/bits/stl_map.h \
   /usr/include/c++/11/bits/stl_multimap.h \
+  ../include/common.hpp \
   ../include/object.hpp \
   ../include/chunk.hpp \
   ../include/opcode.hpp \
-  ../include/common.hpp \
   ../include/vm.hpp \
   /usr/include/c++/11/cstdarg \
   ../include/compiler.hpp \
@@ -2829,6 +2831,7 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
   /usr/include/c++/11/variant \
   /usr/include/c++/11/bits/parse_numbers.h \
   ../include/obj.hpp \
+  ../include/common.hpp \
   /usr/include/c++/11/cstdarg \
   ../include/compiler.hpp \
   ../include/util.hpp \
@@ -2851,7 +2854,6 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
   /usr/include/c++/11/unordered_set \
   /usr/include/c++/11/bits/unordered_set.h \
   ../include/object.hpp \
-  ../include/common.hpp \
   ../include/scheduler.hpp \
   ../include/objstring.hpp \
   ../include/native.hpp \
@@ -2888,8 +2890,6 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
 
 /usr/include/c++/11/fstream:
 
-../include/common.hpp:
-
 ../include/object.hpp:
 
 /usr/include/c++/11/bits/unordered_set.h:
@@ -2901,6 +2901,8 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
 ../include/tokentype.hpp:
 
 /usr/include/c++/11/sstream:
+
+/usr/include/c++/11/bits/quoted_string.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
 
@@ -3410,6 +3412,8 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
 
 ../include/obj.hpp:
 
+../include/common.hpp:
+
 /usr/include/c++/11/bits/refwrap.h:
 
 ../include/vm.hpp:
@@ -3429,5 +3433,3 @@ CMakeFiles/main.dir/src/vm.cpp.o: ../src/vm.cpp \
 /usr/include/x86_64-linux-gnu/c++/11/bits/messages_members.h:
 
 /usr/include/c++/11/bits/locale_conv.h:
-
-/usr/include/c++/11/bits/quoted_string.h:

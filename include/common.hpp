@@ -10,4 +10,4 @@ enum InterpretResult
 #define STACK_MAX (FRAMES_MAX * UINT8_MAX)
 
 #define DEBUG_MODE
-// #define STRESS_TEST 
+#define STRESS_TEST 

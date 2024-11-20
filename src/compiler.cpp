@@ -1075,9 +1075,7 @@ void Complication::write_chunk(uint8_t op, int line)
 
 uint8_t Complication::add_constant(const Value &value)
 {
-    vm_.push(value);
-    current_chunk()->constants_.push_back(value);
-    vm_.pop();
+    current_chunk()->constants_.push_back(value); // we dont expect gc in compiler part
     return current_chunk()->constants_.size() - 1;
 }
 

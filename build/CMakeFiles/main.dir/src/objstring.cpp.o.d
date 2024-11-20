@@ -190,10 +190,10 @@ CMakeFiles/main.dir/src/objstring.cpp.o: \
  /usr/include/c++/11/bits/stl_multimap.h \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
+ /home/ace/interpreter/include/common.hpp \
  /home/ace/interpreter/include/object.hpp \
  /home/ace/interpreter/include/chunk.hpp \
  /home/ace/interpreter/include/opcode.hpp \
- /home/ace/interpreter/include/common.hpp \
  /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg \
  /home/ace/interpreter/include/compiler.hpp \
  /home/ace/interpreter/include/util.hpp /usr/include/c++/11/iomanip \

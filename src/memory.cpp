@@ -2,12 +2,15 @@
 #include "value.hpp"
 #include "object.hpp"
 #include "objstring.hpp"
+#include "common.hpp"
 #include "vm.hpp"
 
 constexpr auto GC_HEAP_GROW_FACTOR = 2;
 
 void GC::collect()
 {
+	if(vm_.current_coroutine_ == nullptr)
+		return ;
 	auto before = bytes_allocated_;
 	mark_roots();
 	trace_references();
@@ -23,11 +26,11 @@ void GC::collect()
 
 void GC::mark_roots()
 {
-	for (auto slot = 0; slot < vm_.top_; ++slot)
-		mark_value(vm_.stack_[slot]);
+	for (auto slot = 0; slot < vm_.current_coroutine_->top_; ++slot)
+		mark_value(vm_.current_coroutine_->stack_[slot]);
 
-	for (int i = 0; i < vm_.frame_count_; i++)
-		mark_object(std::remove_const_t<ObjClosure *>(vm_.frames_.at(i).closure_));
+	for (int i = 0; i < vm_.current_coroutine_->frame_count_; i++)
+		mark_object(std::remove_const_t<ObjClosure *>(vm_.current_coroutine_->frames_.at(i).closure_));
 
 	for (auto upvalue = vm_.open_upvalues_; upvalue != nullptr; upvalue = upvalue->next_)
 		mark_object(upvalue);

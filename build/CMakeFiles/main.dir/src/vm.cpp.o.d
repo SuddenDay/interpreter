@@ -192,7 +192,8 @@ CMakeFiles/main.dir/src/vm.cpp.o: /home/ace/interpreter/src/vm.cpp \
  /usr/include/c++/11/bits/stl_multimap.h \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
- /home/ace/interpreter/include/obj.hpp /usr/include/c++/11/cstdarg \
+ /home/ace/interpreter/include/obj.hpp \
+ /home/ace/interpreter/include/common.hpp /usr/include/c++/11/cstdarg \
  /home/ace/interpreter/include/compiler.hpp \
  /home/ace/interpreter/include/util.hpp /usr/include/c++/11/iomanip \
  /usr/include/c++/11/locale \
@@ -210,7 +211,6 @@ CMakeFiles/main.dir/src/vm.cpp.o: /home/ace/interpreter/src/vm.cpp \
  /usr/include/c++/11/unordered_set \
  /usr/include/c++/11/bits/unordered_set.h \
  /home/ace/interpreter/include/object.hpp \
- /home/ace/interpreter/include/common.hpp \
  /home/ace/interpreter/include/scheduler.hpp \
  /home/ace/interpreter/include/objstring.hpp \
  /home/ace/interpreter/include/native.hpp /usr/include/c++/11/chrono \

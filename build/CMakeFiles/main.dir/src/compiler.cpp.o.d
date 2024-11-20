@@ -205,13 +205,13 @@ CMakeFiles/main.dir/src/compiler.cpp.o: \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
  /home/ace/interpreter/include/obj.hpp \
+ /home/ace/interpreter/include/common.hpp \
  /home/ace/interpreter/include/parser.hpp \
  /home/ace/interpreter/include/scanner.hpp \
  /home/ace/interpreter/include/tokentype.hpp \
  /usr/include/c++/11/unordered_set \
  /usr/include/c++/11/bits/unordered_set.h \
  /home/ace/interpreter/include/object.hpp \
- /home/ace/interpreter/include/common.hpp \
  /home/ace/interpreter/include/objstring.hpp \
  /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg \
  /home/ace/interpreter/include/scheduler.hpp

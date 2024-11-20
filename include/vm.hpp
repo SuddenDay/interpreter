@@ -48,13 +48,13 @@ public:
 
     Complication cu_;
     ObjString* init_string_ = nullptr;
-    ObjCoroutine* current_coroutine_;
-    std::vector<CallFrame> frames_;
-    int frame_count_ = 0;
+    ObjCoroutine* current_coroutine_ = nullptr;
+    // std::vector<CallFrame> frames_;
+    // int frame_count_ = 0;
     Table globals_;
-    int top_ = 0;
+    // int top_ = 0;
     ObjUpvalue* open_upvalues_ = nullptr;
-    std::vector<Value> stack_;
+    // std::vector<Value> stack_;
     GC gc_;
     Scheduler scheduler_;
     

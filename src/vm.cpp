@@ -8,7 +8,7 @@
 #include "native.hpp"
 #include <string_view>
 
-VM::VM() : cu_(*this), frames_(FRAMES_MAX), globals_(), stack_(STACK_MAX), gc_(*this), scheduler_(*this)
+VM::VM() : cu_(*this), globals_(), gc_(*this), scheduler_(*this)
 {
     AllocBase::init(&gc_);
     init_string_ = create_obj_string(std::string_view("init"), *this);
@@ -28,13 +28,13 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
         case ObjType::BoundMethod:
         {
             auto bound = callee.as_obj<ObjBoundMethod>();
-            stack_[top_ - argCount - 1] = bound->receiver_;
+            current_coroutine_->stack_[current_coroutine_->top_ - argCount - 1] = bound->receiver_;
             return call(bound->method_, argCount);
         }
         case ObjType::Class:
         {
             auto klass = callee.as_obj<ObjClass>();
-            stack_.at(top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass);
+            current_coroutine_->stack_.at(current_coroutine_->top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass);
             Value initializer;
             if (klass->methods_.find(init_string_) != klass->methods_.end())
             {
@@ -54,8 +54,8 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
         case ObjType::Native:
         {
             auto native = callee.as_obj<ObjNative>()->function_;
-            auto result = native(argCount, stack_.data() + top_ - argCount);
-            top_ -= argCount + 1;
+            auto result = native(argCount, current_coroutine_->stack_.data() + current_coroutine_->top_ - argCount);
+            current_coroutine_->top_ -= argCount + 1;
             push(result);
             return true;
         }
@@ -75,15 +75,15 @@ bool VM::call(ObjClosure *closure, int argCount)
         runtime_error("Expected ", closure->function_->arity_, " arguments but got", argCount);
         return false;
     }
-    if (frame_count_ >= FRAMES_MAX)
+    if (current_coroutine_->frame_count_ >= FRAMES_MAX)
     {
         runtime_error("Stack overflow.");
         return false;
     }
-    CallFrame &frame = frames_[frame_count_++];
+    CallFrame &frame = current_coroutine_->frames_[current_coroutine_->frame_count_++];
     frame.closure_ = closure;
     frame.ip_ = 0;
-    frame.slot_ = top_ - argCount - 1;
+    frame.slot_ = current_coroutine_->top_ - argCount - 1;
     return true;
 }
 
@@ -100,7 +100,7 @@ bool VM::invoke(ObjString *name, int argCount)
     if (instance->fields_.find(name) != instance->fields_.end())
     {
         Value value = instance->fields_.at(name);
-        stack_[top_ - argCount - 1] = value;
+        current_coroutine_->stack_[current_coroutine_->top_ - argCount - 1] = value;
         return call_value(value, argCount);
     }
 
@@ -145,11 +145,14 @@ ObjUpvalue *VM::capture_upvalue(Value *local)
 
 void VM::define_native(std::string_view name, NativeFn function)
 {
-    push(create_obj_string(name, *this));
-    push(create_obj<ObjNative>(gc_, function, name));
-    globals_.insert_or_assign(stack_.at(0).as_obj<ObjString>(), stack_.at(1));
-    pop();
-    pop();
+    if (current_coroutine_ != nullptr)
+    {
+        push(create_obj_string(name, *this));
+        push(create_obj<ObjNative>(gc_, function, name));
+        globals_.insert_or_assign(current_coroutine_->stack_.at(0).as_obj<ObjString>(), current_coroutine_->stack_.at(1));
+        pop();
+        pop();
+    }
 }
 
 InterpretResult VM::interpret(const std::string &source)
@@ -157,12 +160,11 @@ InterpretResult VM::interpret(const std::string &source)
     ObjFunction *function = cu_.compile(source);
     if (function == nullptr)
         return InterpretResult::INTERPRET_COMPILE_ERROR;
-    push(function); // for garbage collect
+
     ObjClosure *closure = create_obj<ObjClosure>(gc_, function);
-    push(closure); // bug fix here
     ObjCoroutine *co = create_obj<ObjCoroutine>(gc_, closure); // modify
-    pop();
-    pop();
+    // in memory.cpp current_coroutine is nullptr to gc
+
     scheduler_.addObjCoroutine(co);
     co->is_main_ = true;
     co->stack_[0] = co->closure_;
@@ -182,18 +184,19 @@ bool is_falsey(const Value &value)
 
 InterpretResult VM::run(ObjCoroutine *co)
 {
-    stack_ = co->stack_;
-    frames_ = co->frames_;
-    frame_count_ = co->frame_count_;
-    top_ = co->top_;
-    CallFrame *frame = &frames_[frame_count_ - 1];
+    current_coroutine_ = co;
+    // current_coroutine_->stack_ = co->stack_;
+    // current_corountine_->frames_ = co->frames_;
+    // current_coroutine_->frame_count_ = co->frame_count_;
+    // current_coroutine_->top_ = co->top_;
+    CallFrame *frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
 
     while (co->status_ != CoroutineStatus::FINISHED)
     {
 #ifdef DEBUG_MODE
         printf("           stackframe: ");
-        for (int i = 0; i < top_; i++)
-            std::cout << "[ " << stack_.at(i) << " ]";
+        for (int i = 0; i < current_coroutine_->top_; i++)
+            std::cout << "[ " << current_coroutine_->stack_.at(i) << " ]";
         std::cout << "\n";
         Util::disassemble_instruction(frame->closure_->function_->chunk_, frame->ip_);
 #endif
@@ -203,9 +206,9 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_RETURN:
         {
             Value result = pop();
-            close_upvalues(stack_.data() + frame->slot_);
-            frame_count_--; // leave current frame
-            if (frame_count_ == 0)
+            close_upvalues(current_coroutine_->stack_.data() + frame->slot_);
+            current_coroutine_->frame_count_--; // leave current frame
+            if (current_coroutine_->frame_count_ == 0)
             {
                 co->status_ = CoroutineStatus::FINISHED;
                 if (co->is_main_ == true)
@@ -213,10 +216,9 @@ InterpretResult VM::run(ObjCoroutine *co)
                 else
                     return scheduler_.runNextObjCoroutine();
             }
-            // top_ = frame->slot_ - stack_.data();
-            top_ = frame->slot_;
+            current_coroutine_->top_ = frame->slot_;
             push(result);
-            frame = &frames_[frame_count_ - 1];
+            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
             break;
         }
         case OP_NEGATE:
@@ -357,15 +359,13 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_GET_LOCAL:
         {
             int slot = frame->read_byte();
-            // push(frame->slots_[slot]);
-            push(stack_[frame->slot_ + slot]);
+            push(current_coroutine_->stack_[frame->slot_ + slot]);
             break;
         }
         case OP_SET_LOCAL:
         {
             int slot = frame->read_byte();
-            // frame->slots_[slot] = peek(0);
-            stack_[frame->slot_ + slot] = peek(0);
+            current_coroutine_->stack_[frame->slot_ + slot] = peek(0);
             break;
         }
         case OP_JUMP_IF_FALSE:
@@ -404,7 +404,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             int argCount = frame->read_byte();
             if (!call_value(peek(argCount), argCount))
                 return INTERPRET_RUNTIME_ERROR;
-            frame = &frames_[frame_count_ - 1]; // frame update, enter into function scope
+            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1]; // frame update, enter into function scope
             break;
         }
         case OP_FUNCTION:
@@ -423,7 +423,7 @@ InterpretResult VM::run(ObjCoroutine *co)
                 auto is_local = frame->read_byte();
                 auto index = frame->read_byte();
                 if (is_local)
-                    closure->upvalues_.at(i) = capture_upvalue(stack_.data() + frame->slot_ + index);
+                    closure->upvalues_.at(i) = capture_upvalue(current_coroutine_->stack_.data() + frame->slot_ + index);
                 else
                     closure->upvalues_.at(i) = frame->closure_->upvalues_.at(index);
             }
@@ -431,7 +431,7 @@ InterpretResult VM::run(ObjCoroutine *co)
         }
         case OP_CLOSE_UPVALUE:
         {
-            close_upvalues(stack_.data() + top_ - 1);
+            close_upvalues(current_coroutine_->stack_.data() + current_coroutine_->top_ - 1);
             pop();
             break;
         }
@@ -497,7 +497,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             {
                 return INTERPRET_RUNTIME_ERROR;
             }
-            frame = &frames_[frame_count_ - 1];
+            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
             break;
         }
         case OP_INHERIT:
@@ -534,7 +534,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             {
                 return INTERPRET_RUNTIME_ERROR;
             }
-            frame = &frames_[frame_count_ - 1];
+            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
             break;
         }
         case OP_ARRAY:
@@ -623,10 +623,6 @@ InterpretResult VM::run(ObjCoroutine *co)
         }
         case OP_YIELD_COROUTINE:
         {
-            co->top_ = top_;
-            co->stack_ = stack_;
-            co->frames_ = frames_;
-            co->frame_count_ = frame_count_;
             scheduler_.yieldCurrentObjCoroutine();
             return scheduler_.runNextObjCoroutine();
         }
@@ -636,11 +632,6 @@ InterpretResult VM::run(ObjCoroutine *co)
             try
             {
                 auto targetCo = pop().as_obj<ObjCoroutine>();
-
-                co->top_ = top_;
-                co->stack_ = stack_;
-                co->frames_ = frames_;
-                co->frame_count_ = frame_count_;
                 scheduler_.resumeCoroutine(targetCo);
             }
             catch (const std::exception &e)
@@ -669,21 +660,33 @@ uint16_t CallFrame::read_short()
     auto b = closure_->function_->chunk_.bytecode_[ip_ - 1];
     return static_cast<uint16_t>(a | b);
 };
+
 ObjString *CallFrame::read_string()
 {
     return read_constant().as_obj<ObjString>();
 }
-void VM::push(Value value) { stack_.at(top_++) = value; }
+
 void VM::reset_stack()
 {
-    top_ = frame_count_ = 0;
+    current_coroutine_->top_ = current_coroutine_->frame_count_ = 0;
     open_upvalues_ = nullptr;
 }
-Value VM::pop() { return stack_.at(--top_); }
+
+void VM::push(Value value)
+{
+    current_coroutine_->stack_.at(current_coroutine_->top_++) = value;
+}
+
+Value VM::pop()
+{
+    return current_coroutine_->stack_.at(--current_coroutine_->top_);
+}
+
 Value VM::peek(int distance)
 {
-    return stack_[top_ - 1 - distance];
+    return current_coroutine_->stack_[current_coroutine_->top_ - 1 - distance];
 }
+
 void VM::close_upvalues(Value *last)
 {
     while (open_upvalues_ != NULL &&
@@ -695,6 +698,7 @@ void VM::close_upvalues(Value *last)
         open_upvalues_ = upvalue->next_;
     }
 }
+
 void VM::define_method(ObjString *name)
 {
     const Value &method = peek(0);
@@ -747,9 +751,9 @@ void VM::runtime_error(Args &&...args)
     static_assert(sizeof...(Args) > 0);
     (std::cerr << ... << std::forward<Args>(args));
     std::cerr << '\n';
-    for (int i = frame_count_ - 1; i >= 0; i--)
+    for (int i = current_coroutine_->frame_count_ - 1; i >= 0; i--)
     {
-        const auto &frame = frames_.at(i);
+        const auto &frame = current_coroutine_->frames_.at(i);
         auto function = frame.closure_->function_;
         auto instruction = frame.ip_ - 1;
         auto line = function->chunk_.lines_.at(instruction);

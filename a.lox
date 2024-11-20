@@ -1,16 +1,24 @@
 fun a() {
-    print b();
+    fun c() {
+            var a = 1;
+        fun b() {
+            print a;
+        }
+        return b;
+    }
+    c()();
     print "before";
     yield;
     print "after";
 }
 
-fun b() {
-    print "here is b";
-}
 
 var co = coroutine a();
 resume co;
 print "middle";
 resume co;
 print "end";
+
+var y = "1" + "2";
+y = "3" + "4";
+y = "5" + "6";

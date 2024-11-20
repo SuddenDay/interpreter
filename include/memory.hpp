@@ -7,6 +7,7 @@
 #include <set>
 #include "table.hpp"
 #include "obj.hpp"
+#include "common.hpp"
 
 struct ObjString;
 struct VM;

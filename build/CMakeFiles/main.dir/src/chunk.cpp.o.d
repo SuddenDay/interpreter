@@ -191,7 +191,8 @@ CMakeFiles/main.dir/src/chunk.cpp.o: /home/ace/interpreter/src/chunk.cpp \
  /usr/include/c++/11/bits/stl_multimap.h \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
- /home/ace/interpreter/include/obj.hpp /usr/include/c++/11/iomanip \
+ /home/ace/interpreter/include/obj.hpp \
+ /home/ace/interpreter/include/common.hpp /usr/include/c++/11/iomanip \
  /usr/include/c++/11/locale \
  /usr/include/c++/11/bits/locale_facets_nonio.h /usr/include/c++/11/ctime \
  /usr/include/x86_64-linux-gnu/c++/11/bits/time_members.h \

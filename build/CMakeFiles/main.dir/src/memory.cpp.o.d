@@ -191,10 +191,10 @@ CMakeFiles/main.dir/src/memory.cpp.o: \
  /home/ace/interpreter/include/value.hpp /usr/include/c++/11/variant \
  /usr/include/c++/11/bits/parse_numbers.h \
  /home/ace/interpreter/include/obj.hpp \
+ /home/ace/interpreter/include/common.hpp \
  /home/ace/interpreter/include/object.hpp \
  /home/ace/interpreter/include/chunk.hpp \
  /home/ace/interpreter/include/opcode.hpp \
- /home/ace/interpreter/include/common.hpp \
  /home/ace/interpreter/include/objstring.hpp \
  /home/ace/interpreter/include/vm.hpp /usr/include/c++/11/cstdarg \
  /home/ace/interpreter/include/compiler.hpp \
