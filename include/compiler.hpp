@@ -24,21 +24,24 @@ enum FunctionType
     TYPE_SCRIPT
 };
 
-struct BreakAndContinue{
+struct BreakAndContinue
+{
     BreakAndContinue(int offset, int is_break) : offset_(offset), is_break_(is_break) {}
     int offset_;
     int is_break_;
 };
 
-struct LoopCompiler {
+struct LoopCompiler
+{
     std::unique_ptr<LoopCompiler> outer_ = nullptr;
     std::vector<BreakAndContinue> offsets_;
 };
 
-struct ClassCompiler {
+struct ClassCompiler
+{
     std::unique_ptr<ClassCompiler> enclosing_ = nullptr;
-	Token name_;
-	bool has_super_class_ = false;
+    Token name_;
+    bool has_super_class_ = false;
 };
 
 struct Compiler
@@ -58,7 +61,7 @@ struct Complication
     ObjFunction *compile(const std::string_view &source);
     Chunk *current_chunk();
 
-    auto end_compiler() -> std::pair<ObjFunction*, std::unique_ptr<Compiler>>;
+    auto end_compiler() -> std::pair<ObjFunction *, std::unique_ptr<Compiler>>;
 
     void advance();
     void consume(TokenType type, const std::string_view &message);
@@ -97,9 +100,9 @@ struct Complication
     void var_declaration();
     void function(FunctionType type);
     void method();
-    void name_variable(const Token& name, bool canAssign);
+    void name_variable(const Token &name, bool canAssign);
     uint8_t parse_variable(const std::string_view &message);
-    uint8_t identifier_constant(const Token& token);
+    uint8_t identifier_constant(const Token &token);
     int emit_jump(Opcode instruction);
     void patch_jump(int offset);
     void patch_offset(int start, int end);
@@ -111,13 +114,13 @@ struct Complication
     void class_declaration();
     void fun_declaration();
     void add_local(Token name);
-    bool identifier_equal(const Token& a, const Token& b);
+    bool identifier_equal(const Token &a, const Token &b);
     void mark_initialize();
     void init_compiler(FunctionType type);
     int resolve_upvalue(const std::unique_ptr<Compiler> &compiler, const Token &name);
-    int resolve_local(const std::unique_ptr<Compiler> &compiler, const Token& name);
+    int resolve_local(const std::unique_ptr<Compiler> &compiler, const Token &name);
     int add_upvalue(const std::unique_ptr<Compiler> &compiler, int index,
-                   bool is_local);
+                    bool is_local);
 
     void begin_scope()
     {
@@ -131,7 +134,7 @@ struct Complication
                current_->locals_[current_->local_count_ - 1].depth_ >
                    current_->scope_depth_)
         {
-            if(current_->locals_[current_->local_count_ - 1].is_captured_)
+            if (current_->locals_[current_->local_count_ - 1].is_captured_)
                 emit_byte(OP_CLOSE_UPVALUE);
             else
                 emit_byte(OP_POP);
@@ -142,8 +145,8 @@ struct Complication
     Token syntehtic_token(const std::string_view text);
 
     void write_chunk(uint8_t op, int line);
-    uint8_t add_constant(const Value& value);
-    void emit_constant(const Value& value);
+    uint8_t add_constant(const Value &value);
+    void emit_constant(const Value &value);
     void emit_bytes(uint8_t byte1, uint8_t byte2);
     void emit_return();
     void emit_byte(uint8_t byte);
@@ -154,7 +157,7 @@ struct Complication
     std::unique_ptr<Parser> parser_;
     VM &vm_;
 
-    std::unordered_set<ObjString*> global_table_; 
+    std::unordered_set<ObjString *> global_table_;
     std::unordered_map<TokenType, const Parser::ParseRule> get_rule_;
     std::unique_ptr<LoopCompiler> current_loop_ = nullptr;
 };

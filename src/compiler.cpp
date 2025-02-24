@@ -799,7 +799,7 @@ int Complication::resolve_upvalue(const std::unique_ptr<Compiler> &compiler, con
     int local = resolve_local(compiler->enclosing_, name);
     if (local != -1)
     {
-        compiler->enclosing_->locals_[local].is_captured_ = true;
+        compiler->enclosing_->locals_[local].is_captured_ = true; // this is the latest outside function's local var
         return add_upvalue(compiler, local, true);
     }
 
@@ -832,6 +832,9 @@ int Complication::add_upvalue(const std::unique_ptr<Compiler> &compiler, int ind
     }
     compiler->upvalues_[upvalue_count].is_local_ = is_local;
     compiler->upvalues_[upvalue_count].index_ = index;
+    // if is_local true, index is local_index for latest outside function's var
+    // else, index be like below's upvalues_ index, meaning index for latestoutside function's upvalue
+    // but all layer function add this var into upvalue
     return compiler->function_->upvalue_count_++;
 }
 
@@ -999,7 +1002,7 @@ void Complication::function(FunctionType type)
     block();
 
     auto [function, done] = end_compiler();
-    // emit_bytes(OP_CONSTANT, make_constant(static_cast<Obj *>(function)));
+
     emit_bytes(OP_CLOSURE, make_constant(function));
     for (int i = 0; i < function->upvalue_count_; i++)
     {

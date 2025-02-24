@@ -184,11 +184,8 @@ bool is_falsey(const Value &value)
 
 InterpretResult VM::run(ObjCoroutine *co)
 {
-    current_coroutine_ = co;
-    // current_coroutine_->stack_ = co->stack_;
-    // current_corountine_->frames_ = co->frames_;
-    // current_coroutine_->frame_count_ = co->frame_count_;
-    // current_coroutine_->top_ = co->top_;
+    current_coroutine_ = co; // vm just hold a ptr to target co
+
     CallFrame *frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
 
     while (co->status_ != CoroutineStatus::FINISHED)
@@ -397,8 +394,6 @@ InterpretResult VM::run(ObjCoroutine *co)
             frame->ip_ = offset + is_break;
             break;
         }
-            // int offset = Util::get_next_loop(frame->closure->function->chunk, frame->ip);
-            // frame->ip += offset + 4;
         case OP_CALL:
         {
             int argCount = frame->read_byte();
