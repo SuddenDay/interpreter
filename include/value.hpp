@@ -14,19 +14,7 @@ bool operator==(const Obj* obj, const std::monostate nil);
 
 struct Value
 {
-    bool operator!() const;
-    bool operator>(const Value &v) const;
-    bool operator>=(const Value &v) const;
-    bool operator<=(const Value &v) const;
-    bool operator<(const Value &v) const;
     Value operator-() const;
-    Value operator+(const Value &other) const;
-    Value operator-(const Value &other) const;
-    Value operator*(const Value &other) const;
-    Value operator/(const Value &other) const;
-
-    template <typename Op>
-    Value perform_operation(const Value &other, Op op) const;
 
     Value(bool value);
     Value();
@@ -65,7 +53,7 @@ namespace std {
                     return std::hash<int>{}(arg);
                 } else if constexpr (std::is_same_v<T, std::monostate>) {
                     return 0; // nil case, assign a constant hash
-                } else if constexpr (std::is_same_v<T, Obj *>) {
+                } else if constexpr (std::is_same_v<T, Obj *>) { // no real hash just hash obj_addr
                     return std::hash<Obj*>{}(arg);
                 }
             }, v.value_);

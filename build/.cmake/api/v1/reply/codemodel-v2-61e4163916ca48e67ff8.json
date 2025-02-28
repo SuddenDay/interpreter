@@ -38,9 +38,9 @@
 			[
 				{
 					"directoryIndex" : 0,
-					"id" : "main::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-main-Debug-3a88534a529f3272efb7.json",
-					"name" : "main",
+					"id" : "lox::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-lox-Debug-e43c38b43d781d2b5ca3.json",
+					"name" : "lox",
 					"projectIndex" : 0
 				}
 			]

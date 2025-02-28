@@ -8,4 +8,4 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_compile_options(-Wall -Wextra -pedantic)
 include_directories(include)
-add_executable(main src/value.cpp src/objstring.cpp src/object.cpp src/memory.cpp src/scanner.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/chunk.cpp src/scheduler.cpp main.cpp)
+add_executable(lox src/value.cpp src/objstring.cpp src/object.cpp src/memory.cpp src/scanner.cpp src/parser.cpp src/compiler.cpp src/vm.cpp src/chunk.cpp src/scheduler.cpp main.cpp)

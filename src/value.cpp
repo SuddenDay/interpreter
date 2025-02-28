@@ -22,63 +22,12 @@ bool operator!=(const Value &v1, const Value &v2)
 	return !(v1 == v2);
 }
 
-bool Value::operator!() const
-{
-	if (is_number())
-		return !as<int>();
-	else if (is_bool())
-		return !as<bool>();
-	else if (is_nil())
-		return true;
-	else
-		return false;
-}
-bool Value::operator>(const Value &v) const
-{
-	return !(*this <= v);
-}
-bool Value::operator>=(const Value &v) const
-{
-	return *this > v || this->value_ == v.value_;
-}
-bool Value::operator<=(const Value &v) const
-{
-	return *this < v || this->value_ == v.value_;
-}
-
-bool Value::operator<(const Value &v) const
-{
-	if (is_number())
-		return as<int>() < v.as<int>();
-	else
-		throw std::runtime_error("Operator need to be a number.");
-}
 Value Value::operator-() const
 {
 	if (is_number())
 		return Value(-as<int>());
 	else
 		throw std::runtime_error("Operator need to be a number.");
-}
-
-Value Value::operator+(const Value &other) const
-{
-	return perform_operation(other, std::plus<>());
-}
-
-Value Value::operator-(const Value &other) const
-{
-	return perform_operation(other, std::minus<>());
-}
-
-Value Value::operator*(const Value &other) const
-{
-	return perform_operation(other, std::multiplies<>());
-}
-
-Value Value::operator/(const Value &other) const
-{
-	return perform_operation(other, std::divides<>());
 }
 
 Value::Value(bool value) : value_(value) {}
@@ -125,14 +74,6 @@ auto Value::as_obj() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U
 		return static_cast<U *>(as<Obj *>());
 	else
 		throw std::runtime_error(std::string("Value is not a ") + nameof<U>().data());
-}
-
-template <typename Op>
-Value Value::perform_operation(const Value &other, Op op) const
-{
-	if (is_number() && other.is_number())
-		return Value(op(as<int>(), other.as<int>()));
-	throw std::runtime_error("perform_operation only used for number.");
 }
 
 std::ostream &operator<<(std::ostream &os, const Value &value)

@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "main"
+			"path" : "lox"
 		}
 	],
 	"backtrace" : 1,
@@ -99,7 +99,7 @@
 			]
 		}
 	],
-	"id" : "main::@6890427a1f51a3e7e1df",
+	"id" : "lox::@6890427a1f51a3e7e1df",
 	"link" : 
 	{
 		"commandFragments" : 
@@ -115,8 +115,8 @@
 		],
 		"language" : "CXX"
 	},
-	"name" : "main",
-	"nameOnDisk" : "main",
+	"name" : "lox",
+	"nameOnDisk" : "lox",
 	"paths" : 
 	{
 		"build" : ".",

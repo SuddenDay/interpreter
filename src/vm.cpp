@@ -8,6 +8,17 @@
 #include "native.hpp"
 #include <string_view>
 
+#define BINARY_OP(op) \
+do{\
+		if(!peek(0).is_number() || !peek(1).is_number()){\
+			runtime_error("Operands must be numbers.");\
+			return INTERPRET_RUNTIME_ERROR; \
+		}\
+		int b = pop().as<int>(); \
+		int a = pop().as<int>(); \
+		push(a op b); \
+} while (false);
+
 VM::VM() : cu_(*this), globals_(), gc_(*this), scheduler_(*this)
 {
     AllocBase::init(&gc_);
@@ -218,63 +229,9 @@ InterpretResult VM::run(ObjCoroutine *co)
             frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
             break;
         }
-        case OP_NEGATE:
-        {
-            if (!peek(0).is_number())
-            {
-                runtime_error("Operand must be number.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            auto a = pop();
-            push(Value(-a.as<int>()));
-            break;
-        }
         case OP_CONSTANT:
         {
             push(frame->read_constant());
-            break;
-        }
-        case OP_ADD:
-        { // clox string can always stay in memory cause of function.chunk.constants
-          // but like a + b can gc in next memory allocate if reach threshold
-            if (peek(0).is_obj_type<ObjString>() && peek(1).is_obj_type<ObjString>())
-            {
-                auto b = peek(0).as_obj<ObjString>();
-                auto a = peek(1).as_obj<ObjString>();
-                auto res = create_obj_string(std::string_view(a->content_ + b->content_), *this);
-                pop();
-                pop();
-                push(res);
-            }
-            else if (peek(0).is_number() && peek(1).is_number())
-            {
-                auto b = pop().as<int>();
-                auto a = pop().as<int>();
-                push(a + b);
-            }
-            else
-            {
-                runtime_error("Operands must be two numbers or two strings.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            break;
-        }
-        case OP_SUB:
-        {
-            if (!binary_op(std::minus<Value>()))
-                return INTERPRET_RUNTIME_ERROR;
-            break;
-        }
-        case OP_MUL:
-        {
-            if (!binary_op(std::multiplies<Value>()))
-                return INTERPRET_RUNTIME_ERROR;
-            break;
-        }
-        case OP_DIV:
-        {
-            if (!binary_op(std::divides<Value>()))
-                return INTERPRET_RUNTIME_ERROR;
             break;
         }
         case OP_TRUE:
@@ -292,27 +249,67 @@ InterpretResult VM::run(ObjCoroutine *co)
             push(Value());
             break;
         }
-        case OP_NOT:
-        {
-            push(is_falsey(pop()));
-            break;
-        }
         case OP_EQUAL:
         {
-            if (!binary_op(std::equal_to<Value>()))
-                return INTERPRET_RUNTIME_ERROR;
+            auto b = pop();
+            auto a = pop();
+            push(a == b);
             break;
         }
-        case OP_GREATER:
-        {
-            if (!binary_op(std::greater<Value>()))
-                return INTERPRET_RUNTIME_ERROR;
+        case OP_GREATER: {
+            BINARY_OP(>);
             break;
         }
         case OP_LESS:
+            BINARY_OP(<);
+            break;
+        case OP_ADD:
         {
-            if (!binary_op(std::less<Value>()))
+            if (peek(0).is_obj_type<ObjString>() && peek(1).is_obj_type<ObjString>())
+            {
+                auto b = peek(0).as_obj<ObjString>();
+                auto a = peek(1).as_obj<ObjString>();
+                auto res = create_obj_string(std::string_view((*a) + (*b)), *this);
+                pop();
+                pop();
+                push(res);
+            }
+            else if (peek(0).is_number() && peek(1).is_number())
+            {
+                auto b = pop().as<int>();
+                auto a = pop().as<int>();
+                push(a + b);
+            }
+            else
+            {
+                runtime_error("Operands must be two numbers or two strings.");
                 return INTERPRET_RUNTIME_ERROR;
+            }
+            break;
+        }
+        case OP_SUB: {
+            BINARY_OP(-);
+            break;
+        }
+        case OP_MUL: {
+            BINARY_OP(*);
+            break;
+        }
+        case OP_DIV: {
+            BINARY_OP(/);
+            break;
+        }
+        case OP_NOT: {
+            push(is_falsey(pop()));
+            break;
+        }
+        case OP_NEGATE: {
+            if (!peek(0).is_number())
+            {
+                runtime_error("Operand must be a number.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            push(-pop().as<int>());
             break;
         }
         case OP_PRINT:

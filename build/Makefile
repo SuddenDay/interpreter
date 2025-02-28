@@ -117,24 +117,24 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named main
+# Target rules for targets named lox
 
 # Build rule for target.
-main: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 main
-.PHONY : main
+lox: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lox
+.PHONY : lox
 
 # fast build rule for target.
-main/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-.PHONY : main/fast
+lox/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/build
+.PHONY : lox/fast
 
 main.o: main.cpp.o
 .PHONY : main.o
 
 # target to build an object file
 main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -142,7 +142,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -150,7 +150,7 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/main.cpp.s
 .PHONY : main.cpp.s
 
 src/chunk.o: src/chunk.cpp.o
@@ -158,7 +158,7 @@ src/chunk.o: src/chunk.cpp.o
 
 # target to build an object file
 src/chunk.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/chunk.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/chunk.cpp.o
 .PHONY : src/chunk.cpp.o
 
 src/chunk.i: src/chunk.cpp.i
@@ -166,7 +166,7 @@ src/chunk.i: src/chunk.cpp.i
 
 # target to preprocess a source file
 src/chunk.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/chunk.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/chunk.cpp.i
 .PHONY : src/chunk.cpp.i
 
 src/chunk.s: src/chunk.cpp.s
@@ -174,7 +174,7 @@ src/chunk.s: src/chunk.cpp.s
 
 # target to generate assembly for a file
 src/chunk.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/chunk.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/chunk.cpp.s
 .PHONY : src/chunk.cpp.s
 
 src/compiler.o: src/compiler.cpp.o
@@ -182,7 +182,7 @@ src/compiler.o: src/compiler.cpp.o
 
 # target to build an object file
 src/compiler.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/compiler.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/compiler.cpp.o
 .PHONY : src/compiler.cpp.o
 
 src/compiler.i: src/compiler.cpp.i
@@ -190,7 +190,7 @@ src/compiler.i: src/compiler.cpp.i
 
 # target to preprocess a source file
 src/compiler.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/compiler.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/compiler.cpp.i
 .PHONY : src/compiler.cpp.i
 
 src/compiler.s: src/compiler.cpp.s
@@ -198,7 +198,7 @@ src/compiler.s: src/compiler.cpp.s
 
 # target to generate assembly for a file
 src/compiler.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/compiler.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/compiler.cpp.s
 .PHONY : src/compiler.cpp.s
 
 src/memory.o: src/memory.cpp.o
@@ -206,7 +206,7 @@ src/memory.o: src/memory.cpp.o
 
 # target to build an object file
 src/memory.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/memory.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/memory.cpp.o
 .PHONY : src/memory.cpp.o
 
 src/memory.i: src/memory.cpp.i
@@ -214,7 +214,7 @@ src/memory.i: src/memory.cpp.i
 
 # target to preprocess a source file
 src/memory.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/memory.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/memory.cpp.i
 .PHONY : src/memory.cpp.i
 
 src/memory.s: src/memory.cpp.s
@@ -222,7 +222,7 @@ src/memory.s: src/memory.cpp.s
 
 # target to generate assembly for a file
 src/memory.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/memory.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/memory.cpp.s
 .PHONY : src/memory.cpp.s
 
 src/object.o: src/object.cpp.o
@@ -230,7 +230,7 @@ src/object.o: src/object.cpp.o
 
 # target to build an object file
 src/object.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/object.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/object.cpp.o
 .PHONY : src/object.cpp.o
 
 src/object.i: src/object.cpp.i
@@ -238,7 +238,7 @@ src/object.i: src/object.cpp.i
 
 # target to preprocess a source file
 src/object.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/object.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/object.cpp.i
 .PHONY : src/object.cpp.i
 
 src/object.s: src/object.cpp.s
@@ -246,7 +246,7 @@ src/object.s: src/object.cpp.s
 
 # target to generate assembly for a file
 src/object.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/object.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/object.cpp.s
 .PHONY : src/object.cpp.s
 
 src/objstring.o: src/objstring.cpp.o
@@ -254,7 +254,7 @@ src/objstring.o: src/objstring.cpp.o
 
 # target to build an object file
 src/objstring.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/objstring.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/objstring.cpp.o
 .PHONY : src/objstring.cpp.o
 
 src/objstring.i: src/objstring.cpp.i
@@ -262,7 +262,7 @@ src/objstring.i: src/objstring.cpp.i
 
 # target to preprocess a source file
 src/objstring.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/objstring.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/objstring.cpp.i
 .PHONY : src/objstring.cpp.i
 
 src/objstring.s: src/objstring.cpp.s
@@ -270,7 +270,7 @@ src/objstring.s: src/objstring.cpp.s
 
 # target to generate assembly for a file
 src/objstring.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/objstring.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/objstring.cpp.s
 .PHONY : src/objstring.cpp.s
 
 src/parser.o: src/parser.cpp.o
@@ -278,7 +278,7 @@ src/parser.o: src/parser.cpp.o
 
 # target to build an object file
 src/parser.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/parser.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/parser.cpp.o
 .PHONY : src/parser.cpp.o
 
 src/parser.i: src/parser.cpp.i
@@ -286,7 +286,7 @@ src/parser.i: src/parser.cpp.i
 
 # target to preprocess a source file
 src/parser.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/parser.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/parser.cpp.i
 .PHONY : src/parser.cpp.i
 
 src/parser.s: src/parser.cpp.s
@@ -294,7 +294,7 @@ src/parser.s: src/parser.cpp.s
 
 # target to generate assembly for a file
 src/parser.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/parser.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/parser.cpp.s
 .PHONY : src/parser.cpp.s
 
 src/scanner.o: src/scanner.cpp.o
@@ -302,7 +302,7 @@ src/scanner.o: src/scanner.cpp.o
 
 # target to build an object file
 src/scanner.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/scanner.cpp.o
 .PHONY : src/scanner.cpp.o
 
 src/scanner.i: src/scanner.cpp.i
@@ -310,7 +310,7 @@ src/scanner.i: src/scanner.cpp.i
 
 # target to preprocess a source file
 src/scanner.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/scanner.cpp.i
 .PHONY : src/scanner.cpp.i
 
 src/scanner.s: src/scanner.cpp.s
@@ -318,7 +318,7 @@ src/scanner.s: src/scanner.cpp.s
 
 # target to generate assembly for a file
 src/scanner.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scanner.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/scanner.cpp.s
 .PHONY : src/scanner.cpp.s
 
 src/scheduler.o: src/scheduler.cpp.o
@@ -326,7 +326,7 @@ src/scheduler.o: src/scheduler.cpp.o
 
 # target to build an object file
 src/scheduler.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scheduler.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/scheduler.cpp.o
 .PHONY : src/scheduler.cpp.o
 
 src/scheduler.i: src/scheduler.cpp.i
@@ -334,7 +334,7 @@ src/scheduler.i: src/scheduler.cpp.i
 
 # target to preprocess a source file
 src/scheduler.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scheduler.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/scheduler.cpp.i
 .PHONY : src/scheduler.cpp.i
 
 src/scheduler.s: src/scheduler.cpp.s
@@ -342,7 +342,7 @@ src/scheduler.s: src/scheduler.cpp.s
 
 # target to generate assembly for a file
 src/scheduler.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/scheduler.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/scheduler.cpp.s
 .PHONY : src/scheduler.cpp.s
 
 src/value.o: src/value.cpp.o
@@ -350,7 +350,7 @@ src/value.o: src/value.cpp.o
 
 # target to build an object file
 src/value.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/value.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/value.cpp.o
 .PHONY : src/value.cpp.o
 
 src/value.i: src/value.cpp.i
@@ -358,7 +358,7 @@ src/value.i: src/value.cpp.i
 
 # target to preprocess a source file
 src/value.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/value.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/value.cpp.i
 .PHONY : src/value.cpp.i
 
 src/value.s: src/value.cpp.s
@@ -366,7 +366,7 @@ src/value.s: src/value.cpp.s
 
 # target to generate assembly for a file
 src/value.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/value.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/value.cpp.s
 .PHONY : src/value.cpp.s
 
 src/vm.o: src/vm.cpp.o
@@ -374,7 +374,7 @@ src/vm.o: src/vm.cpp.o
 
 # target to build an object file
 src/vm.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/vm.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/vm.cpp.o
 .PHONY : src/vm.cpp.o
 
 src/vm.i: src/vm.cpp.i
@@ -382,7 +382,7 @@ src/vm.i: src/vm.cpp.i
 
 # target to preprocess a source file
 src/vm.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/vm.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/vm.cpp.i
 .PHONY : src/vm.cpp.i
 
 src/vm.s: src/vm.cpp.s
@@ -390,7 +390,7 @@ src/vm.s: src/vm.cpp.s
 
 # target to generate assembly for a file
 src/vm.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/vm.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/lox.dir/build.make CMakeFiles/lox.dir/src/vm.cpp.s
 .PHONY : src/vm.cpp.s
 
 # Help Target
@@ -401,7 +401,7 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... main"
+	@echo "... lox"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
