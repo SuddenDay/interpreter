@@ -14,6 +14,8 @@ bool operator==(const Obj* obj, const std::monostate nil);
 
 struct Value
 {
+    static std::string value_to_string(Value value);
+
     Value operator-() const;
 
     Value(bool value);

@@ -1,0 +1,58 @@
+fun a(x, y) {
+    var str = "this is a function";
+    print str;
+    print x;
+    yield;
+    print "resume";
+    yield;
+    print y;
+}
+var co1 = coroutine a("Co1", "first is here");
+var co2 = coroutine a("Co2", "second is here");
+resume co2;
+print "1";
+resume co1;
+print "2";
+resume co2;
+print "3";
+resume co1;
+print "4";
+resume co2;
+print "5";
+resume co1;
+print "6";
+
+fun worker(name, steps) {
+    for (var i = 1; i <= steps; i = i + 1) {
+        print name + " - step " + i;
+        yield;
+    }
+    print name + " - finished!";
+}
+
+var w1 = coroutine worker("Worker A", 3);
+var w2 = coroutine worker("Worker B", 5);
+var w3 = coroutine worker("Worker C", 2);
+
+// 按照各种顺序去 resume，不同协程之间会交错运行。
+print "=== Start ===";
+
+resume w1;    // Worker A - step 1
+resume w2;    // Worker B - step 1
+resume w1;    // Worker A - step 2
+resume w3;    // Worker C - step 1
+print "Main: first pause";
+
+resume w2;    // Worker B - step 2
+resume w2;    // Worker B - step 3
+resume w3;    // Worker C - step 2
+print "Main: second pause";
+
+resume w1;    // Worker A - step 3
+resume w1;    // Worker A - finished!
+
+resume w2;    // Worker B - step 4
+resume w2;    // Worker B - step 5
+resume w2;    // Worker B - finished!
+
+print "=== End ===";

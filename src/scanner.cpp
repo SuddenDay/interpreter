@@ -3,7 +3,7 @@
 #include <string>
 #include <cctype>
 
-static const std::string_view error_message = "Unexpected character";
+static constexpr std::string_view error_message = "Unexpected character";
 Token Scanner::scan_token()
 {
     skip_space();
@@ -39,12 +39,8 @@ Token Scanner::scan_token()
     case '.':
         return make_token(TOKEN_DOT);
     case '-':
-        if(match('='))
-            return make_token(TOKEN_MINUS_EQUAL);
         return make_token(TOKEN_MINUS);
     case '+':
-        if(match('='))
-            return make_token(TOKEN_ADD_EQUAL);
         return make_token(TOKEN_PLUS);
     case '/':
         return make_token(TOKEN_SLASH);

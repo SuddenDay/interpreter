@@ -22,6 +22,16 @@ bool operator!=(const Value &v1, const Value &v2)
 	return !(v1 == v2);
 }
 
+std::string Value::value_to_string(Value value)
+{
+    if (value.is_obj_type<ObjString>())
+        return std::string(value.as_obj<ObjString>()->content_);
+    else if (value.is_number())
+        return std::to_string(value.as<int>());
+    else
+        throw std::runtime_error("Operands must be two numbers or (string + anything).");
+}
+
 Value Value::operator-() const
 {
 	if (is_number())

@@ -1,0 +1,8 @@
+var json = { 1 : "first" , "2" : "second" };
+print json;
+json[1] = "new";
+print json;
+json[[1, 2, 3]] = 123;
+print json;
+// erase(json, 1); no native_fn for json now only list 
+// no hash code implemented so that object hash at addr

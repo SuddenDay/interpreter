@@ -1,0 +1,34 @@
+{
+  var a = "outer";
+  {
+    var a = "inside";
+    print a;
+  }
+}
+
+fun showVariable() {
+  print global;
+}
+
+var global = "after";
+showVariable();
+
+
+var greeting = "Global Hello";
+print greeting;
+
+{
+  var greeting = "Local Hello";
+  print greeting;
+}
+
+print greeting;
+
+fun showGreeting() {
+  var greeting = "Function Hello";
+  print greeting;
+}
+
+showGreeting();
+print greeting;
+

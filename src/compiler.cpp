@@ -17,8 +17,6 @@ Complication::Complication(VM &vm) : current_(nullptr), parser_(nullptr), vm_(vm
                                                                                        {TOKEN_COMMA, {nullptr, nullptr, PREC_NONE}},
                                                                                        {TOKEN_DOT, {nullptr, &Complication::dot, PREC_CALL}},
                                                                                        {TOKEN_MINUS, {&Complication::unary, &Complication::binary, PREC_TERM}},
-                                                                                       {TOKEN_ADD_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
-                                                                                       {TOKEN_MINUS_EQUAL, {nullptr, nullptr, PREC_ASSIGNMENT}},
                                                                                        {TOKEN_PLUS, {nullptr, &Complication::binary, PREC_TERM}},
                                                                                        {TOKEN_SEMICOLON, {nullptr, nullptr, PREC_NONE}},
                                                                                        {TOKEN_SLASH, {nullptr, &Complication::binary, PREC_FACTOR}},
@@ -315,24 +313,6 @@ void Complication::get_or_set(bool canAssign)
         expression();
         emit_byte(OP_SET_ELEMENT);
     }
-    else if (match(TOKEN_ADD_EQUAL))
-    {
-        emit_bytes(OP_PEEK, 1);
-        emit_bytes(OP_PEEK, 1);
-        emit_byte(OP_GET_ELEMENT);
-        expression();
-        emit_byte(OP_ADD);
-        emit_byte(OP_SET_ELEMENT);
-    }
-    else if (match(TOKEN_MINUS_EQUAL))
-    {
-        emit_bytes(OP_PEEK, 1);
-        emit_bytes(OP_PEEK, 1);
-        emit_byte(OP_GET_ELEMENT);
-        expression();
-        emit_byte(OP_SUB);
-        emit_byte(OP_SET_ELEMENT);
-    }
     else
         emit_byte(OP_GET_ELEMENT);
 }
@@ -473,22 +453,6 @@ void Complication::dot(bool canAssign)
     if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
-        emit_bytes(OP_SET_PROPERTY, arg);
-    }
-    else if (canAssign && match(TOKEN_ADD_EQUAL))
-    {
-        emit_bytes(OP_PEEK, 0);
-        emit_bytes(OP_GET_PROPERTY, arg);
-        expression();
-        emit_byte(OP_ADD);
-        emit_bytes(OP_SET_PROPERTY, arg);
-    }
-    else if (canAssign && match(TOKEN_MINUS_EQUAL))
-    {
-        emit_bytes(OP_PEEK, 0);
-        emit_bytes(OP_GET_PROPERTY, arg);
-        expression();
-        emit_byte(OP_SUB);
         emit_bytes(OP_SET_PROPERTY, arg);
     }
     else if (match(TOKEN_LEFT_PAREN))
@@ -643,44 +607,19 @@ void Complication::print_statement()
 void Complication::if_statement()
 {
     consume(TOKEN_LEFT_PAREN, "Expect '(' after 'if'.");
-    expression(); // Parse condition
-    consume(TOKEN_RIGHT_PAREN, "Expect ')' after if condition.");
+    expression();
+    consume(TOKEN_RIGHT_PAREN, "Expect ')' after condition.");
 
-    // Compile the 'then' branch
-    int then_jump = emit_jump(OP_JUMP_IF_FALSE);
-    emit_byte(OP_POP); // Pop the condition
+    int thenJump = emit_jump(OP_JUMP_IF_FALSE);
+    emit_byte(OP_POP);
     statement();
+    int elseJump = emit_jump(OP_JUMP);
+    patch_jump(thenJump);
+    emit_byte(OP_POP);
 
-    // Handle multiple 'elif'
-    std::vector<int> patchs;
-    while (match(TOKEN_ELIF))
-    {
-        int elif_jump = emit_jump(OP_JUMP); // if(true) jump out of if-elif-else
-        patchs.push_back(elif_jump);
-        patch_jump(then_jump); // if(false) jump next if-elif-else
-        emit_byte(OP_POP);     // Pop the last 'if' condition
-
-        consume(TOKEN_LEFT_PAREN, "Expect '(' after 'elif'.");
-        expression(); // Parse elif condition
-        consume(TOKEN_RIGHT_PAREN, "Expect ')' after elif condition.");
-
-        then_jump = emit_jump(OP_JUMP_IF_FALSE);
-        emit_byte(OP_POP); // Pop elif condition
-        statement();
-
-        patch_jump(then_jump);
-    }
-    int else_jump = emit_jump(OP_JUMP);
-    // Optional else
-    patch_jump(then_jump);
     if (match(TOKEN_ELSE))
-    {
-        emit_byte(OP_POP); // Pop the last condition
         statement();
-        patch_jump(else_jump);
-    }
-    for (auto &patch : patchs)
-        patch_jump(patch);
+    patch_jump(elseJump);
 }
 
 void Complication::expression_statement()
@@ -698,7 +637,7 @@ void Complication::var_declaration()
     else
         emit_byte(OP_NIL);
     consume(TOKEN_SEMICOLON, "Variable declaration needs ;.");
-    define_variable(global);
+    define_global(global);
 }
 
 void Complication::name_variable(const Token &name, bool canAssign)
@@ -725,20 +664,6 @@ void Complication::name_variable(const Token &name, bool canAssign)
     if (canAssign && match(TOKEN_EQUAL))
     {
         expression();
-        emit_bytes(setOp, arg);
-    }
-    else if (canAssign && match(TOKEN_ADD_EQUAL))
-    {
-        expression();
-        emit_bytes(getOp, arg);
-        emit_byte(OP_ADD);
-        emit_bytes(setOp, arg);
-    }
-    else if (canAssign && match(TOKEN_MINUS_EQUAL))
-    {
-        emit_bytes(getOp, arg);
-        expression();
-        emit_byte(OP_SUB);
         emit_bytes(setOp, arg);
     }
     else
@@ -841,9 +766,9 @@ int Complication::add_upvalue(const std::unique_ptr<Compiler> &compiler, int ind
 uint8_t Complication::parse_variable(const std::string_view &message)
 {
     consume(TOKEN_IDENTIFIER, message);
-    declare_variable();             // this function define local
-    if (current_->scope_depth_ > 0) // below is to define global variable
-        return 0;
+    declare_local();             // this function define local
+    if (current_->scope_depth_ > 0) // below is global
+        return 0;                   // global's value need to be writen into chunk
     return identifier_constant(parser_->previous_);
 }
 
@@ -897,7 +822,7 @@ void Complication::declaration()
         statement();
 }
 
-void Complication::declare_variable() // only register local
+void Complication::declare_local() // only register local
 {
     if (current_->scope_depth_ == 0)
     {
@@ -924,9 +849,9 @@ void Complication::class_declaration()
     Token className = parser_->previous_;
     uint8_t nameConstant = identifier_constant(parser_->previous_);
 
-    declare_variable();
+    declare_local(); // register if it is local varibale
     emit_bytes(OP_CLASS, nameConstant); // when execute this will push objclass
-    define_variable(nameConstant);
+    define_global(nameConstant); // register if it is global
 
     auto classCompiler = std::make_unique<ClassCompiler>();
     classCompiler->enclosing_ = std::move(current_class_);
@@ -948,6 +873,7 @@ void Complication::class_declaration()
         mark_initialize();
 
         name_variable(className, false); // get father push objclass
+
         emit_byte(OP_INHERIT);           // three opcode is for vm to create inherit realtion
         current_class_->has_super_class_ = true;
     }
@@ -972,7 +898,7 @@ void Complication::fun_declaration()
     uint8_t global = parse_variable("Expect function name."); // before closure all function is global
     mark_initialize();                                        // why initialize
     function(TYPE_FUNCTION);
-    define_variable(global);
+    define_global(global);
 }
 
 void Complication::function_expr(bool assign)
@@ -983,7 +909,9 @@ void Complication::function_expr(bool assign)
 void Complication::function(FunctionType type)
 {
     init_compiler(type);
-    begin_scope();
+    begin_scope(); // otherwise function's var will be global
+    // function's local is about init_compiler <-> end_compiler
+    // normal { var a = 1; { var b = 2; }} is about begin_scope <-> end_scope
 
     consume(TOKEN_LEFT_PAREN, "Expect '(' after function name.");
     if (!check(TOKEN_RIGHT_PAREN))
@@ -994,7 +922,7 @@ void Complication::function(FunctionType type)
             if (current_->function_->arity_ > 255)
                 parser_->error_at_current("Can't have more than 255 parameters.");
             uint8_t constant = parse_variable("Expect parameter name.");
-            define_variable(constant);
+            define_global(constant);
         } while (match(TOKEN_COMMA));
     }
     consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
@@ -1049,7 +977,7 @@ bool Complication::identifier_equal(const Token &a, const Token &b)
     return a.string == b.string;
 }
 
-void Complication::define_variable(uint8_t global) // only define global
+void Complication::define_global(uint8_t global) // only define global
 {
     if (current_->scope_depth_ > 0)
     {
@@ -1094,7 +1022,8 @@ void Complication::emit_bytes(uint8_t byte1, uint8_t byte2)
 void Complication::emit_return()
 {
     if (current_->type_ == TYPE_INITIALIZER)
-        emit_bytes(OP_GET_LOCAL, 0);
+        emit_bytes(OP_GET_LOCAL, 0); // 这行指令会把本地变量槽 0（也就是 this）加载到栈顶作为返回值。
+        // 因为在 Lox 的实现中，方法的本地变量槽 0 始终绑定着 this。
     else
         emit_byte(OP_NIL);
     emit_byte(Opcode::OP_RETURN);

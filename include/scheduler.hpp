@@ -9,6 +9,7 @@ struct Scheduler {
     Scheduler(VM& vm) : vm(vm) {}
     std::deque<ObjCoroutine*> coroutines_;  // Queue of coroutines
     ObjCoroutine* current_coroutine_ = nullptr;  // The coroutine currently running
+    ObjCoroutine* main_coroutine = nullptr;  // The main coroutine
 
     void addObjCoroutine(ObjCoroutine* coroutine);
     InterpretResult runNextObjCoroutine();

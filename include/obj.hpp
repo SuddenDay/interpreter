@@ -32,5 +32,6 @@ struct Obj
 	}
 
 	Obj(ObjType type) : type_(type) {}
+	Obj() = default;
 };
 

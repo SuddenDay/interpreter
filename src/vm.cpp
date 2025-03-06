@@ -8,26 +8,31 @@
 #include "native.hpp"
 #include <string_view>
 
-#define BINARY_OP(op) \
-do{\
-		if(!peek(0).is_number() || !peek(1).is_number()){\
-			runtime_error("Operands must be numbers.");\
-			return INTERPRET_RUNTIME_ERROR; \
-		}\
-		int b = pop().as<int>(); \
-		int a = pop().as<int>(); \
-		push(a op b); \
-} while (false);
+#define BINARY_OP(op)                                     \
+    do                                                    \
+    {                                                     \
+        if (!peek(0).is_number() || !peek(1).is_number()) \
+        {                                                 \
+            runtime_error("Operands must be numbers.");   \
+            return INTERPRET_RUNTIME_ERROR;               \
+        }                                                 \
+        int b = pop().as<int>();                          \
+        int a = pop().as<int>();                          \
+        push(a op b);                                     \
+    } while (false);
 
 VM::VM() : cu_(*this), globals_(), gc_(*this), scheduler_(*this)
 {
     AllocBase::init(&gc_);
     init_string_ = create_obj_string(std::string_view("init"), *this);
+    ObjCoroutine tmpCo; // when define_native we dont have a co so just make it for not be gc
+    current_coroutine_ = &tmpCo;
     define_native("clock", Native::clock);
     define_native("insert", Native::insert);
     define_native("erase", Native::erase);
     define_native("push", Native::push);
     define_native("pop", Native::pop);
+    current_coroutine_ = nullptr;
 }
 
 bool VM::call_value(const Value &callee, uint8_t argCount)
@@ -45,7 +50,7 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
         case ObjType::Class:
         {
             auto klass = callee.as_obj<ObjClass>();
-            current_coroutine_->stack_.at(current_coroutine_->top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass);
+            current_coroutine_->stack_.at(current_coroutine_->top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass); // Objinstance 覆盖掉 Objclass
             Value initializer;
             if (klass->methods_.find(init_string_) != klass->methods_.end())
             {
@@ -94,7 +99,8 @@ bool VM::call(ObjClosure *closure, int argCount)
     CallFrame &frame = current_coroutine_->frames_[current_coroutine_->frame_count_++];
     frame.closure_ = closure;
     frame.ip_ = 0;
-    frame.slot_ = current_coroutine_->top_ - argCount - 1;
+    frame.slot_ = current_coroutine_->top_ - argCount - 1; // 指向可调用obj的位置前一个（省的pop，直接覆盖掉）
+                                                           // 期望返回值放在此处
     return true;
 }
 
@@ -176,7 +182,8 @@ InterpretResult VM::interpret(const std::string &source)
     ObjCoroutine *co = create_obj<ObjCoroutine>(gc_, closure); // modify
     // in memory.cpp current_coroutine is nullptr to gc
 
-    scheduler_.addObjCoroutine(co);
+    // scheduler_.addObjCoroutine(co);
+    scheduler_.main_coroutine = co;
     co->is_main_ = true;
     co->stack_[0] = co->closure_;
     co->top_ = 1;
@@ -213,7 +220,7 @@ InterpretResult VM::run(ObjCoroutine *co)
         {
         case OP_RETURN:
         {
-            Value result = pop();
+            Value result = pop(); // 先弹后压 result 是为了清理当前栈范围内的槽，后面退到上一个栈时再压入作为返回值
             close_upvalues(current_coroutine_->stack_.data() + frame->slot_);
             current_coroutine_->frame_count_--; // leave current frame
             if (current_coroutine_->frame_count_ == 0)
@@ -224,7 +231,7 @@ InterpretResult VM::run(ObjCoroutine *co)
                 else
                     return scheduler_.runNextObjCoroutine();
             }
-            current_coroutine_->top_ = frame->slot_;
+            current_coroutine_->top_ = frame->slot_; // 回退到上一个栈顶，对于call之前的栈顶通常指着closure或者instance本身
             push(result);
             frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
             break;
@@ -256,7 +263,8 @@ InterpretResult VM::run(ObjCoroutine *co)
             push(a == b);
             break;
         }
-        case OP_GREATER: {
+        case OP_GREATER:
+        {
             BINARY_OP(>);
             break;
         }
@@ -265,45 +273,60 @@ InterpretResult VM::run(ObjCoroutine *co)
             break;
         case OP_ADD:
         {
-            if (peek(0).is_obj_type<ObjString>() && peek(1).is_obj_type<ObjString>())
+            // 取出栈顶和次顶操作数（注意：peek(0) 是栈顶）
+            Value rightVal = peek(0);
+            Value leftVal = peek(1);
+
+            // 如果两个都是数值，则执行数值相加
+            if (leftVal.is_number() && rightVal.is_number())
             {
-                auto b = peek(0).as_obj<ObjString>();
-                auto a = peek(1).as_obj<ObjString>();
-                auto res = create_obj_string(std::string_view((*a) + (*b)), *this);
-                pop();
-                pop();
-                push(res);
-            }
-            else if (peek(0).is_number() && peek(1).is_number())
-            {
-                auto b = pop().as<int>();
-                auto a = pop().as<int>();
+                // 为了示例，这里假设存的都是 int
+                int b = pop().as<int>(); // right
+                int a = pop().as<int>(); // left
                 push(a + b);
             }
+            // 否则，如果两个都是字符串，或者至少有一个是字符串，就进行字符串拼接
             else
             {
-                runtime_error("Operands must be two numbers or two strings.");
-                return INTERPRET_RUNTIME_ERROR;
+                pop(); // rightVal
+                pop(); // leftVal
+                try
+                {
+                    auto leftStr = Value::value_to_string(leftVal);
+                    auto rightStr = Value::value_to_string(rightVal);
+                    ObjString *res = create_obj_string(leftStr + rightStr, *this);
+                    push(Value(res));
+                }
+                catch (...)
+                {
+                    runtime_error("Operands must be two numbers or (string + anything).");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
             }
             break;
         }
-        case OP_SUB: {
+        case OP_SUB:
+        {
             BINARY_OP(-);
             break;
         }
-        case OP_MUL: {
+        case OP_MUL:
+        {
             BINARY_OP(*);
             break;
         }
-        case OP_DIV: {
+        case OP_DIV:
+        {
             BINARY_OP(/);
             break;
         }
-        case OP_NOT: {
+        case OP_NOT:
+        {
             push(is_falsey(pop()));
             break;
         }
-        case OP_NEGATE: {
+        case OP_NEGATE:
+        {
             if (!peek(0).is_number())
             {
                 runtime_error("Operand must be a number.");
@@ -396,7 +419,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             int argCount = frame->read_byte();
             if (!call_value(peek(argCount), argCount))
                 return INTERPRET_RUNTIME_ERROR;
-            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1]; // frame update, enter into function scope
+            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1]; // frame update, leave function scope
             break;
         }
         case OP_FUNCTION:
@@ -462,7 +485,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             }
             catch (const std::out_of_range &)
             {
-                if (!bind_method(instance->objClass_, name))
+                if (!bind_method(instance->objClass_, name)) // 找不到instance's fileds那么找klass中的methods
                     return INTERPRET_RUNTIME_ERROR;
             }
             break;
@@ -552,11 +575,6 @@ InterpretResult VM::run(ObjCoroutine *co)
                 auto value = pop().as_obj<ObjJson>()->kv_[key];
                 push(value);
             }
-            break;
-        }
-        case OP_PEEK:
-        {
-            push(peek(frame->read_byte()));
             break;
         }
         case OP_SET_ELEMENT:

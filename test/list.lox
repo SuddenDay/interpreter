@@ -1,0 +1,14 @@
+var list = [1, 2, 3, 4];
+print list;
+list[0] = list[0] + 1;
+print list;
+insert(list, 0, 5);
+print list;
+pop(list);
+print list;
+list[0] = [1, 2];
+print list;
+
+print list[0][0];
+list[0][0] = list[0][0] + 1;
+print list[0][0];

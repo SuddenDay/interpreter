@@ -73,7 +73,6 @@ public:
         case Opcode::OP_DEFINE_GLOBAL:
         case Opcode::OP_SET_GLOBAL:
         case Opcode::OP_CONSTANT:
-        case Opcode::OP_PEEK:
         case Opcode::OP_GET_PROPERTY:
         case Opcode::OP_SET_PROPERTY:
         case Opcode::OP_METHOD:
@@ -106,7 +105,7 @@ public:
         {
             auto constant = chunk.bytecode_[offset + 1];
             auto argCount = chunk.bytecode_[offset + 2];
-            std::cout << "  " << instruction << "(args: " << int(argCount) << ") [" << constant << "] " << chunk.constants_[constant] << std::endl;
+            std::cout << "  " << Opcode(instruction) << "(args: " << int(argCount) << ") [" << int(constant) << "] " << chunk.constants_[constant] << std::endl;
             return offset + 3;
         }
         default:

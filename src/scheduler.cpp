@@ -9,15 +9,7 @@ void Scheduler::addObjCoroutine(ObjCoroutine *coroutine)
 
 InterpretResult Scheduler::runNextObjCoroutine()
 {
-    ObjCoroutine *front = nullptr;
-    while (!coroutines_.empty())
-    {
-        front = coroutines_.front();
-        coroutines_.pop_front();
-        if (front->status_ != CoroutineStatus::FINISHED)
-            break;
-    }
-    return resumeCoroutine(front);
+    return resumeCoroutine(main_coroutine);
 }
 
 void Scheduler::yieldCurrentObjCoroutine()

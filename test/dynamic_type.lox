@@ -1,0 +1,9 @@
+var type = 1;
+type = "123";
+type = [1, 2, 3];
+print type;
+fun a() {
+    return 1;
+}
+type = a;
+print a;

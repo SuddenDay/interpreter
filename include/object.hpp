@@ -16,7 +16,6 @@ struct Obj;
 struct CallFrame {
     ObjClosure* closure_ = nullptr;
     uint8_t ip_ = 0;
-    // Value* slots_ = nullptr;
     int slot_ = 0;
 
     uint8_t read_byte();
@@ -152,6 +151,7 @@ enum class CoroutineStatus { RUNNING, SUSPENDED, FINISHED };
 
 struct ObjCoroutine : public Obj
 {
+	const int default_init = 20;
 	ObjClosure* closure_;
 	std::vector<Value> stack_;
 	std::vector<CallFrame> frames_;
@@ -162,7 +162,7 @@ struct ObjCoroutine : public Obj
 	std::vector<Value> arguments_;
 	bool is_main_ = false;
 	ObjCoroutine(ObjClosure *closure, const std::vector<Value>& arguments = {});
-
+	ObjCoroutine() : stack_(default_init), top_(0) {}
 };
 
 std::ostream &operator<<(std::ostream &os, const ObjCoroutine& co);

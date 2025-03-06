@@ -109,8 +109,8 @@ struct Complication
     bool check(TokenType type);
     bool match(TokenType type);
     void declaration();
-    void define_variable(uint8_t global);
-    void declare_variable();
+    void define_global(uint8_t global);
+    void declare_local();
     void class_declaration();
     void fun_declaration();
     void add_local(Token name);
