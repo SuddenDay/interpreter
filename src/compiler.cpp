@@ -132,7 +132,7 @@ void Complication::parse_precedence(Precedence precedence)
         parser_->error("No suitable prefixRule for " + std::string(parser_->previous_.string));
         return;
     }
-    bool canAssign = precedence <= PREC_ASSIGNMENT;
+    bool canAssign = (precedence <= PREC_ASSIGNMENT);
     prefixRule(*this, canAssign);
     while (precedence <= get_rule_.at(parser_->current_.type).precedence_)
     {
@@ -141,7 +141,8 @@ void Complication::parse_precedence(Precedence precedence)
         infixRule(*this, canAssign);
     }
     if (canAssign && match(TOKEN_EQUAL)) // to detect a * b = c * d gramma error
-        parser_->error("Can't be assigned.");
+        parser_->error("Can't be assigned."); // * + - / ... operator must be consumed in while(precedemc < = ..) { infix ... }
+    // var a = b = 2; in name_variable() equal is consumed by calling expression()
 }
 
 void Complication::resume()
@@ -342,7 +343,7 @@ void Complication::super_(bool assign)
     consume(TOKEN_DOT, "Expect '.' after 'super'.");
     consume(TOKEN_IDENTIFIER, "Expect superclass method name.");
     uint8_t name = identifier_constant(parser_->previous_);
-    name_variable(syntehtic_token("this"), false);
+    name_variable(syntehtic_token("this"), false); 
     if (match(TOKEN_LEFT_PAREN))
     {
         uint8_t argCount = argument_list();
@@ -766,7 +767,7 @@ int Complication::add_upvalue(const std::unique_ptr<Compiler> &compiler, int ind
 uint8_t Complication::parse_variable(const std::string_view &message)
 {
     consume(TOKEN_IDENTIFIER, message);
-    declare_local();             // this function define local
+    declare_local();                // this function define local
     if (current_->scope_depth_ > 0) // below is global
         return 0;                   // global's value need to be writen into chunk
     return identifier_constant(parser_->previous_);
@@ -849,9 +850,9 @@ void Complication::class_declaration()
     Token className = parser_->previous_;
     uint8_t nameConstant = identifier_constant(parser_->previous_);
 
-    declare_local(); // register if it is local varibale
+    declare_local();                    // register if it is local varibale
     emit_bytes(OP_CLASS, nameConstant); // when execute this will push objclass
-    define_global(nameConstant); // register if it is global
+    define_global(nameConstant);        // register if it is global
 
     auto classCompiler = std::make_unique<ClassCompiler>();
     classCompiler->enclosing_ = std::move(current_class_);
@@ -874,7 +875,7 @@ void Complication::class_declaration()
 
         name_variable(className, false); // get father push objclass
 
-        emit_byte(OP_INHERIT);           // three opcode is for vm to create inherit realtion
+        emit_byte(OP_INHERIT); // three opcode is for vm to create inherit realtion
         current_class_->has_super_class_ = true;
     }
 
@@ -908,7 +909,8 @@ void Complication::function_expr(bool assign)
 
 void Complication::function(FunctionType type)
 {
-    init_compiler(type);
+    init_compiler(type); // for class's this, this's layer depth is higher than method's,
+                        // and for class scope, this layer is created for class definition
     begin_scope(); // otherwise function's var will be global
     // function's local is about init_compiler <-> end_compiler
     // normal { var a = 1; { var b = 2; }} is about begin_scope <-> end_scope
@@ -929,7 +931,8 @@ void Complication::function(FunctionType type)
     consume(TOKEN_LEFT_BRACE, "Expect '{' before function body.");
     block();
 
-    auto [function, done] = end_compiler();
+    auto [function, done] = end_compiler(); // 当函数编译结束，调用 end_compiler()，就会结束并销毁整个子编译器，把“当前编译器”切回到它的“父编译器（enclosing_）”。
+    // 这样一来，函数内部的所有局部变量也随同子编译器销毁而结束。这等效于“函数级的作用域”结束，不需要再调用一个专门的 end_scope()。
 
     emit_bytes(OP_CLOSURE, make_constant(function));
     for (int i = 0; i < function->upvalue_count_; i++)
@@ -998,6 +1001,21 @@ Token Complication::syntehtic_token(const std::string_view text)
     return token;
 }
 
+void Complication::end_scope()
+{
+    current_->scope_depth_--;
+    while (current_->local_count_ > 0 &&
+           current_->locals_[current_->local_count_ - 1].depth_ >
+               current_->scope_depth_)
+    {
+        if (current_->locals_[current_->local_count_ - 1].is_captured_)
+            emit_byte(OP_CLOSE_UPVALUE);
+        else
+            emit_byte(OP_POP);
+        current_->local_count_--;
+    }
+}
+
 void Complication::write_chunk(uint8_t op, int line)
 {
     current_chunk()->bytecode_.push_back(op);
@@ -1023,7 +1041,7 @@ void Complication::emit_return()
 {
     if (current_->type_ == TYPE_INITIALIZER)
         emit_bytes(OP_GET_LOCAL, 0); // 这行指令会把本地变量槽 0（也就是 this）加载到栈顶作为返回值。
-        // 因为在 Lox 的实现中，方法的本地变量槽 0 始终绑定着 this。
+    // 因为在 Lox 的实现中，方法的本地变量槽 0 始终绑定着 this。
     else
         emit_byte(OP_NIL);
     emit_byte(Opcode::OP_RETURN);

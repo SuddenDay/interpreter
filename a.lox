@@ -1,0 +1,13 @@
+fun a () {
+  fun b() {
+  class A {
+    method() {
+      print "A is here";
+    }
+  }
+    return A;
+  }
+  return b;
+}
+
+var x = a();

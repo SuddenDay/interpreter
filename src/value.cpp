@@ -66,6 +66,9 @@ template auto Value::as_obj<ObjJson>() const -> typename std::enable_if_t<std::i
 template auto Value::is_obj_type<ObjCoroutine>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjCoroutine> && !std::is_same_v<Obj, ObjCoroutine>, bool>;
 template auto Value::as_obj<ObjCoroutine>() const -> typename std::enable_if_t<std::is_base_of_v<Obj, ObjCoroutine> && !std::is_same_v<Obj, ObjCoroutine>, ObjCoroutine *>;
 
+// is_obj_type 实例化了所有Obj类那么调用的objtype_of类似的也是实例化过了
+// as_obj 与 nameof 之间的关系同理
+
 template <typename U>
 auto Value::is_obj_type() const -> typename std::enable_if_t<std::is_base_of_v<Obj, U> && !std::is_same_v<Obj, U>, bool>
 {

@@ -127,20 +127,8 @@ struct Complication
         current_->scope_depth_++;
     }
 
-    void end_scope()
-    {
-        current_->scope_depth_--;
-        while (current_->local_count_ > 0 &&
-               current_->locals_[current_->local_count_ - 1].depth_ >
-                   current_->scope_depth_)
-        {
-            if (current_->locals_[current_->local_count_ - 1].is_captured_)
-                emit_byte(OP_CLOSE_UPVALUE);
-            else
-                emit_byte(OP_POP);
-            current_->local_count_--;
-        }
-    }
+    void end_scope();
+
 
     Token syntehtic_token(const std::string_view text);
 

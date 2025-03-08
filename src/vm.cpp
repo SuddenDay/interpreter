@@ -45,12 +45,14 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
         {
             auto bound = callee.as_obj<ObjBoundMethod>();
             current_coroutine_->stack_[current_coroutine_->top_ - argCount - 1] = bound->receiver_;
+            // 覆盖掉的类似是 <method <fn "eggs">> 
             return call(bound->method_, argCount);
         }
         case ObjType::Class:
         {
             auto klass = callee.as_obj<ObjClass>();
             current_coroutine_->stack_.at(current_coroutine_->top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass); // Objinstance 覆盖掉 Objclass
+            // 覆盖掉 <class a>
             Value initializer;
             if (klass->methods_.find(init_string_) != klass->methods_.end())
             {
@@ -99,7 +101,7 @@ bool VM::call(ObjClosure *closure, int argCount)
     CallFrame &frame = current_coroutine_->frames_[current_coroutine_->frame_count_++];
     frame.closure_ = closure;
     frame.ip_ = 0;
-    frame.slot_ = current_coroutine_->top_ - argCount - 1; // 指向可调用obj的位置前一个（省的pop，直接覆盖掉）
+    frame.slot_ = current_coroutine_->top_ - argCount - 1; // 指向可调用obj的位置（省的pop，直接覆盖掉）
                                                            // 期望返回值放在此处
     return true;
 }
