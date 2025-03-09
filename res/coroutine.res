@@ -1,10 +1,110 @@
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
+allocate: 136
+allocate: 80
+allocate: 31
+allocate: 40
+allocate: 16
+allocate: 80
+allocate: 40
+allocate: 32
 === "a"===
+allocate: 32
+allocate: 80
+allocate: 40
+allocate: 64
+allocate: 80
+allocate: 40
+allocate: 128
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 256
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 512
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 136
+allocate: 16
+allocate: 32
+allocate: 80
+allocate: 40
+allocate: 64
+allocate: 80
+allocate: 40
 === "worker"===
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 1024
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 31
+allocate: 40
+allocate: 80
+allocate: 31
+allocate: 40
+allocate: 80
+allocate: 40
 === <script> ===
+allocate: 80
+allocate: 160
            stackframe: [ <closure <script>> ]
 0000   OP_CLOSURE [1] <fn "a">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "a">> ]
 0002   OP_DEFINE_GLOBAL [0] "a"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0004   OP_GET_GLOBAL [3] "a"
            stackframe: [ <closure <script>> ][ <closure <fn "a">> ]
@@ -13,8 +113,10 @@
 0008   OP_CONSTANT [5] "first is here"
            stackframe: [ <closure <script>> ][ <closure <fn "a">> ][ "Co1" ][ "first is here" ]
 0010   OP_CREATE_COROUTINE
+allocate: 160
            stackframe: [ <closure <script>> ][ <coroutine <closure <fn "a">>> ]
 0012   OP_DEFINE_GLOBAL [2] "co1"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0014   OP_GET_GLOBAL [7] "a"
            stackframe: [ <closure <script>> ][ <closure <fn "a">> ]
@@ -23,8 +125,10 @@
 0018   OP_CONSTANT [9] "second is here"
            stackframe: [ <closure <script>> ][ <closure <fn "a">> ][ "Co2" ][ "second is here" ]
 0020   OP_CREATE_COROUTINE
+allocate: 160
            stackframe: [ <closure <script>> ][ <coroutine <closure <fn "a">>> ]
 0022   OP_DEFINE_GLOBAL [6] "co2"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0024   OP_GET_GLOBAL [10] "co2"
            stackframe: [ <closure <script>> ][ <coroutine <closure <fn "a">>> ]
@@ -141,8 +245,10 @@
 "6"
            stackframe: [ <closure <script>> ]
 0060   OP_CLOSURE [23] <fn "worker">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "worker">> ]
 0062   OP_DEFINE_GLOBAL [22] "worker"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0064   OP_GET_GLOBAL [25] "worker"
            stackframe: [ <closure <script>> ][ <closure <fn "worker">> ]
@@ -151,8 +257,10 @@
 0068   OP_CONSTANT [27] 3
            stackframe: [ <closure <script>> ][ <closure <fn "worker">> ][ "Worker A" ][ 3 ]
 0070   OP_CREATE_COROUTINE
+allocate: 160
            stackframe: [ <closure <script>> ][ <coroutine <closure <fn "worker">>> ]
 0072   OP_DEFINE_GLOBAL [24] "w1"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0074   OP_GET_GLOBAL [29] "worker"
            stackframe: [ <closure <script>> ][ <closure <fn "worker">> ]
@@ -161,8 +269,10 @@
 0078   OP_CONSTANT [31] 5
            stackframe: [ <closure <script>> ][ <closure <fn "worker">> ][ "Worker B" ][ 5 ]
 0080   OP_CREATE_COROUTINE
+allocate: 160
            stackframe: [ <closure <script>> ][ <coroutine <closure <fn "worker">>> ]
 0082   OP_DEFINE_GLOBAL [28] "w2"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0084   OP_GET_GLOBAL [33] "worker"
            stackframe: [ <closure <script>> ][ <closure <fn "worker">> ]
@@ -171,8 +281,10 @@
 0088   OP_CONSTANT [35] 2
            stackframe: [ <closure <script>> ][ <closure <fn "worker">> ][ "Worker C" ][ 2 ]
 0090   OP_CREATE_COROUTINE
+allocate: 160
            stackframe: [ <closure <script>> ][ <coroutine <closure <fn "worker">>> ]
 0092   OP_DEFINE_GLOBAL [32] "w3"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0094   OP_CONSTANT [36] "=== Start ==="
            stackframe: [ <closure <script>> ][ "=== Start ===" ]
@@ -204,10 +316,17 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 1 ][ "Worker A" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+allocate: 40
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 1 ][ "Worker A - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 1 ][ "Worker A - step " ][ 1 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 1 ][ "Worker A - step 1" ]
 0034   OP_PRINT
 "Worker A - step 1"
@@ -239,10 +358,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 1 ][ "Worker B" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 1 ][ "Worker B - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 1 ][ "Worker B - step " ][ 1 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 1 ][ "Worker B - step 1" ]
 0034   OP_PRINT
 "Worker B - step 1"
@@ -286,10 +413,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 2 ][ "Worker A" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 2 ][ "Worker A - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 2 ][ "Worker A - step " ][ 2 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 2 ][ "Worker A - step 2" ]
 0034   OP_PRINT
 "Worker A - step 2"
@@ -321,10 +456,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 1 ][ "Worker C" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 1 ][ "Worker C - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 1 ][ "Worker C - step " ][ 1 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 1 ][ "Worker C - step 1" ]
 0034   OP_PRINT
 "Worker C - step 1"
@@ -373,10 +516,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 2 ][ "Worker B" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 2 ][ "Worker B - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 2 ][ "Worker B - step " ][ 2 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 2 ][ "Worker B - step 2" ]
 0034   OP_PRINT
 "Worker B - step 2"
@@ -420,10 +571,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 3 ][ "Worker B" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 3 ][ "Worker B - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 3 ][ "Worker B - step " ][ 3 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 3 ][ "Worker B - step 3" ]
 0034   OP_PRINT
 "Worker B - step 3"
@@ -467,10 +626,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 2 ][ "Worker C" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 2 ][ "Worker C - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 2 ][ "Worker C - step " ][ 2 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker C" ][ 2 ][ 2 ][ "Worker C - step 2" ]
 0034   OP_PRINT
 "Worker C - step 2"
@@ -519,10 +686,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 3 ][ "Worker A" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 3 ][ "Worker A - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 3 ][ "Worker A - step " ][ 3 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker A" ][ 3 ][ 3 ][ "Worker A - step 3" ]
 0034   OP_PRINT
 "Worker A - step 3"
@@ -566,6 +741,10 @@
 0043   OP_CONSTANT [3] " - finished!"
            stackframe: [ nil ][ "Worker A" ][ 3 ][ "Worker A" ][ " - finished!" ]
 0045   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker A" ][ 3 ][ "Worker A - finished!" ]
 0046   OP_PRINT
 "Worker A - finished!"
@@ -611,10 +790,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 4 ][ "Worker B" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 4 ][ "Worker B - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 4 ][ "Worker B - step " ][ 4 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 4 ][ "Worker B - step 4" ]
 0034   OP_PRINT
 "Worker B - step 4"
@@ -658,10 +845,18 @@
 0028   OP_CONSTANT [2] " - step "
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 5 ][ "Worker B" ][ " - step " ]
 0030   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 5 ][ "Worker B - step " ]
 0031   OP_GET_LOCAL [3] 
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 5 ][ "Worker B - step " ][ 5 ]
 0033   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ 5 ][ "Worker B - step 5" ]
 0034   OP_PRINT
 "Worker B - step 5"
@@ -705,6 +900,10 @@
 0043   OP_CONSTANT [3] " - finished!"
            stackframe: [ nil ][ "Worker B" ][ 5 ][ "Worker B" ][ " - finished!" ]
 0045   OP_ADD
+allocate: 80
+allocate: 31
+gc collect 151 bytes
+allocate: 40
            stackframe: [ nil ][ "Worker B" ][ 5 ][ "Worker B - finished!" ]
 0046   OP_PRINT
 "Worker B - finished!"

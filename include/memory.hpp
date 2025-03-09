@@ -65,7 +65,7 @@ struct GC
 private:
 	void mark_roots();
 	void mark_array(const std::vector<Value, Allocator<Value>> &array);
-	void mark_compiler_roots();
+	// void mark_compiler_roots();
 	void mark_object(Obj *const ptr);
 	void mark_table(const Table &table);
 	void mark_value(const Value &value);

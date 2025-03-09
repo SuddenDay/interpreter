@@ -16,7 +16,7 @@ void GC::collect()
 	trace_references();
 	remove_white_string();
 	sweep();
-#ifdef DEBUG_MODE
+#ifdef STRESS_TEST
 	if (before - bytes_allocated_ != 0)
 		std::cout << "gc collect " << before - bytes_allocated_ << " bytes" << std::endl;
 #endif
@@ -30,7 +30,7 @@ void GC::mark_roots()
 		mark_value(vm_.current_coroutine_->stack_[slot]);
 
 	for (int i = 0; i < vm_.current_coroutine_->frame_count_; i++)
-		mark_object(std::remove_const_t<ObjClosure *>(vm_.current_coroutine_->frames_.at(i).closure_));
+		mark_object(vm_.current_coroutine_->frames_.at(i).closure_);
 
 	for (auto upvalue = vm_.open_upvalues_; upvalue != nullptr; upvalue = upvalue->next_)
 		mark_object(upvalue);
@@ -41,7 +41,7 @@ void GC::mark_roots()
 			mark_object(co);
 
 	mark_table(vm_.globals_);
-	mark_compiler_roots();
+	// mark_compiler_roots();
 	mark_object(vm_.init_string_);
 }
 
@@ -51,15 +51,15 @@ void GC::mark_array(const std::vector<Value, Allocator<Value>> &array)
 		mark_value(value);
 }
 
-void GC::mark_compiler_roots()
-{
-	auto compiler = vm_.cu_.current_.get();
-	while (compiler != nullptr)
-	{
-		mark_object(compiler->function_);
-		compiler = compiler->enclosing_.get();
-	}
-}
+// void GC::mark_compiler_roots() // in running coroutine, we don't expect gc in compiling 
+// {
+// 	auto compiler = vm_.cu_.current_.get();
+// 	while (compiler != nullptr)
+// 	{
+// 		mark_object(compiler->function_);
+// 		compiler = compiler->enclosing_.get();
+// 	}
+// }
 
 void GC::mark_object(Obj *const ptr)
 {
@@ -169,7 +169,7 @@ void GC::blacken_object(Obj *ptr)
 			for (auto &arg : coPtr->arguments_)
 				mark_value(arg);
 			for (int i = 0; i < coPtr->frame_count_; i++)
-				mark_object(std::remove_const_t<ObjClosure *>(coPtr->frames_.at(i).closure_));
+				mark_object(coPtr->frames_.at(i).closure_);
 		}
 		break;
 	}

@@ -1,13 +1,8 @@
-fun a () {
-  fun b() {
-  class A {
-    method() {
-      print "A is here";
-    }
+{
+  fun x() {
+    var a = "1";
+    var b = "3";
   }
-    return A;
-  }
-  return b;
 }
+print 1 + "2";
 
-var x = a();

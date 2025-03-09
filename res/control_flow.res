@@ -1,8 +1,53 @@
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
+allocate: 32
+allocate: 64
+allocate: 128
+allocate: 256
+allocate: 80
+allocate: 40
+allocate: 512
+allocate: 1024
+allocate: 80
+allocate: 31
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 31
+allocate: 40
 === <script> ===
+allocate: 80
+allocate: 160
            stackframe: [ <closure <script>> ]
 0000   OP_CONSTANT [1] 0
            stackframe: [ <closure <script>> ][ 0 ]
 0002   OP_DEFINE_GLOBAL [0] "sum"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0004   OP_CONSTANT [2] 0
            stackframe: [ <closure <script>> ][ 0 ]
@@ -738,6 +783,7 @@
 0128   OP_CONSTANT [16] 0
            stackframe: [ <closure <script>> ][ 0 ]
 0130   OP_DEFINE_GLOBAL [15] "k"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0132   OP_GET_GLOBAL [17] "k"
            stackframe: [ <closure <script>> ][ 0 ]

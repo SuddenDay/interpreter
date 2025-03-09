@@ -1,37 +1,110 @@
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
+allocate: 32
+allocate: 64
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
 === "init"===
+allocate: 80
+allocate: 40
+allocate: 128
+allocate: 136
+allocate: 16
+allocate: 80
+allocate: 40
+allocate: 32
 === "speak"===
+allocate: 80
+allocate: 40
+allocate: 256
+allocate: 136
+allocate: 16
+allocate: 32
+allocate: 80
+allocate: 40
+allocate: 64
 === "speak"===
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 512
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
 === <script> ===
+allocate: 80
+allocate: 160
            stackframe: [ <closure <script>> ]
 0000   OP_CLASS [0] "Animal"
+allocate: 104
            stackframe: [ <closure <script>> ][ <class "Animal"> ]
 0002   OP_DEFINE_GLOBAL [0] "Animal"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0004   OP_GET_GLOBAL [1] "Animal"
            stackframe: [ <closure <script>> ][ <class "Animal"> ]
 0006   OP_CLOSURE [3] <fn "init">
+allocate: 80
            stackframe: [ <closure <script>> ][ <class "Animal"> ][ <closure <fn "init">> ]
 0008   OP_METHOD [2] "init"
+allocate: 56
            stackframe: [ <closure <script>> ][ <class "Animal"> ]
 0010   OP_CLOSURE [5] <fn "speak">
+allocate: 80
            stackframe: [ <closure <script>> ][ <class "Animal"> ][ <closure <fn "speak">> ]
 0012   OP_METHOD [4] "speak"
+allocate: 56
            stackframe: [ <closure <script>> ][ <class "Animal"> ]
 0014   OP_POP
            stackframe: [ <closure <script>> ]
 0015   OP_CLASS [6] "Dog"
+allocate: 104
            stackframe: [ <closure <script>> ][ <class "Dog"> ]
 0017   OP_DEFINE_GLOBAL [6] "Dog"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0019   OP_GET_GLOBAL [7] "Animal"
            stackframe: [ <closure <script>> ][ <class "Animal"> ]
 0021   OP_GET_GLOBAL [8] "Dog"
            stackframe: [ <closure <script>> ][ <class "Animal"> ][ <class "Dog"> ]
 0023   OP_INHERIT
+allocate: 56
+allocate: 56
            stackframe: [ <closure <script>> ][ <class "Animal"> ]
 0024   OP_GET_GLOBAL [9] "Dog"
            stackframe: [ <closure <script>> ][ <class "Animal"> ][ <class "Dog"> ]
 0026   OP_CLOSURE [11] <fn "speak">
+allocate: 80
+allocate: 8
+allocate: 80
            stackframe: [ <closure <script>> ][ <class "Animal"> ][ <class "Dog"> ][ <closure <fn "speak">> ]
 0030   OP_METHOD [10] "speak"
            stackframe: [ <closure <script>> ][ <class "Animal"> ][ <class "Dog"> ]
@@ -44,12 +117,14 @@
 0036   OP_CONSTANT [14] "Generic Animal"
            stackframe: [ <closure <script>> ][ <class "Animal"> ][ "Generic Animal" ]
 0038   OP_CALL [1] 
+allocate: 104
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ][ "Generic Animal" ]
 0000   OP_GET_LOCAL [0] 
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ][ "Generic Animal" ][ <instance <class "Animal">> ]
 0002   OP_GET_LOCAL [1] 
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ][ "Generic Animal" ][ <instance <class "Animal">> ][ "Generic Animal" ]
 0004   OP_SET_PROPERTY [0] "name"
+allocate: 56
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ][ "Generic Animal" ][ "Generic Animal" ]
 0006   OP_POP
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ][ "Generic Animal" ]
@@ -58,6 +133,7 @@
 0009   OP_RETURN
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ]
 0040   OP_DEFINE_GLOBAL [12] "animal"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0042   OP_GET_GLOBAL [15] "animal"
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ]
@@ -70,6 +146,9 @@
 0004   OP_CONSTANT [1] " makes a sound."
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ][ "Generic Animal" ][ " makes a sound." ]
 0006   OP_ADD
+allocate: 80
+allocate: 31
+allocate: 40
            stackframe: [ <closure <script>> ][ <instance <class "Animal">> ][ "Generic Animal makes a sound." ]
 0007   OP_PRINT
 "Generic Animal makes a sound."
@@ -85,12 +164,15 @@
 0050   OP_CONSTANT [19] "Buddy"
            stackframe: [ <closure <script>> ][ <class "Dog"> ][ "Buddy" ]
 0052   OP_CALL [1] 
+allocate: 104
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ "Buddy" ]
 0000   OP_GET_LOCAL [0] 
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ "Buddy" ][ <instance <class "Dog">> ]
 0002   OP_GET_LOCAL [1] 
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ "Buddy" ][ <instance <class "Dog">> ][ "Buddy" ]
 0004   OP_SET_PROPERTY [0] "name"
+allocate: 56
+gc collect 151 bytes
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ "Buddy" ][ "Buddy" ]
 0006   OP_POP
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ "Buddy" ]
@@ -99,6 +181,7 @@
 0009   OP_RETURN
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ]
 0054   OP_DEFINE_GLOBAL [17] "dog"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0056   OP_GET_GLOBAL [20] "dog"
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ]
@@ -117,6 +200,9 @@
 0004   OP_CONSTANT [1] " makes a sound."
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ <instance <class "Dog">> ][ "Buddy" ][ " makes a sound." ]
 0006   OP_ADD
+allocate: 80
+allocate: 31
+allocate: 40
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ <instance <class "Dog">> ][ "Buddy makes a sound." ]
 0007   OP_PRINT
 "Buddy makes a sound."
@@ -134,6 +220,9 @@
 0012   OP_CONSTANT [2] " barks."
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ "Buddy" ][ " barks." ]
 0014   OP_ADD
+allocate: 80
+allocate: 40
+gc collect 151 bytes
            stackframe: [ <closure <script>> ][ <instance <class "Dog">> ][ "Buddy barks." ]
 0015   OP_PRINT
 "Buddy barks."

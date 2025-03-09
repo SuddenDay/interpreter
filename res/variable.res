@@ -1,6 +1,60 @@
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
+allocate: 80
+allocate: 40
+allocate: 32
+allocate: 80
+allocate: 40
+allocate: 64
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
 === "showVariable"===
+allocate: 128
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 256
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
 === "showGreeting"===
 === <script> ===
+allocate: 80
+allocate: 160
            stackframe: [ <closure <script>> ]
 0000   OP_CONSTANT [0] "outer"
            stackframe: [ <closure <script>> ][ "outer" ]
@@ -16,12 +70,15 @@
 0008   OP_POP
            stackframe: [ <closure <script>> ]
 0009   OP_CLOSURE [3] <fn "showVariable">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "showVariable">> ]
 0011   OP_DEFINE_GLOBAL [2] "showVariable"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0013   OP_CONSTANT [5] "after"
            stackframe: [ <closure <script>> ][ "after" ]
 0015   OP_DEFINE_GLOBAL [4] "global"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0017   OP_GET_GLOBAL [6] "showVariable"
            stackframe: [ <closure <script>> ][ <closure <fn "showVariable">> ]
@@ -41,6 +98,7 @@
 0022   OP_CONSTANT [8] "Global Hello"
            stackframe: [ <closure <script>> ][ "Global Hello" ]
 0024   OP_DEFINE_GLOBAL [7] "greeting"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0026   OP_GET_GLOBAL [9] "greeting"
            stackframe: [ <closure <script>> ][ "Global Hello" ]
@@ -62,8 +120,10 @@
 "Global Hello"
            stackframe: [ <closure <script>> ]
 0038   OP_CLOSURE [13] <fn "showGreeting">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "showGreeting">> ]
 0040   OP_DEFINE_GLOBAL [12] "showGreeting"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0042   OP_GET_GLOBAL [14] "showGreeting"
            stackframe: [ <closure <script>> ][ <closure <fn "showGreeting">> ]

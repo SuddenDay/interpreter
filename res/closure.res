@@ -1,12 +1,66 @@
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
+allocate: 136
+allocate: 136
+allocate: 80
+allocate: 40
 === "closure"===
+allocate: 16
 === "makeClosure"===
+allocate: 32
+allocate: 80
+allocate: 40
+allocate: 64
+allocate: 128
+allocate: 80
+allocate: 40
+allocate: 256
+allocate: 80
+allocate: 40
+allocate: 136
+allocate: 16
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
 === "counter"===
+allocate: 32
 === "makeCounter"===
+allocate: 80
+allocate: 40
 === <script> ===
+allocate: 80
+allocate: 160
            stackframe: [ <closure <script>> ]
 0000   OP_CLOSURE [1] <fn "makeClosure">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ]
 0002   OP_DEFINE_GLOBAL [0] "makeClosure"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0004   OP_GET_GLOBAL [3] "makeClosure"
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ]
@@ -15,12 +69,16 @@
 0008   OP_CALL [1] 
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ][ "doughnut" ]
 0000   OP_CLOSURE [0] <fn "closure">
+allocate: 80
+allocate: 8
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ][ "doughnut" ][ <closure <fn "closure">> ]
 0004   OP_GET_LOCAL [2] 
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ][ "doughnut" ][ <closure <fn "closure">> ][ <closure <fn "closure">> ]
 0006   OP_RETURN
            stackframe: [ <closure <script>> ][ <closure <fn "closure">> ]
 0010   OP_DEFINE_GLOBAL [2] "doughnut"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0012   OP_GET_GLOBAL [6] "makeClosure"
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ]
@@ -29,12 +87,16 @@
 0016   OP_CALL [1] 
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ][ "bagel" ]
 0000   OP_CLOSURE [0] <fn "closure">
+allocate: 80
+allocate: 8
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ][ "bagel" ][ <closure <fn "closure">> ]
 0004   OP_GET_LOCAL [2] 
            stackframe: [ <closure <script>> ][ <closure <fn "makeClosure">> ][ "bagel" ][ <closure <fn "closure">> ][ <closure <fn "closure">> ]
 0006   OP_RETURN
            stackframe: [ <closure <script>> ][ <closure <fn "closure">> ]
 0018   OP_DEFINE_GLOBAL [5] "bagel"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0020   OP_GET_GLOBAL [8] "doughnut"
            stackframe: [ <closure <script>> ][ <closure <fn "closure">> ]
@@ -67,8 +129,10 @@
 0029   OP_POP
            stackframe: [ <closure <script>> ]
 0030   OP_CLOSURE [11] <fn "makeCounter">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "makeCounter">> ]
 0032   OP_DEFINE_GLOBAL [10] "makeCounter"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0034   OP_GET_GLOBAL [13] "makeCounter"
            stackframe: [ <closure <script>> ][ <closure <fn "makeCounter">> ]
@@ -77,12 +141,16 @@
 0000   OP_CONSTANT [0] 0
            stackframe: [ <closure <script>> ][ <closure <fn "makeCounter">> ][ 0 ]
 0002   OP_CLOSURE [1] <fn "counter">
+allocate: 80
+allocate: 8
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "makeCounter">> ][ 0 ][ <closure <fn "counter">> ]
 0006   OP_GET_LOCAL [2] 
            stackframe: [ <closure <script>> ][ <closure <fn "makeCounter">> ][ 0 ][ <closure <fn "counter">> ][ <closure <fn "counter">> ]
 0008   OP_RETURN
            stackframe: [ <closure <script>> ][ <closure <fn "counter">> ]
 0038   OP_DEFINE_GLOBAL [12] "counterA"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0040   OP_GET_GLOBAL [14] "counterA"
            stackframe: [ <closure <script>> ][ <closure <fn "counter">> ]

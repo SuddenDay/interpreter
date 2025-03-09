@@ -1,11 +1,61 @@
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
+allocate: 136
 === "multiply"===
+allocate: 32
+allocate: 64
+allocate: 128
+allocate: 80
+allocate: 40
+allocate: 136
+allocate: 16
+allocate: 32
+allocate: 64
+allocate: 128
 === "fib"===
+allocate: 256
+allocate: 80
+allocate: 40
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 16
 === "fun"===
 === <script> ===
+allocate: 80
+allocate: 160
            stackframe: [ <closure <script>> ]
 0000   OP_CLOSURE [1] <fn "multiply">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "multiply">> ]
 0002   OP_DEFINE_GLOBAL [0] "multiply"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0004   OP_GET_GLOBAL [2] "multiply"
            stackframe: [ <closure <script>> ][ <closure <fn "multiply">> ]
@@ -27,8 +77,10 @@
 12
            stackframe: [ <closure <script>> ]
 0013   OP_CLOSURE [6] <fn "fib">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "fib">> ]
 0015   OP_DEFINE_GLOBAL [5] "fib"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0017   OP_GET_GLOBAL [7] "fib"
            stackframe: [ <closure <script>> ][ <closure <fn "fib">> ]
@@ -4278,8 +4330,10 @@
 55
            stackframe: [ <closure <script>> ]
 0024   OP_CLOSURE [10] <fn "fun">
+allocate: 80
            stackframe: [ <closure <script>> ][ <closure <fn "fun">> ]
 0026   OP_DEFINE_GLOBAL [9] "lambda"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0028   OP_GET_GLOBAL [11] "lambda"
            stackframe: [ <closure <script>> ][ <closure <fn "fun">> ]

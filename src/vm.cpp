@@ -409,8 +409,6 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_CONTINUE:
         case OP_BREAK:
         {
-            // int offset = Util::get_next_loop(frame->closure->function->chunk, frame->ip);
-            // frame->ip += offset;
             int is_break = (instruction == OP_BREAK);
             int offset = frame->read_short();
             frame->ip_ = offset + is_break;

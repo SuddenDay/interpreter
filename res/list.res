@@ -1,4 +1,38 @@
+allocate: 80
+allocate: 40
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 80
+allocate: 40
+allocate: 96
+allocate: 56
+allocate: 136
+allocate: 80
+allocate: 40
+allocate: 16
+allocate: 32
+allocate: 64
+allocate: 128
+allocate: 256
+allocate: 512
+allocate: 1024
 === <script> ===
+allocate: 80
+allocate: 160
            stackframe: [ <closure <script>> ]
 0000   OP_CONSTANT [1] 1
            stackframe: [ <closure <script>> ][ 1 ]
@@ -9,8 +43,11 @@
 0006   OP_CONSTANT [4] 4
            stackframe: [ <closure <script>> ][ 1 ][ 2 ][ 3 ][ 4 ]
 0008   OP_ARRAY size: 4
+allocate: 72
+allocate: 64
            stackframe: [ <closure <script>> ][ [1, 2, 3, 4] ]
 0010   OP_DEFINE_GLOBAL [0] "list"
+allocate: 56
            stackframe: [ <closure <script>> ]
 0012   OP_GET_GLOBAL [5] "list"
            stackframe: [ <closure <script>> ][ [1, 2, 3, 4] ]
@@ -49,6 +86,7 @@
 0038   OP_CONSTANT [15] 5
            stackframe: [ <closure <script>> ][ <native insert> ][ [2, 2, 3, 4] ][ 0 ][ 5 ]
 0040   OP_CALL [3] 
+allocate: 128
            stackframe: [ <closure <script>> ][ nil ]
 0042   OP_POP
            stackframe: [ <closure <script>> ]
@@ -79,6 +117,8 @@
 0062   OP_CONSTANT [23] 2
            stackframe: [ <closure <script>> ][ [5, 2, 2, 3] ][ 0 ][ 1 ][ 2 ]
 0064   OP_ARRAY size: 2
+allocate: 72
+allocate: 32
            stackframe: [ <closure <script>> ][ [5, 2, 2, 3] ][ 0 ][ [1, 2] ]
 0066   OP_SET_ELEMENT
            stackframe: [ <closure <script>> ][ [1, 2] ]

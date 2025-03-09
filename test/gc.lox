@@ -1,0 +1,103 @@
+// 示例1：短命对象
+var i = 0;
+while (i < 10) {
+  // 每次循环都生成一个新的字符串对象
+  var s = "Hello " + i;
+  // 这里 s 在下一轮循环或循环结束后失去引用，可以被 GC 回收
+  i = i + 1;
+}
+
+print "Done creating short-lived objects!";
+
+// 示例2：函数作用域内创建大量对象
+fun createLargeList(size) {
+  var largeList = [];
+  for (var i = 0; i < size; i = i + 1) {
+    // 每个数字元素其实也会封装为 Lox Value 对象
+    push(largeList, i);
+  }
+}
+
+createLargeList(10);
+print "end " + "scope.";
+
+// 示例3：闭包和 Upvalue
+fun makeCounter() {
+  var count = 0;
+  fun counter() {
+    count = count + 1;
+    return count;
+  }
+  return counter;
+}
+
+// 创建一个计数器函数，它会捕获局部变量 count
+var c = makeCounter();
+
+print c(); // 1
+print c(); // 2
+
+// 当我们把 c 也改成别的值（或让它离开作用域）时，
+// 原先的闭包和其中捕获的 count 就不可达了。
+c = nil;
+
+// 此时闭包（ObjClosure）和 Upvalue 也都不再被引用，将被 GC 回收
+print "c now is " + "collectible.";
+
+// 示例4：类与实例
+class Person {
+  init(name) {
+    this.name = name;
+  }
+
+  greet() {
+    print "Hello, I'm " + this.name;
+  }
+}
+
+// 创建一批 Person 实例，每个实例都占用一定的内存
+var people = [];
+for (var i = 0; i < 10; i = i + 1) {
+  push(people, Person("Person #" + i));
+}
+
+// 释放对这些实例的引用
+people = nil;
+
+// Person 实例和它们的 name（字符串）都不再可达，可以被 GC 回收
+print "People" + "can be collected now.";
+
+// 示例5: 协程回收
+fun memoryConsumer() {
+    print "Creating a big list...";
+    var bigList = [];
+    for (var i = 0; i < 10; i = i + 1) {
+        // 每次循环都创建新的字符串对象
+        push(bigList, "Item " + i);
+    }
+
+    // 此时 bigList 还被引用，不可回收
+    print "Yield with bigList in memory.";
+    yield;
+
+    // 放弃引用，bigList 后续可被 GC
+    bigList = nil;
+    print "Yield after dropping bigList reference.";
+    yield;
+
+    print "memoryConsumer done.";
+}
+
+var co = coroutine memoryConsumer();
+
+// 第一次唤醒：创建大列表并 yield
+resume co;
+print "Main: after first resume.";
+
+// 第二次唤醒：解除 bigList 引用并再次 yield
+resume co;
+print "Main: after second resume.";
+
+// 第三次唤醒：协程结束，bigList 已彻底不可达，可被 GC
+resume co;
+print "Main:" + "done.";
