@@ -5,7 +5,19 @@
 #include "common.hpp"
 #include "vm.hpp"
 
-constexpr auto GC_HEAP_GROW_FACTOR = 2;
+constexpr auto GC_HEAP_GROW_FACTOR = 2L;
+
+bool StringCompare::operator()(const ObjString* a, const ObjString* b) const noexcept {
+    return a->text() < b->text();
+}
+
+bool StringCompare::operator()(const ObjString* a, const std::string_view& b) const noexcept {
+    return a->text() < b;
+}
+
+bool StringCompare::operator()(const std::string_view& a, const ObjString* b) const noexcept {
+    return a < b->text();
+}
 
 void GC::collect()
 {
@@ -87,6 +99,15 @@ void GC::mark_table(const Table &table)
 	}
 }
 
+void GC::mark_json(const std::unordered_map<Value, Value, std::hash<Value>, std::equal_to<Value>, Allocator<std::pair<const Value, Value>>> &json)
+{
+	for (const auto &[k, v] : json)
+	{
+		mark_value(k);
+		mark_value(v);
+	}
+}
+
 void GC::trace_references()
 {
 	while (!gray_stack_.empty())
@@ -99,86 +120,7 @@ void GC::trace_references()
 
 void GC::blacken_object(Obj *ptr)
 {
-	switch (ptr->type_)
-	{
-	case ObjType::BoundMethod:
-	{
-		auto bound = static_cast<ObjBoundMethod *>(ptr);
-		mark_value(bound->receiver_);
-		mark_object(bound->method_);
-		break;
-	}
-	case ObjType::Class:
-	{
-		auto objClass = static_cast<ObjClass *>(ptr);
-		mark_object(objClass->name_);
-		mark_table(objClass->methods_);
-		break;
-	}
-	case ObjType::Closure:
-	{
-		auto closure = static_cast<ObjClosure *>(ptr);
-		mark_object(closure->function_);
-		for (auto v : closure->upvalues_)
-			mark_object(v);
-		break;
-	}
-	case ObjType::Function:
-	{
-		auto function = static_cast<ObjFunction *>(ptr);
-		mark_object(function->name_);
-		mark_array(function->chunk_.constants_);
-		break;
-	}
-	case ObjType::Instance:
-	{
-		auto instance = static_cast<ObjInstance *>(ptr);
-		mark_object(instance->objClass_);
-		mark_table(instance->fields_);
-		break;
-	}
-	case ObjType::Upvalue:
-	{
-		mark_value(static_cast<ObjUpvalue *>(ptr)->closed_);
-		break;
-	}
-	case ObjType::Array:
-	{
-		auto arrayPtr = static_cast<ObjArray *>(ptr);
-		mark_array(arrayPtr->values_);
-		break;
-	}
-	case ObjType::Json:
-	{
-		auto jsonPtr = static_cast<ObjJson *>(ptr);
-		for (const auto &[k, v] : jsonPtr->kv_)
-		{
-			mark_value(k);
-			mark_value(v);
-		}
-		break;
-	}
-	case ObjType::Coroutine:
-	{
-		auto coPtr = static_cast<ObjCoroutine *>(ptr);
-		if (coPtr->status_ != CoroutineStatus::FINISHED)
-		{
-			mark_object(coPtr->closure_);
-			for (int i = 0; i < coPtr->top_; i++)
-				mark_value(coPtr->stack_.at(i));
-			for (auto &arg : coPtr->arguments_)
-				mark_value(arg);
-			for (int i = 0; i < coPtr->frame_count_; i++)
-				mark_object(coPtr->frames_.at(i).closure_);
-		}
-		break;
-	}
-	case ObjType::Native:
-	case ObjType::String:
-		break;
-	default:
-		break;
-	}
+	ptr->blacken(*this);
 }
 
 void GC::remove_white_string() noexcept
@@ -223,10 +165,8 @@ void GC::sweep()
 
 ObjString *GC::find_string(const std::string_view &str) const
 {
-	if (auto res = std::find_if(strings_.cbegin(), strings_.cend(),
-								[&str](const auto &it)
-								{ return it->content_ == str; });
-		res != strings_.end())
-		return *res;
-	return nullptr;
+    auto it = strings_.find(str);
+    if (it != strings_.end())
+        return *it;
+    return nullptr;
 }

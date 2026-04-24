@@ -5,10 +5,11 @@
 #include "memory.hpp"
 #include "value.hpp"
 #include "table.hpp"
-#include "compiler.hpp"
 #include "object.hpp"
 #include "scheduler.hpp"
 #include "common.hpp"
+
+struct Compilation;
 
 
 struct GC;
@@ -18,9 +19,6 @@ class VM
 public:
     VM(); 
     InterpretResult run(ObjCoroutine* co);
-
-    template <typename Operator>
-    bool binary_op(Operator op);
    
     void push(Value value);
     void reset_stack();
@@ -46,7 +44,6 @@ public:
 
     InterpretResult interpret(const std::string& source);
 
-    Complication cu_;
     ObjString* init_string_ = nullptr;
     ObjCoroutine* current_coroutine_ = nullptr;
     Table globals_;

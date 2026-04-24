@@ -6,6 +6,7 @@
 #include "object.hpp"
 #include "value.hpp"
 #include "native.hpp"
+#include "compiler.hpp"
 #include <string_view>
 
 #define BINARY_OP(op)                                     \
@@ -21,18 +22,15 @@
         push(a op b);                                     \
     } while (false);
 
-VM::VM() : cu_(*this), globals_(), gc_(*this), scheduler_(*this)
+VM::VM() : globals_(), gc_(*this), scheduler_(*this)
 {
-    AllocBase::init(&gc_);
+    get_default_gc() = &gc_;
     init_string_ = create_obj_string(std::string_view("init"), *this);
-    ObjCoroutine tmpCo; // when define_native we dont have a co so just make it for not be gc
-    current_coroutine_ = &tmpCo;
     define_native("clock", Native::clock);
     define_native("insert", Native::insert);
     define_native("erase", Native::erase);
     define_native("push", Native::push);
     define_native("pop", Native::pop);
-    current_coroutine_ = nullptr;
 }
 
 bool VM::call_value(const Value &callee, uint8_t argCount)
@@ -45,14 +43,14 @@ bool VM::call_value(const Value &callee, uint8_t argCount)
         {
             auto bound = callee.as_obj<ObjBoundMethod>();
             current_coroutine_->stack_[current_coroutine_->top_ - argCount - 1] = bound->receiver_;
-            // 覆盖掉的类似是 <method <fn "eggs">> 
+            // Overwritten by something like <method <fn "eggs">>
             return call(bound->method_, argCount);
         }
         case ObjType::Class:
         {
             auto klass = callee.as_obj<ObjClass>();
-            current_coroutine_->stack_.at(current_coroutine_->top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass); // Objinstance 覆盖掉 Objclass
-            // 覆盖掉 <class a>
+            current_coroutine_->stack_.at(current_coroutine_->top_ - 1 - argCount) = create_obj<ObjInstance>(gc_, klass); // ObjInstance overwrites ObjClass
+            // Overwrite <class a>
             Value initializer;
             if (klass->methods_.find(init_string_) != klass->methods_.end())
             {
@@ -90,7 +88,7 @@ bool VM::call(ObjClosure *closure, int argCount)
 {
     if (argCount != closure->function_->arity_)
     {
-        runtime_error("Expected ", closure->function_->arity_, " arguments but got", argCount);
+        runtime_error("Expected ", closure->function_->arity_, " arguments but got ", argCount);
         return false;
     }
     if (current_coroutine_->frame_count_ >= FRAMES_MAX)
@@ -101,8 +99,8 @@ bool VM::call(ObjClosure *closure, int argCount)
     CallFrame &frame = current_coroutine_->frames_[current_coroutine_->frame_count_++];
     frame.closure_ = closure;
     frame.ip_ = 0;
-    frame.slot_ = current_coroutine_->top_ - argCount - 1; // 指向可调用obj的位置（省的pop，直接覆盖掉）
-                                                           // 期望返回值放在此处
+    frame.slot_ = current_coroutine_->top_ - argCount - 1; // point to the callable obj position (save a pop, just overwrite)
+                                                          // the return value is expected to be placed here
     return true;
 }
 
@@ -140,7 +138,7 @@ bool VM::invoke_from_class(ObjClass *klass, ObjString *name,
 
 ObjUpvalue *VM::capture_upvalue(Value *local)
 {
-    ObjUpvalue *prevUpvalue = NULL;
+    ObjUpvalue *prevUpvalue = nullptr;
     ObjUpvalue *upvalue = open_upvalues_;
     while (upvalue != nullptr && upvalue->location_ > local)
     {
@@ -148,13 +146,13 @@ ObjUpvalue *VM::capture_upvalue(Value *local)
         upvalue = upvalue->next_;
     }
 
-    if (upvalue != NULL && upvalue->location_ == local)
+    if (upvalue != nullptr && upvalue->location_ == local)
         return upvalue;
 
     ObjUpvalue *createdUpvalue = create_obj<ObjUpvalue>(gc_, local);
     createdUpvalue->next_ = upvalue;
 
-    if (prevUpvalue == NULL)
+    if (prevUpvalue == nullptr)
         open_upvalues_ = createdUpvalue;
     else
         prevUpvalue->next_ = createdUpvalue;
@@ -164,19 +162,15 @@ ObjUpvalue *VM::capture_upvalue(Value *local)
 
 void VM::define_native(std::string_view name, NativeFn function)
 {
-    if (current_coroutine_ != nullptr)
-    {
-        push(create_obj_string(name, *this));
-        push(create_obj<ObjNative>(gc_, function, name));
-        globals_.insert_or_assign(current_coroutine_->stack_.at(0).as_obj<ObjString>(), current_coroutine_->stack_.at(1));
-        pop();
-        pop();
-    }
+    auto key = create_obj_string(name, *this);
+    auto value = create_obj<ObjNative>(gc_, function, name);
+    globals_.insert_or_assign(key, Value(value));
 }
 
 InterpretResult VM::interpret(const std::string &source)
 {
-    ObjFunction *function = cu_.compile(source);
+    Compilation cu(*this);
+    ObjFunction *function = cu.compile(source);
     if (function == nullptr)
         return InterpretResult::INTERPRET_COMPILE_ERROR;
 
@@ -222,7 +216,8 @@ InterpretResult VM::run(ObjCoroutine *co)
         {
         case OP_RETURN:
         {
-            Value result = pop(); // 先弹后压 result 是为了清理当前栈范围内的槽，后面退到上一个栈时再压入作为返回值
+            Value result = pop(); // pop first then push result to clean up current stack slot,
+                                    // when returning to previous frame, push it as return value
             close_upvalues(current_coroutine_->stack_.data() + frame->slot_);
             current_coroutine_->frame_count_--; // leave current frame
             if (current_coroutine_->frame_count_ == 0)
@@ -231,9 +226,9 @@ InterpretResult VM::run(ObjCoroutine *co)
                 if (co->is_main_ == true)
                     return INTERPRET_OK;
                 else
-                    return scheduler_.runNextObjCoroutine();
+                    return scheduler_.runNextObjCoroutine(co);
             }
-            current_coroutine_->top_ = frame->slot_; // 回退到上一个栈顶，对于call之前的栈顶通常指着closure或者instance本身
+            current_coroutine_->top_ = frame->slot_; // rollback to previous stack top, which points to the closure or instance before call
             push(result);
             frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
             break;
@@ -275,19 +270,18 @@ InterpretResult VM::run(ObjCoroutine *co)
             break;
         case OP_ADD:
         {
-            // 取出栈顶和次顶操作数（注意：peek(0) 是栈顶）
+            // get stack top and next-to-top operands (note: peek(0) is the top)
             Value rightVal = peek(0);
             Value leftVal = peek(1);
 
-            // 如果两个都是数值，则执行数值相加
+            // if both are numbers, do numeric addition
             if (leftVal.is_number() && rightVal.is_number())
             {
-                // 为了示例，这里假设存的都是 int
-                int b = pop().as<int>(); // right
-                int a = pop().as<int>(); // left
-                push(a + b);
+                // assuming all numbers are ints here
+                pop(); pop();
+                push(leftVal.as<int>() + rightVal.as<int>());
             }
-            // 否则，如果两个都是字符串，或者至少有一个是字符串，就进行字符串拼接
+            // otherwise, if both are strings or at least one is a string, do string concatenation
             else
             {
                 pop(); // rightVal
@@ -319,7 +313,19 @@ InterpretResult VM::run(ObjCoroutine *co)
         }
         case OP_DIV:
         {
-            BINARY_OP(/);
+            if (!peek(0).is_number() || !peek(1).is_number())
+            {
+                runtime_error("Operands must be numbers.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            int b = pop().as<int>();
+            if (b == 0)
+            {
+                runtime_error("Division by zero.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            int a = pop().as<int>();
+            push(a / b);
             break;
         }
         case OP_NOT:
@@ -485,7 +491,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             }
             catch (const std::out_of_range &)
             {
-                if (!bind_method(instance->objClass_, name)) // 找不到instance's fileds那么找klass中的methods
+                if (!bind_method(instance->objClass_, name)) // if not found in instance's fields, look in class methods
                     return INTERPRET_RUNTIME_ERROR;
             }
             break;
@@ -563,31 +569,55 @@ InterpretResult VM::run(ObjCoroutine *co)
         }
         case OP_GET_ELEMENT:
         {
+            if (!peek(1).is_obj())
+            {
+                runtime_error("Only objects support indexing.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
             if (peek(1).as<Obj *>()->is_type(objtype_of<ObjArray>()))
             {
                 auto index = pop().as<int>();
-                auto value = pop().as_obj<ObjArray>()->values_.at(index);
-                push(value);
+                auto arr = pop().as_obj<ObjArray>();
+                if (index < 0 || static_cast<size_t>(index) >= arr->values_.size())
+                {
+                    runtime_error("Index out of bounds.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(arr->values_[index]);
             }
             else
-            { // json
+            {
                 auto key = pop();
-                auto value = pop().as_obj<ObjJson>()->kv_[key];
-                push(value);
+                auto jsonPtr = pop().as_obj<ObjJson>();
+                auto it = jsonPtr->kv_.find(key);
+                if (it == jsonPtr->kv_.end())
+                {
+                    runtime_error("Key not found in JSON object.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(it->second);
             }
             break;
         }
         case OP_SET_ELEMENT:
         {
+            if (!peek(2).is_obj())
+            {
+                runtime_error("Only objects support indexing.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
             if (peek(2).as<Obj *>()->is_type(objtype_of<ObjArray>()))
             {
                 auto value = pop();
                 auto index = pop().as<int>();
                 auto array = pop().as_obj<ObjArray>();
-                int n = array->values_.size();
-                if (index >= n)
-                    runtime_error("Index is larger than array size.");
-                array->values_.at(index) = value;
+                int n = static_cast<int>(array->values_.size());
+                if (index < 0 || index >= n)
+                {
+                    runtime_error("Index out of bounds.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                array->values_[index] = value;
                 push(value);
             }
             else
@@ -634,7 +664,7 @@ InterpretResult VM::run(ObjCoroutine *co)
         case OP_YIELD_COROUTINE:
         {
             scheduler_.yieldCurrentObjCoroutine();
-            return scheduler_.runNextObjCoroutine();
+            return scheduler_.runNextObjCoroutine(co);
         }
         case OP_RESUME_COROUTINE:
         {
@@ -642,6 +672,7 @@ InterpretResult VM::run(ObjCoroutine *co)
             try
             {
                 auto targetCo = pop().as_obj<ObjCoroutine>();
+                targetCo->parent_ = co;
                 scheduler_.resumeCoroutine(targetCo);
             }
             catch (const std::exception &e)
@@ -669,7 +700,7 @@ uint16_t CallFrame::read_short()
     auto a = closure_->function_->chunk_.bytecode_[ip_ - 2] << 8;
     auto b = closure_->function_->chunk_.bytecode_[ip_ - 1];
     return static_cast<uint16_t>(a | b);
-};
+}
 
 ObjString *CallFrame::read_string()
 {
@@ -699,7 +730,7 @@ Value VM::peek(int distance)
 
 void VM::close_upvalues(Value *last)
 {
-    while (open_upvalues_ != NULL &&
+    while (open_upvalues_ != nullptr &&
            open_upvalues_->location_ >= last)
     {
         ObjUpvalue *upvalue = open_upvalues_;
@@ -733,26 +764,6 @@ bool VM::bind_method(ObjClass *klass, ObjString *name)
         return false;
     }
     return false;
-}
-
-template <typename Operator>
-bool VM::binary_op(Operator op)
-{
-    Value a = pop();
-    Value b = pop();
-    if (!(
-            (a.is_number() && b.is_number()) ||
-            (a.is_bool() && b.is_bool()) ||
-            (a.is_obj() && b.is_obj()) ||
-            (a.is_nil() && b.is_nil()) ||
-            (a.is_nil() && b.is_obj()) ||
-            (a.is_obj() && b.is_nil())))
-    {
-        runtime_error("Operands do not fit");
-        return false;
-    }
-    push(op(b, a));
-    return true;
 }
 
 template <typename... Args>

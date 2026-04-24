@@ -2,11 +2,20 @@
 #include "obj.hpp"
 #include "object.hpp"
 #include "vm.hpp"
+#include "table.hpp"
 #include <string_view>
 
 template ObjString *create_obj_string(std::string_view &str, VM &vm);
 template ObjString *create_obj_string(std::string_view &&str, VM &vm);
 template ObjString *create_obj_string(std::string&& str, VM &vm);
+
+size_t ObjStringPtrHash::operator()(const ObjString* s) const noexcept {
+    return std::hash<std::string_view>{}(s->text());
+}
+
+bool ObjStringPtrEqual::operator()(const ObjString* a, const ObjString* b) const noexcept {
+    return a->text() == b->text();
+}
 
 template <typename T>
 ObjString *create_obj_string(T &&str, VM &vm)

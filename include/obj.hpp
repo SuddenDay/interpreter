@@ -19,6 +19,7 @@ enum class ObjType
 };
 
 struct Obj;
+struct GC;
 using ObjDeleter = std::function<void(Obj*)>;
 struct Obj
 {
@@ -33,5 +34,8 @@ struct Obj
 
 	Obj(ObjType type) : type_(type) {}
 	Obj() = default;
+	virtual ~Obj() = default;
+
+	virtual void blacken(GC& /*gc*/) {}
 };
 

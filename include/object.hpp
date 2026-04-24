@@ -43,6 +43,7 @@ struct ObjFunction : public Obj
 	ObjString *name_ = nullptr;
 
 	ObjFunction() : Obj(ObjType::Function) {}
+	void blacken(GC& gc) override;
 };
 
 std::ostream &operator<<(std::ostream &os, const ObjFunction &f);
@@ -77,6 +78,7 @@ struct ObjUpvalue : public Obj
 		: Obj(ObjType::Upvalue), location_(slot), closed_(Value())
 	{
 	}
+	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjUpvalue &s);
 
@@ -88,6 +90,7 @@ struct ObjClosure : public Obj
 	ObjClosure(ObjFunction *func) : Obj(ObjType::Closure), function_(func), upvalues_(func->upvalue_count_, nullptr) {}
 
 	int upvalue_count() { return upvalues_.size(); }
+	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjClosure &s);
 
@@ -100,6 +103,7 @@ struct ObjClass : public Obj
 		: Obj(ObjType::Class), name_(name)
 	{
 	}
+	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjClass &c);
 
@@ -112,6 +116,7 @@ struct ObjInstance : public Obj
 		: Obj(ObjType::Instance), objClass_(objClass)
 	{
 	}
+	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjInstance &ins);
 
@@ -122,6 +127,7 @@ struct ObjArray : public Obj
 		: Obj(ObjType::Array), values_(size)
 	{
 	}
+	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjArray &arr);
 
@@ -132,6 +138,7 @@ struct ObjJson : public Obj
 		: Obj(ObjType::Json)
 	{
 	}
+	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjJson &json);
 
@@ -144,6 +151,7 @@ struct ObjBoundMethod : public Obj
 		: Obj(ObjType::BoundMethod), receiver_(receiver), method_(method)
 	{
 	}
+	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjBoundMethod &bm);
 
@@ -161,8 +169,10 @@ struct ObjCoroutine : public Obj
 	CoroutineStatus status_;
 	std::vector<Value> arguments_;
 	bool is_main_ = false;
+	ObjCoroutine* parent_ = nullptr;
 	ObjCoroutine(ObjClosure *closure, const std::vector<Value>& arguments = {});
 	ObjCoroutine() : stack_(default_init), top_(0) {}
+	void blacken(GC& gc) override;
 };
 
 std::ostream &operator<<(std::ostream &os, const ObjCoroutine& co);

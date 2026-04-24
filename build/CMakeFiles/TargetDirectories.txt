@@ -1,3 +1,0 @@
-/home/ace/interpreter/build/CMakeFiles/lox.dir
-/home/ace/interpreter/build/CMakeFiles/edit_cache.dir
-/home/ace/interpreter/build/CMakeFiles/rebuild_cache.dir

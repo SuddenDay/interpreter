@@ -55,9 +55,9 @@ struct Compiler
     int scope_depth_ = 0;
 };
 
-struct Complication
+struct Compilation
 {
-    Complication(VM &vm);
+    Compilation(VM &vm);
     ObjFunction *compile(const std::string_view &source);
     Chunk *current_chunk();
 
@@ -130,7 +130,7 @@ struct Complication
     void end_scope();
 
 
-    Token syntehtic_token(const std::string_view text);
+    Token synthetic_token(const std::string_view text);
 
     void write_chunk(uint8_t op, int line);
     uint8_t add_constant(const Value &value);

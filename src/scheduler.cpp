@@ -7,8 +7,10 @@ void Scheduler::addObjCoroutine(ObjCoroutine *coroutine)
     coroutines_.push_back(coroutine);
 }
 
-InterpretResult Scheduler::runNextObjCoroutine()
+InterpretResult Scheduler::runNextObjCoroutine(ObjCoroutine* from)
 {
+    if (from != nullptr && from->parent_ != nullptr && from->parent_->status_ == CoroutineStatus::SUSPENDED)
+        return resumeCoroutine(from->parent_);
     return resumeCoroutine(main_coroutine);
 }
 

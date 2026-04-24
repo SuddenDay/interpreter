@@ -4,7 +4,7 @@
 #include <functional>
 #include <string_view>
 
-class Complication;
+class Compilation;
 enum Precedence
 {
     PREC_NONE,
@@ -22,7 +22,7 @@ enum Precedence
 
 struct Parser
 {
-    using ParseFn = std::function<void(Complication&, bool)>;
+    using ParseFn = std::function<void(Compilation&, bool)>;
     struct ParseRule
     {
         ParseFn prefix_;

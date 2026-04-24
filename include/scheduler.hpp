@@ -12,7 +12,7 @@ struct Scheduler {
     ObjCoroutine* main_coroutine = nullptr;  // The main coroutine
 
     void addObjCoroutine(ObjCoroutine* coroutine);
-    InterpretResult runNextObjCoroutine();
+    InterpretResult runNextObjCoroutine(ObjCoroutine* from = nullptr);
     void yieldCurrentObjCoroutine();
     InterpretResult resumeCoroutine(ObjCoroutine* coroutine);
 };

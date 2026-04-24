@@ -145,3 +145,52 @@ ObjCoroutine::ObjCoroutine(ObjClosure *closure, const std::vector<Value>& argume
 		stack_[top_++] = *arg;
 	frames_[frame_count_++] = frame;
 }
+
+void ObjFunction::blacken(GC& gc) {
+    if (name_ != nullptr) gc.mark_object(reinterpret_cast<Obj*>(name_));
+    gc.mark_array(chunk_.constants_);
+}
+
+void ObjClosure::blacken(GC& gc) {
+    gc.mark_object(reinterpret_cast<Obj*>(function_));
+    for (auto& uv : upvalues_)
+        gc.mark_object(reinterpret_cast<Obj*>(uv));
+}
+
+void ObjUpvalue::blacken(GC& gc) {
+    gc.mark_value(*location_);
+}
+
+void ObjClass::blacken(GC& gc) {
+    gc.mark_object(reinterpret_cast<Obj*>(name_));
+    gc.mark_table(methods_);
+}
+
+void ObjInstance::blacken(GC& gc) {
+    gc.mark_object(reinterpret_cast<Obj*>(objClass_));
+    gc.mark_table(fields_);
+}
+
+void ObjBoundMethod::blacken(GC& gc) {
+    gc.mark_value(receiver_);
+    gc.mark_object(reinterpret_cast<Obj*>(method_));
+}
+
+void ObjArray::blacken(GC& gc) {
+    gc.mark_array(values_);
+}
+
+void ObjJson::blacken(GC& gc) {
+    gc.mark_json(kv_);
+}
+
+void ObjCoroutine::blacken(GC& gc) {
+    if (status_ == CoroutineStatus::FINISHED) return;
+    gc.mark_object(reinterpret_cast<Obj*>(closure_));
+    for (int i = 0; i < frame_count_; i++)
+        gc.mark_object(reinterpret_cast<Obj*>(frames_[i].closure_));
+    for (int i = 0; i < top_; i++)
+        gc.mark_value(stack_[i]);
+    for (auto &arg : arguments_)
+        gc.mark_value(arg);
+}
