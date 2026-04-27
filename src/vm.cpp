@@ -9,17 +9,17 @@
 #include "compiler.hpp"
 #include <string_view>
 
-#define BINARY_OP(op)                                     \
-    do                                                    \
-    {                                                     \
-        if (!peek(0).is_number() || !peek(1).is_number()) \
-        {                                                 \
-            runtime_error("Operands must be numbers.");   \
-            return INTERPRET_RUNTIME_ERROR;               \
-        }                                                 \
-        int b = pop().as<int>();                          \
-        int a = pop().as<int>();                          \
-        push(a op b);                                     \
+#define BINARY_OP(op)                                                \
+    do                                                               \
+    {                                                                \
+        if (!peek(0).is_number() || !peek(1).is_number())            \
+        {                                                            \
+            runtime_error("Operands must be numbers.");              \
+            return INTERPRET_RUNTIME_ERROR;                          \
+        }                                                            \
+        int b = pop().as<int>();                                     \
+        int a = pop().as<int>();                                     \
+        push(a op b);                                                \
     } while (false);
 
 VM::VM() : globals_(), gc_(*this), scheduler_(*this)
@@ -114,9 +114,10 @@ bool VM::invoke(ObjString *name, int argCount)
     }
     ObjInstance *instance = receiver.as_obj<ObjInstance>();
 
-    if (instance->fields_.find(name) != instance->fields_.end())
+    int offset = instance->objClass_->get_field_offset(name);
+    if (offset >= 0 && offset < static_cast<int>(instance->field_values_.size()))
     {
-        Value value = instance->fields_.at(name);
+        Value value = instance->field_values_[offset];
         current_coroutine_->stack_[current_coroutine_->top_ - argCount - 1] = value;
         return call_value(value, argCount);
     }
@@ -198,495 +199,759 @@ bool is_falsey(const Value &value)
 
 InterpretResult VM::run(ObjCoroutine *co)
 {
-    current_coroutine_ = co; // vm just hold a ptr to target co
+    current_coroutine_ = co;
+
+    if (co->status_ == CoroutineStatus::FINISHED)
+        return INTERPRET_OK;
 
     CallFrame *frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
+    auto &top_ = current_coroutine_->top_;
+    auto &stack = current_coroutine_->stack_;
+    Value top = top_ > 0 ? stack[top_ - 1] : Value();
 
-    while (co->status_ != CoroutineStatus::FINISHED)
-    {
+    void *dispatch_table[] = {
+        [OP_RETURN] = &&L_OP_RETURN,
+        [OP_CONSTANT] = &&L_OP_CONSTANT,
+        [OP_NEGATE] = &&L_OP_NEGATE,
+        [OP_ADD] = &&L_OP_ADD,
+        [OP_SUB] = &&L_OP_SUB,
+        [OP_MUL] = &&L_OP_MUL,
+        [OP_DIV] = &&L_OP_DIV,
+        [OP_NIL] = &&L_OP_NIL,
+        [OP_TRUE] = &&L_OP_TRUE,
+        [OP_FALSE] = &&L_OP_FALSE,
+        [OP_NOT] = &&L_OP_NOT,
+        [OP_EQUAL] = &&L_OP_EQUAL,
+        [OP_GREATER] = &&L_OP_GREATER,
+        [OP_LESS] = &&L_OP_LESS,
+        [OP_PRINT] = &&L_OP_PRINT,
+        [OP_POP] = &&L_OP_POP,
+        [OP_DEFINE_GLOBAL] = &&L_OP_DEFINE_GLOBAL,
+        [OP_GET_GLOBAL] = &&L_OP_GET_GLOBAL,
+        [OP_SET_GLOBAL] = &&L_OP_SET_GLOBAL,
+        [OP_SET_LOCAL] = &&L_OP_SET_LOCAL,
+        [OP_GET_LOCAL] = &&L_OP_GET_LOCAL,
+        [OP_JUMP_IF_FALSE] = &&L_OP_JUMP_IF_FALSE,
+        [OP_JUMP] = &&L_OP_JUMP,
+        [OP_LOOP] = &&L_OP_LOOP,
+        [OP_CALL] = &&L_OP_CALL,
+        [OP_CLOSURE] = &&L_OP_CLOSURE,
+        [OP_GET_UPVALUE] = &&L_OP_GET_UPVALUE,
+        [OP_SET_UPVALUE] = &&L_OP_SET_UPVALUE,
+        [OP_CLOSE_UPVALUE] = &&L_OP_CLOSE_UPVALUE,
+        [OP_CLASS] = &&L_OP_CLASS,
+        [OP_SET_PROPERTY] = &&L_OP_SET_PROPERTY,
+        [OP_GET_PROPERTY] = &&L_OP_GET_PROPERTY,
+        [OP_METHOD] = &&L_OP_METHOD,
+        [OP_INVOKE] = &&L_OP_INVOKE,
+        [OP_INHERIT] = &&L_OP_INHERIT,
+        [OP_GET_SUPER] = &&L_OP_GET_SUPER,
+        [OP_SUPER_INVOKE] = &&L_OP_SUPER_INVOKE,
+        [OP_ARRAY] = &&L_OP_ARRAY,
+        [OP_JSON] = &&L_OP_JSON,
+        [OP_GET_ELEMENT] = &&L_OP_GET_ELEMENT,
+        [OP_SET_ELEMENT] = &&L_OP_SET_ELEMENT,
+        [OP_FUNCTION] = &&L_OP_FUNCTION,
+        [OP_CONTINUE] = &&L_OP_CONTINUE,
+        [OP_BREAK] = &&L_OP_BREAK,
+        [OP_CREATE_COROUTINE] = &&L_OP_CREATE_COROUTINE,
+        [OP_YIELD_COROUTINE] = &&L_OP_YIELD_COROUTINE,
+        [OP_RESUME_COROUTINE] = &&L_OP_RESUME_COROUTINE,
+    };
+    constexpr int OP_COUNT = sizeof(dispatch_table) / sizeof(dispatch_table[0]);
+
+#define SPUSH(v) do { stack[top_++] = top; top = (v); stack[top_ - 1] = top; } while(0)
+
 #ifdef DEBUG_MODE
-        printf("           stackframe: ");
-        for (int i = 0; i < current_coroutine_->top_; i++)
-            std::cout << "[ " << current_coroutine_->stack_.at(i) << " ]";
-        std::cout << "\n";
-        Util::disassemble_instruction(frame->closure_->function_->chunk_, frame->ip_);
+#define NEXT()                                                                                     \
+    do                                                                                             \
+    {                                                                                              \
+        printf("           stackframe: ");                                                         \
+        for (int i = 0; i < current_coroutine_->top_; i++)                                         \
+            std::cout << "[ " << current_coroutine_->stack_[i] << " ]";                           \
+        std::cout << "\n";                                                                         \
+        Util::disassemble_instruction(frame->closure_->function_->chunk_, frame->ip_);            \
+        uint8_t _i = frame->read_byte();                                                           \
+        if (_i >= OP_COUNT)                                                                        \
+        {                                                                                          \
+            std::cout << "Bad opcode " << (int)_i << " at ip " << (int)(frame->ip_ - 1) << "\n"; \
+            return INTERPRET_RUNTIME_ERROR;                                                        \
+        }                                                                                          \
+        goto *dispatch_table[_i];                                                                  \
+    } while (false)
+#else
+#define NEXT()                              \
+    do                                      \
+    {                                       \
+        uint8_t _i = frame->read_byte();    \
+        if (_i >= OP_COUNT)                 \
+        {                                   \
+            runtime_error("Bad opcode?");   \
+            return INTERPRET_RUNTIME_ERROR; \
+        }                                   \
+        goto *dispatch_table[_i];           \
+    } while (false)
 #endif
-        uint8_t instruction = frame->read_byte();
-        switch (instruction)
-        {
-        case OP_RETURN:
-        {
-            Value result = pop(); // pop first then push result to clean up current stack slot,
-                                    // when returning to previous frame, push it as return value
-            close_upvalues(current_coroutine_->stack_.data() + frame->slot_);
-            current_coroutine_->frame_count_--; // leave current frame
-            if (current_coroutine_->frame_count_ == 0)
-            {
-                co->status_ = CoroutineStatus::FINISHED;
-                if (co->is_main_ == true)
-                    return INTERPRET_OK;
-                else
-                    return scheduler_.runNextObjCoroutine(co);
-            }
-            current_coroutine_->top_ = frame->slot_; // rollback to previous stack top, which points to the closure or instance before call
-            push(result);
-            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
-            break;
-        }
-        case OP_CONSTANT:
-        {
-            push(frame->read_constant());
-            break;
-        }
-        case OP_TRUE:
-        {
-            push(Value(true));
-            break;
-        }
-        case OP_FALSE:
-        {
-            push(Value(false));
-            break;
-        }
-        case OP_NIL:
-        {
-            push(Value());
-            break;
-        }
-        case OP_EQUAL:
-        {
-            auto b = pop();
-            auto a = pop();
-            push(a == b);
-            break;
-        }
-        case OP_GREATER:
-        {
-            BINARY_OP(>);
-            break;
-        }
-        case OP_LESS:
-            BINARY_OP(<);
-            break;
-        case OP_ADD:
-        {
-            // get stack top and next-to-top operands (note: peek(0) is the top)
-            Value rightVal = peek(0);
-            Value leftVal = peek(1);
 
-            // if both are numbers, do numeric addition
-            if (leftVal.is_number() && rightVal.is_number())
-            {
-                // assuming all numbers are ints here
-                pop(); pop();
-                push(leftVal.as<int>() + rightVal.as<int>());
-            }
-            // otherwise, if both are strings or at least one is a string, do string concatenation
-            else
-            {
-                pop(); // rightVal
-                pop(); // leftVal
-                try
-                {
-                    auto leftStr = Value::value_to_string(leftVal);
-                    auto rightStr = Value::value_to_string(rightVal);
-                    ObjString *res = create_obj_string(leftStr + rightStr, *this);
-                    push(Value(res));
-                }
-                catch (...)
-                {
-                    runtime_error("Operands must be two numbers or (string + anything).");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-            }
-            break;
-        }
-        case OP_SUB:
-        {
-            BINARY_OP(-);
-            break;
-        }
-        case OP_MUL:
-        {
-            BINARY_OP(*);
-            break;
-        }
-        case OP_DIV:
-        {
-            if (!peek(0).is_number() || !peek(1).is_number())
-            {
-                runtime_error("Operands must be numbers.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            int b = pop().as<int>();
-            if (b == 0)
-            {
-                runtime_error("Division by zero.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            int a = pop().as<int>();
-            push(a / b);
-            break;
-        }
-        case OP_NOT:
-        {
-            push(is_falsey(pop()));
-            break;
-        }
-        case OP_NEGATE:
-        {
-            if (!peek(0).is_number())
-            {
-                runtime_error("Operand must be a number.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            push(-pop().as<int>());
-            break;
-        }
-        case OP_PRINT:
-        {
-            std::cout << pop() << std::endl;
-            break;
-        }
-        case OP_DEFINE_GLOBAL:
-        {
-            auto name = frame->read_string();
-            globals_.insert_or_assign(name, peek(0));
-            pop();
-            break;
-        }
-        case OP_GET_GLOBAL:
-        {
-            auto name = frame->read_string();
-            try
-            {
-                auto &value = globals_.at(name);
-                push(value);
-            }
-            catch (const std::out_of_range &)
-            {
-                runtime_error("Undefined variable ", name->text());
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            break;
-        }
-        case OP_SET_GLOBAL:
-        {
-            auto name = frame->read_string();
-            globals_.insert_or_assign(name, peek(0)); // modify ?
-            break;
-        }
-        case OP_POP:
-        {
-            pop();
-            break;
-        }
-        case OP_GET_LOCAL:
-        {
-            int slot = frame->read_byte();
-            push(current_coroutine_->stack_[frame->slot_ + slot]);
-            break;
-        }
-        case OP_SET_LOCAL:
-        {
-            int slot = frame->read_byte();
-            current_coroutine_->stack_[frame->slot_ + slot] = peek(0);
-            break;
-        }
-        case OP_JUMP_IF_FALSE:
-        {
-            int offset = frame->read_short();
-            if (is_falsey(peek(0)))
-                frame->ip_ += offset;
-            break;
-        }
-        case OP_JUMP:
-        {
-            int offset = frame->read_short();
-            frame->ip_ += offset;
-            break;
-        }
-        case OP_LOOP:
-        {
-            int offset = frame->read_short();
-            frame->ip_ -= offset;
-            break;
-        }
-        case OP_CONTINUE:
-        case OP_BREAK:
-        {
-            int is_break = (instruction == OP_BREAK);
-            int offset = frame->read_short();
-            frame->ip_ = offset + is_break;
-            break;
-        }
-        case OP_CALL:
-        {
-            int argCount = frame->read_byte();
-            if (!call_value(peek(argCount), argCount))
-                return INTERPRET_RUNTIME_ERROR;
-            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1]; // frame update, leave function scope
-            break;
-        }
-        case OP_FUNCTION:
-        {
-            auto function = frame->read_constant().as_obj<ObjFunction>();
-            push(function);
-            break;
-        }
-        case OP_CLOSURE:
-        {
-            auto function = frame->read_constant().as_obj<ObjFunction>();
-            auto closure = create_obj<ObjClosure>(gc_, function);
-            push(closure);
-            for (int i = 0; i < closure->upvalue_count(); i++)
-            {
-                auto is_local = frame->read_byte();
-                auto index = frame->read_byte();
-                if (is_local)
-                    closure->upvalues_.at(i) = capture_upvalue(current_coroutine_->stack_.data() + frame->slot_ + index);
-                else
-                    closure->upvalues_.at(i) = frame->closure_->upvalues_.at(index);
-            }
-            break;
-        }
-        case OP_CLOSE_UPVALUE:
-        {
-            close_upvalues(current_coroutine_->stack_.data() + current_coroutine_->top_ - 1);
-            pop();
-            break;
-        }
-        case OP_GET_UPVALUE:
-        {
-            uint8_t slot = frame->read_byte();
-            push(*frame->closure_->upvalues_[slot]->location_);
-            break;
-        }
-        case OP_SET_UPVALUE:
-        {
-            uint8_t slot = frame->read_byte();
-            *frame->closure_->upvalues_[slot]->location_ = peek(0);
-            break;
-        }
-        case OP_CLASS:
-        {
-            push(create_obj<ObjClass>(gc_, frame->read_string()));
-            break;
-        }
-        case OP_GET_PROPERTY:
-        {
-            if (!peek(0).is_obj_type<ObjInstance>())
-            {
-                runtime_error("Only instances have properties.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
+    NEXT();
 
-            auto instance = peek(0).as_obj<ObjInstance>();
-            auto name = frame->read_string();
-            try
-            {
-                auto &value = instance->fields_.at(name);
-                pop();
-                push(value);
-            }
-            catch (const std::out_of_range &)
-            {
-                if (!bind_method(instance->objClass_, name)) // if not found in instance's fields, look in class methods
-                    return INTERPRET_RUNTIME_ERROR;
-            }
-            break;
-        }
-        case OP_SET_PROPERTY:
+L_OP_RETURN:
+    {
+        Value result = top;
+        --top_;
+        close_upvalues(stack.data() + frame->slot_);
+        current_coroutine_->frame_count_--;
+        if (current_coroutine_->frame_count_ == 0)
         {
-            auto instance = peek(1).as_obj<ObjInstance>();
-            instance->fields_.insert_or_assign(frame->read_string(), peek(0));
-            Value value = pop();
-            pop();
-            push(value);
-            break;
+            co->status_ = CoroutineStatus::FINISHED;
+            if (co->is_main_ == true)
+                return INTERPRET_OK;
+            else
+                return scheduler_.runNextObjCoroutine(co);
         }
-        case OP_METHOD:
-        {
-            define_method(frame->read_string());
-            break;
-        }
-        case OP_INVOKE:
-        {
-            ObjString *method = frame->read_string();
-            int argCount = frame->read_byte();
-            if (!invoke(method, argCount))
-            {
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
-            break;
-        }
-        case OP_INHERIT:
-        {
-            if (!peek(1).is_obj_type<ObjClass>())
-            {
-                runtime_error("Superclass must be a class.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            ObjClass *superclass = peek(1).as_obj<ObjClass>();
-            ObjClass *subclass = peek(0).as_obj<ObjClass>();
-            for (const auto &[k, v] : superclass->methods_)
-            {
-                subclass->methods_.insert_or_assign(k, v);
-            }
-            pop();
-            break;
-        }
-        case OP_GET_SUPER:
-        {
-            ObjString *name = frame->read_string();
-            ObjClass *superclass = pop().as_obj<ObjClass>();
+        top_ = frame->slot_;
+        stack[top_++] = top;
+        top = result;
+        frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
+    }
+    NEXT();
 
-            if (!bind_method(superclass, name))
-                return INTERPRET_RUNTIME_ERROR;
-            break;
-        }
-        case OP_SUPER_INVOKE:
+L_OP_CONSTANT:
+    {
+        SPUSH(frame->read_constant());
+    }
+    NEXT();
+
+L_OP_TRUE:
+    {
+        SPUSH(Value(true));
+    }
+    NEXT();
+
+L_OP_FALSE:
+    {
+        SPUSH(Value(false));
+    }
+    NEXT();
+
+L_OP_NIL:
+    {
+        SPUSH(Value());
+    }
+    NEXT();
+
+L_OP_EQUAL:
+    {
+        Value b = top;
+        --top_;
+        top = stack[--top_];
+        Value a = top;
+        top = (a == b);
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_GREATER:
+    {
+        if (!top.is_number() || !stack[top_ - 2].is_number())
         {
-            ObjString *method = frame->read_string();
-            int argCount = frame->read_byte();
-            ObjClass *superclass = pop().as_obj<ObjClass>();
-            if (!invoke_from_class(superclass, method, argCount))
-            {
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
-            break;
+            runtime_error("Operands must be numbers.");
+            return INTERPRET_RUNTIME_ERROR;
         }
-        case OP_ARRAY:
+        int b = top.as<int>();
+        --top_;
+        top = stack[--top_];
+        int a = top.as<int>();
+        top = (a > b);
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_LESS:
+    {
+        if (!top.is_number() || !stack[top_ - 2].is_number())
         {
-            int count = frame->read_byte();
-            auto objArray = create_obj<ObjArray>(this->gc_, count);
-            for (int i = 0; i < count; i++)
-                objArray->values_.at(count - 1 - i) = pop();
-            push(objArray);
-            break;
+            runtime_error("Operands must be numbers.");
+            return INTERPRET_RUNTIME_ERROR;
         }
-        case OP_GET_ELEMENT:
+        int b = top.as<int>();
+        --top_;
+        top = stack[--top_];
+        int a = top.as<int>();
+        top = (a < b);
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_ADD:
+    {
+        Value rightVal = top;
+        Value leftVal = stack[top_ - 2];
+
+        if (leftVal.is_number() && rightVal.is_number())
         {
-            if (!peek(1).is_obj())
-            {
-                runtime_error("Only objects support indexing.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            if (peek(1).as<Obj *>()->is_type(objtype_of<ObjArray>()))
-            {
-                auto index = pop().as<int>();
-                auto arr = pop().as_obj<ObjArray>();
-                if (index < 0 || static_cast<size_t>(index) >= arr->values_.size())
-                {
-                    runtime_error("Index out of bounds.");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-                push(arr->values_[index]);
-            }
-            else
-            {
-                auto key = pop();
-                auto jsonPtr = pop().as_obj<ObjJson>();
-                auto it = jsonPtr->kv_.find(key);
-                if (it == jsonPtr->kv_.end())
-                {
-                    runtime_error("Key not found in JSON object.");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-                push(it->second);
-            }
-            break;
+            --top_;
+            top = stack[--top_];
+            int a = top.as<int>();
+            top = (a + rightVal.as<int>());
+            stack[top_++] = top;
         }
-        case OP_SET_ELEMENT:
+        else
         {
-            if (!peek(2).is_obj())
-            {
-                runtime_error("Only objects support indexing.");
-                return INTERPRET_RUNTIME_ERROR;
-            }
-            if (peek(2).as<Obj *>()->is_type(objtype_of<ObjArray>()))
-            {
-                auto value = pop();
-                auto index = pop().as<int>();
-                auto array = pop().as_obj<ObjArray>();
-                int n = static_cast<int>(array->values_.size());
-                if (index < 0 || index >= n)
-                {
-                    runtime_error("Index out of bounds.");
-                    return INTERPRET_RUNTIME_ERROR;
-                }
-                array->values_[index] = value;
-                push(value);
-            }
-            else
-            {
-                auto value = pop();
-                auto key = pop();
-                pop().as_obj<ObjJson>()->kv_.insert_or_assign(key, value);
-                push(value);
-            }
-            break;
-        }
-        case OP_JSON:
-        {
-            int count = frame->read_byte();
-            auto objJson = create_obj<ObjJson>(this->gc_);
-            for (int i = 0; i < count; i++)
-            {
-                auto value = pop();
-                auto key = pop();
-                objJson->kv_[key] = value;
-            }
-            push(objJson);
-            break;
-        }
-        case OP_CREATE_COROUTINE:
-        {
+            --top_;
             try
             {
-                std::vector<Value> arguments;
-                auto count = frame->read_byte();
-                for (int i = 0; i < count; i++)
-                    arguments.push_back(pop());
-                auto closure = pop().as_obj<ObjClosure>();
-                auto coroutine = create_obj<ObjCoroutine>(gc_, closure, arguments);
-                push(coroutine);
-                scheduler_.addObjCoroutine(coroutine);
+                auto leftStr = Value::value_to_string(stack[--top_]);
+                auto rightStr = Value::value_to_string(rightVal);
+                ObjString *res = create_obj_string(leftStr + rightStr, *this);
+                top = Value(res);
+                stack[top_++] = top;
             }
-            catch (const std::exception &e)
+            catch (...)
             {
-                throw std::runtime_error("Only closure can be created as a coroutine.");
+                runtime_error("Operands must be two numbers or (string + anything).");
+                return INTERPRET_RUNTIME_ERROR;
             }
-            break;
-        }
-        case OP_YIELD_COROUTINE:
-        {
-            scheduler_.yieldCurrentObjCoroutine();
-            return scheduler_.runNextObjCoroutine(co);
-        }
-        case OP_RESUME_COROUTINE:
-        {
-            scheduler_.yieldCurrentObjCoroutine();
-            try
-            {
-                auto targetCo = pop().as_obj<ObjCoroutine>();
-                targetCo->parent_ = co;
-                scheduler_.resumeCoroutine(targetCo);
-            }
-            catch (const std::exception &e)
-            {
-                throw std::runtime_error("Only closure can be created as a coroutine.");
-            }
-            break;
-        }
-        default:
-            std::cout << Opcode(instruction) << " error" << std::endl;
-            break;
         }
     }
-    return INTERPRET_OK;
+    NEXT();
+
+L_OP_SUB:
+    {
+        if (!top.is_number() || !stack[top_ - 2].is_number())
+        {
+            runtime_error("Operands must be numbers.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        int b = top.as<int>();
+        --top_;
+        top = stack[--top_];
+        int a = top.as<int>();
+        top = (a - b);
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_MUL:
+    {
+        if (!top.is_number() || !stack[top_ - 2].is_number())
+        {
+            runtime_error("Operands must be numbers.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        int b = top.as<int>();
+        --top_;
+        top = stack[--top_];
+        int a = top.as<int>();
+        top = (a * b);
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_DIV:
+    {
+        if (!top.is_number() || !stack[top_ - 2].is_number())
+        {
+            runtime_error("Operands must be numbers.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        int b = top.as<int>();
+        if (b == 0)
+        {
+            runtime_error("Division by zero.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        --top_;
+        top = stack[--top_];
+        int a = top.as<int>();
+        top = (a / b);
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_NOT:
+    {
+        top = is_falsey(top);
+        stack[top_ - 1] = top;
+    }
+    NEXT();
+
+L_OP_NEGATE:
+    {
+        if (!top.is_number())
+        {
+            runtime_error("Operand must be a number.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        top = -top.as<int>();
+        stack[top_ - 1] = top;
+    }
+    NEXT();
+
+L_OP_PRINT:
+    {
+        std::cout << top << std::endl;
+        --top_;
+        top = top_ > 0 ? stack[top_ - 1] : Value();
+    }
+    NEXT();
+
+L_OP_DEFINE_GLOBAL:
+    {
+        auto name = frame->read_string();
+        globals_.insert_or_assign(name, top);
+        --top_;
+        top = top_ > 0 ? stack[top_ - 1] : Value();
+    }
+    NEXT();
+
+L_OP_GET_GLOBAL:
+    {
+        auto name = frame->read_string();
+        try
+        {
+            auto &value = globals_.at(name);
+            SPUSH(value);
+        }
+        catch (const std::out_of_range &)
+        {
+            runtime_error("Undefined variable ", name->text());
+            return INTERPRET_RUNTIME_ERROR;
+        }
+    }
+    NEXT();
+
+L_OP_SET_GLOBAL:
+    {
+        auto name = frame->read_string();
+        globals_.insert_or_assign(name, top);
+    }
+    NEXT();
+
+L_OP_POP:
+    {
+        --top_;
+        top = top_ > 0 ? stack[top_ - 1] : Value();
+    }
+    NEXT();
+
+L_OP_GET_LOCAL:
+    {
+        int slot = frame->read_byte();
+        SPUSH(stack[frame->slot_ + slot]);
+    }
+    NEXT();
+
+L_OP_SET_LOCAL:
+    {
+        int slot = frame->read_byte();
+        stack[frame->slot_ + slot] = top;
+    }
+    NEXT();
+
+L_OP_JUMP_IF_FALSE:
+    {
+        int offset = frame->read_short();
+        if (is_falsey(top))
+            frame->ip_ += offset;
+    }
+    NEXT();
+
+L_OP_JUMP:
+    {
+        int offset = frame->read_short();
+        frame->ip_ += offset;
+    }
+    NEXT();
+
+L_OP_LOOP:
+    {
+        int offset = frame->read_short();
+        frame->ip_ -= offset;
+    }
+    NEXT();
+
+L_OP_CONTINUE:
+    {
+        int offset = frame->read_short();
+        frame->ip_ = offset;
+    }
+    NEXT();
+
+L_OP_BREAK:
+    {
+        int offset = frame->read_short();
+        frame->ip_ = offset + 1;
+    }
+    NEXT();
+
+L_OP_CALL:
+    {
+        int argCount = frame->read_byte();
+        if (!call_value(stack[top_ - 1 - argCount], argCount))
+            return INTERPRET_RUNTIME_ERROR;
+        top = stack[top_ - 1];
+        frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
+    }
+    NEXT();
+
+L_OP_FUNCTION:
+    {
+        auto function = frame->read_constant().as_obj<ObjFunction>();
+        SPUSH(function);
+    }
+    NEXT();
+
+L_OP_CLOSURE:
+    {
+        auto function = frame->read_constant().as_obj<ObjFunction>();
+        auto closure = create_obj<ObjClosure>(gc_, function);
+        SPUSH(closure);
+        for (int i = 0; i < closure->upvalue_count(); i++)
+        {
+            auto is_local = frame->read_byte();
+            auto index = frame->read_byte();
+            if (is_local)
+                closure->upvalues_.at(i) = capture_upvalue(stack.data() + frame->slot_ + index);
+            else
+                closure->upvalues_.at(i) = frame->closure_->upvalues_.at(index);
+        }
+    }
+    NEXT();
+
+L_OP_CLOSE_UPVALUE:
+    {
+        close_upvalues(stack.data() + top_ - 1);
+        --top_;
+        top = top_ > 0 ? stack[top_ - 1] : Value();
+    }
+    NEXT();
+
+L_OP_GET_UPVALUE:
+    {
+        uint8_t slot = frame->read_byte();
+        SPUSH(*frame->closure_->upvalues_[slot]->location_);
+    }
+    NEXT();
+
+L_OP_SET_UPVALUE:
+    {
+        uint8_t slot = frame->read_byte();
+        *frame->closure_->upvalues_[slot]->location_ = top;
+    }
+    NEXT();
+
+L_OP_CLASS:
+    {
+        SPUSH(create_obj<ObjClass>(gc_, frame->read_string()));
+    }
+    NEXT();
+
+L_OP_GET_PROPERTY:
+    {
+        if (!top.is_obj_type<ObjInstance>())
+        {
+            runtime_error("Only instances have properties.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+
+        auto instance = top.as_obj<ObjInstance>();
+        auto name = frame->read_string();
+
+        auto &ic = get_ic_[(frame->ip_ * 0x9e3779b9u) & (IC_SIZE - 1)];
+        if (ic.klass_ == instance->objClass_ && ic.name_ == name)
+        {
+            top = instance->field_values_[ic.offset_];
+            stack[top_ - 1] = top;
+        }
+        else
+        {
+            int offset = instance->objClass_->get_field_offset(name);
+            if (offset >= 0 && offset < static_cast<int>(instance->field_values_.size()))
+            {
+                ic.klass_ = instance->objClass_;
+                ic.name_ = name;
+                ic.offset_ = offset;
+                top = instance->field_values_[offset];
+                stack[top_ - 1] = top;
+            }
+            else
+            {
+                if (!bind_method(instance->objClass_, name))
+                    return INTERPRET_RUNTIME_ERROR;
+                top = stack[top_ - 1];
+            }
+        }
+    }
+    NEXT();
+
+L_OP_SET_PROPERTY:
+    {
+        auto instance = stack[top_ - 2].as_obj<ObjInstance>();
+        auto value = top;
+        auto name = frame->read_string();
+
+        auto &ic = set_ic_[(frame->ip_ * 0x9e3779b9u) & (IC_SIZE - 1)];
+        if (ic.klass_ == instance->objClass_ && ic.name_ == name)
+        {
+            if (ic.offset_ >= static_cast<int>(instance->field_values_.size()))
+                instance->field_values_.resize(ic.offset_ + 1);
+            instance->field_values_[ic.offset_] = value;
+        }
+        else
+        {
+            int offset = instance->objClass_->get_or_add_field_offset(name);
+            if (offset >= static_cast<int>(instance->field_values_.size()))
+                instance->field_values_.resize(offset + 1);
+            ic.klass_ = instance->objClass_;
+            ic.name_ = name;
+            ic.offset_ = offset;
+            instance->field_values_[offset] = value;
+        }
+        --top_;
+        top = stack[--top_];
+        top = value;
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_METHOD:
+    {
+        define_method(frame->read_string());
+        top = stack[top_ - 1];
+    }
+    NEXT();
+
+L_OP_INVOKE:
+    {
+        ObjString *method = frame->read_string();
+        int argCount = frame->read_byte();
+        if (!invoke(method, argCount))
+        {
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        top = stack[top_ - 1];
+        frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
+    }
+    NEXT();
+
+L_OP_INHERIT:
+    {
+        if (!stack[top_ - 2].is_obj_type<ObjClass>())
+        {
+            runtime_error("Superclass must be a class.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        ObjClass *superclass = stack[top_ - 2].as_obj<ObjClass>();
+        ObjClass *subclass = top.as_obj<ObjClass>();
+        for (const auto &[k, v] : superclass->methods_)
+        {
+            subclass->methods_.insert_or_assign(k, v);
+        }
+        for (const auto &[k, v] : superclass->field_offsets_)
+        {
+            subclass->field_offsets_.insert_or_assign(k, v);
+        }
+        --top_;
+        top = stack[top_ - 1];
+    }
+    NEXT();
+
+L_OP_GET_SUPER:
+    {
+        ObjString *name = frame->read_string();
+        ObjClass *superclass = top.as_obj<ObjClass>();
+        --top_;
+        top = stack[top_ - 1];
+        if (!bind_method(superclass, name))
+            return INTERPRET_RUNTIME_ERROR;
+        top = stack[top_ - 1];
+    }
+    NEXT();
+
+L_OP_SUPER_INVOKE:
+    {
+        ObjString *method = frame->read_string();
+        int argCount = frame->read_byte();
+        ObjClass *superclass = top.as_obj<ObjClass>();
+        --top_;
+        top = stack[top_ - 1];
+        if (!invoke_from_class(superclass, method, argCount))
+        {
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        top = stack[top_ - 1];
+        frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
+    }
+    NEXT();
+
+L_OP_ARRAY:
+    {
+        int count = frame->read_byte();
+        auto objArray = create_obj<ObjArray>(gc_, count);
+        for (int i = 0; i < count; i++)
+        {
+            objArray->values_.at(count - 1 - i) = top;
+            --top_;
+            top = top_ > 0 ? stack[top_ - 1] : Value();
+        }
+        SPUSH(objArray);
+    }
+    NEXT();
+
+L_OP_GET_ELEMENT:
+    {
+        if (!stack[top_ - 2].is_obj())
+        {
+            runtime_error("Only objects support indexing.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        if (stack[top_ - 2].as<Obj *>()->is_type(objtype_of<ObjArray>()))
+        {
+            auto index = top.as<int>();
+            --top_;
+            top = stack[--top_];
+            auto arr = top.as_obj<ObjArray>();
+            if (index < 0 || static_cast<size_t>(index) >= arr->values_.size())
+            {
+                runtime_error("Index out of bounds.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            top = arr->values_[index];
+        }
+        else
+        {
+            auto key = top;
+            --top_;
+            top = stack[--top_];
+            auto jsonPtr = top.as_obj<ObjJson>();
+            auto it = jsonPtr->kv_.find(key);
+            if (it == jsonPtr->kv_.end())
+            {
+                runtime_error("Key not found in JSON object.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            top = it->second;
+        }
+        stack[top_++] = top;
+    }
+    NEXT();
+
+L_OP_SET_ELEMENT:
+    {
+        if (!stack[top_ - 3].is_obj())
+        {
+            runtime_error("Only objects support indexing.");
+            return INTERPRET_RUNTIME_ERROR;
+        }
+        if (stack[top_ - 3].as<Obj *>()->is_type(objtype_of<ObjArray>()))
+        {
+            auto value = top;
+            --top_;
+            top = stack[top_ - 1];
+            auto index = top.as<int>();
+            --top_;
+            top = stack[top_ - 1];
+            auto array = top.as_obj<ObjArray>();
+            int n = static_cast<int>(array->values_.size());
+            if (index < 0 || index >= n)
+            {
+                runtime_error("Index out of bounds.");
+                return INTERPRET_RUNTIME_ERROR;
+            }
+            array->values_[index] = value;
+            top = value;
+            stack[top_++] = top;
+        }
+        else
+        {
+            auto value = top;
+            --top_;
+            top = stack[top_ - 1];
+            auto key = top;
+            --top_;
+            top = stack[top_ - 1];
+            top.as_obj<ObjJson>()->kv_.insert_or_assign(key, value);
+            top = value;
+            stack[top_++] = top;
+        }
+    }
+    NEXT();
+
+L_OP_JSON:
+    {
+        int count = frame->read_byte();
+        auto objJson = create_obj<ObjJson>(gc_);
+        for (int i = 0; i < count; i++)
+        {
+            auto value = top;
+            --top_;
+            top = top_ > 0 ? stack[top_ - 1] : Value();
+            auto key = top;
+            --top_;
+            top = top_ > 0 ? stack[top_ - 1] : Value();
+            objJson->kv_[key] = value;
+        }
+        SPUSH(objJson);
+    }
+    NEXT();
+
+L_OP_CREATE_COROUTINE:
+    {
+        try
+        {
+            std::vector<Value> arguments;
+            auto count = frame->read_byte();
+            for (int i = 0; i < count; i++)
+            {
+                arguments.push_back(top);
+                --top_;
+                top = top_ > 0 ? stack[top_ - 1] : Value();
+            }
+            auto closure = top.as_obj<ObjClosure>();
+            --top_;
+            top = top_ > 0 ? stack[top_ - 1] : Value();
+            auto coroutine = create_obj<ObjCoroutine>(gc_, closure, arguments);
+            SPUSH(coroutine);
+            scheduler_.addObjCoroutine(coroutine);
+        }
+        catch (const std::exception &e)
+        {
+            throw std::runtime_error("Only closure can be created as a coroutine.");
+        }
+    }
+    NEXT();
+
+L_OP_YIELD_COROUTINE:
+    {
+        scheduler_.yieldCurrentObjCoroutine();
+        return scheduler_.runNextObjCoroutine(co);
+    }
+
+L_OP_RESUME_COROUTINE:
+    {
+        scheduler_.yieldCurrentObjCoroutine();
+        try
+        {
+            --top_;
+            auto targetCo = top.as_obj<ObjCoroutine>();
+            top = stack[top_ - 1];
+            targetCo->parent_ = co;
+            scheduler_.resumeCoroutine(targetCo);
+        }
+        catch (const std::exception &e)
+        {
+            throw std::runtime_error("Only closure can be created as a coroutine.");
+        }
+        current_coroutine_ = co;
+        if (co->status_ == CoroutineStatus::FINISHED)
+            return INTERPRET_OK;
+        frame = &current_coroutine_->frames_[current_coroutine_->frame_count_ - 1];
+        top = stack[top_ - 1];
+    }
+    NEXT();
+
+#undef NEXT
 }
 
 uint8_t CallFrame::read_byte()

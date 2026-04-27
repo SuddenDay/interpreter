@@ -98,11 +98,29 @@ struct ObjClass : public Obj
 {
 	ObjString *const name_;
 	Table methods_;
+	std::unordered_map<ObjString*, int, std::hash<ObjString*>, std::equal_to<ObjString*>, Allocator<std::pair<ObjString* const, int>>> field_offsets_;
 
 	ObjClass(ObjString *name)
 		: Obj(ObjType::Class), name_(name)
 	{
 	}
+
+	int get_or_add_field_offset(ObjString *name)
+	{
+		auto it = field_offsets_.find(name);
+		if (it != field_offsets_.end())
+			return it->second;
+		int offset = static_cast<int>(field_offsets_.size());
+		field_offsets_[name] = offset;
+		return offset;
+	}
+
+	int get_field_offset(ObjString *name) const
+	{
+		auto it = field_offsets_.find(name);
+		return it != field_offsets_.end() ? it->second : -1;
+	}
+
 	void blacken(GC& gc) override;
 };
 std::ostream &operator<<(std::ostream &os, const ObjClass &c);
@@ -110,7 +128,7 @@ std::ostream &operator<<(std::ostream &os, const ObjClass &c);
 struct ObjInstance : public Obj
 {
 	ObjClass *const objClass_;
-	Table fields_;
+	std::vector<Value, Allocator<Value>> field_values_;
 
 	ObjInstance(ObjClass *objClass)
 		: Obj(ObjType::Instance), objClass_(objClass)

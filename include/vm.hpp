@@ -11,6 +11,11 @@
 
 struct Compilation;
 
+struct InlineCacheEntry {
+    ObjClass* klass_ = nullptr;
+    ObjString* name_ = nullptr;
+    int offset_ = 0;
+};
 
 struct GC;
 
@@ -50,5 +55,9 @@ public:
     ObjUpvalue* open_upvalues_ = nullptr;
     GC gc_;
     Scheduler scheduler_;
+
+    static constexpr int IC_SIZE = 64;
+    InlineCacheEntry get_ic_[IC_SIZE];
+    InlineCacheEntry set_ic_[IC_SIZE];
     
 };

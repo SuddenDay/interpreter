@@ -55,6 +55,18 @@ void GC::mark_roots()
 	mark_table(vm_.globals_);
 	// mark_compiler_roots();
 	mark_object(vm_.init_string_);
+
+	for (int i = 0; i < vm_.IC_SIZE; i++)
+	{
+		if (vm_.get_ic_[i].klass_)
+			mark_object(vm_.get_ic_[i].klass_);
+		if (vm_.get_ic_[i].name_)
+			mark_object(vm_.get_ic_[i].name_);
+		if (vm_.set_ic_[i].klass_)
+			mark_object(vm_.set_ic_[i].klass_);
+		if (vm_.set_ic_[i].name_)
+			mark_object(vm_.set_ic_[i].name_);
+	}
 }
 
 void GC::mark_array(const std::vector<Value, Allocator<Value>> &array)

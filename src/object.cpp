@@ -140,6 +140,7 @@ ObjCoroutine::ObjCoroutine(ObjClosure *closure, const std::vector<Value>& argume
 	CallFrame frame;
 	frame.closure_ = closure;
 	frame.ip_ = 0;
+	frame.slot_ = 0;
 	stack_[top_++] = Value();
 	for(auto arg = arguments.rbegin(); arg != arguments.rend(); arg++)
 		stack_[top_++] = *arg;
@@ -164,11 +165,13 @@ void ObjUpvalue::blacken(GC& gc) {
 void ObjClass::blacken(GC& gc) {
     gc.mark_object(reinterpret_cast<Obj*>(name_));
     gc.mark_table(methods_);
+    for (auto &[key, val] : field_offsets_)
+        gc.mark_object(reinterpret_cast<Obj*>(key));
 }
 
 void ObjInstance::blacken(GC& gc) {
     gc.mark_object(reinterpret_cast<Obj*>(objClass_));
-    gc.mark_table(fields_);
+    gc.mark_array(field_values_);
 }
 
 void ObjBoundMethod::blacken(GC& gc) {

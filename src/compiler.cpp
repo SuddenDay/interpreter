@@ -6,6 +6,7 @@
 #include "memory.hpp"
 #include "vm.hpp"
 #include <string_view>
+#include <optional>
 
 Compilation::Compilation(VM &vm) : current_(nullptr), parser_(nullptr), vm_(vm), get_rule_({
                                                                                        {TOKEN_LEFT_BRACKET, {&Compilation::list, &Compilation::get_or_set, PREC_CALL}},
@@ -199,6 +200,46 @@ void Compilation::binary(bool canAssign)
     TokenType operatorType = parser_->previous_.type;
     auto rule = get_rule_.at(operatorType);
     parse_precedence(static_cast<Precedence>(rule.precedence_ + 1));
+
+    auto &bytecode = current_chunk()->bytecode_;
+    auto sz = bytecode.size();
+    if (sz >= 4 && bytecode[sz - 4] == OP_CONSTANT && bytecode[sz - 2] == OP_CONSTANT)
+    {
+        uint8_t leftIdx = bytecode[sz - 3];
+        uint8_t rightIdx = bytecode[sz - 1];
+        auto &constants = current_chunk()->constants_;
+        Value left = constants[leftIdx];
+        Value right = constants[rightIdx];
+
+        auto try_arithmetic = [&](TokenType op, Value l, Value r) -> std::optional<Value> {
+            if (l.is_number() && r.is_number())
+            {
+                int a = l.as<int>(), b = r.as<int>();
+                switch (op)
+                {
+                case TOKEN_PLUS: return Value(a + b);
+                case TOKEN_MINUS: return Value(a - b);
+                case TOKEN_STAR: return Value(a * b);
+                case TOKEN_SLASH: if (b != 0) return Value(a / b); break;
+                case TOKEN_GREATER: return Value(a > b);
+                case TOKEN_LESS: return Value(a < b);
+                default: break;
+                }
+            }
+            if (op == TOKEN_EQUAL_EQUAL) return Value(l == r);
+            if (op == TOKEN_BANG_EQUAL) return Value(l != r);
+            return std::nullopt;
+        };
+
+        auto folded = try_arithmetic(operatorType, left, right);
+        if (folded.has_value())
+        {
+            bytecode.resize(sz - 4);
+            current_chunk()->lines_.resize(current_chunk()->lines_.size() - 4);
+            emit_constant(*folded);
+            return;
+        }
+    }
 
     switch (operatorType)
     {

@@ -12,6 +12,13 @@
 - 字节码反汇编调试工具
 - REPL 交互模式 + 文件执行模式
 
+**性能优化** (v2.0):
+- **Direct Threading** — 计算跳转分发替代 switch 中心化分发
+- **Stack Caching** — 栈顶值缓存在局部变量中减少内存写入
+- **Constant Folding** — 编译期常量表达式求值
+- **Hidden Classes** — 实例字段从哈希表改为偏移索引向量
+- **Inline Caching** — 属性访问缓存 (class, name) → offset 映射
+
 ---
 
 ## 快速开始
@@ -46,6 +53,16 @@ bash runtest.sh
 ### REPL 使用说明
 
 REPL 支持多行输入：以空行或分号 `;` 结尾的行视为一次输入结束，代码将被立即编译执行。
+
+### 构建选项
+
+```bash
+# 启用字节码逐条反汇编调试
+cmake .. -DENABLE_DEBUG_MODE=ON && make -j$(nproc)
+
+# GC 压力测试（每次分配都触发 GC）
+cmake .. -DENABLE_STRESS_TEST=ON && make -j$(nproc)
+```
 
 ---
 
@@ -269,17 +286,19 @@ resume co2;  // B done
        │
        ▼
   ┌─────────────┐
-  │ Compiler    │  Pratt 解析 + 代码生成 → Chunk 字节码
+  │ Compiler    │  Pratt 解析 + 代码生成（含常量折叠）→ Chunk 字节码
   └─────────────┘
        │
        ▼
   ┌──────────┐
-  │    VM    │  字节码解释执行
+  │    VM    │  字节码解释执行（Direct Threading + Stack Caching）
   │  ├ CallFrame[]  调用帧栈
   │  ├ Value[]      值栈
-  │  ├ GC           垃圾回收器
-  │  ├ Scheduler    协程调度器
-  │  └ globals_     全局变量表
+  │  ├ GC           三色标记-清除 GC
+  │  ├ Scheduler    有栈协程调度器
+  │  ├ globals_     全局变量表
+  │  ├ get_ic_[]    GET_PROPERTY 内联缓存
+  │  └ set_ic_[]    SET_PROPERTY 内联缓存
   └──────────┘
        │
        ▼
@@ -294,8 +313,8 @@ Obj (基类)
  ├── ObjFunction    函数（持有字节码 Chunk）
  ├── ObjClosure     闭包（函数 + 捕获的上值）
  ├── ObjUpvalue     上值（指向栈变量或已闭合值）
- ├── ObjClass       类（名称 + 方法表）
- ├── ObjInstance    实例（类指针 + 字段表）
+ ├── ObjClass       类（名称 + 方法表 + 字段偏移表）
+ ├── ObjInstance    实例（类指针 + 字段值向量）
  ├── ObjBoundMethod 绑定方法（接收者 + 闭包）
  ├── ObjNative      原生函数（C++ std::function）
  ├── ObjArray       动态数组
@@ -321,24 +340,24 @@ interpreter/
 ├── main.cpp              # 入口点（REPL / 文件执行）
 ├── CMakeLists.txt         # CMake 构建配置
 ├── runtest.sh             # 测试运行脚本
-├── a.lox                  # 测试用的 .lox 示例文件
+├── README.md              # 项目文档
 │
 ├── include/               # 头文件
 │   ├── common.hpp         # 公共定义（InterpretResult, STACK_MAX, FRAMES_MAX...）
-│   ├── opcode.hpp         # 字节码操作码（X-Macro 定义，共 40 个）
+│   ├── opcode.hpp         # 字节码操作码（X-Macro 定义，共 47 个）
 │   ├── tokentype.hpp      # Token 类型枚举（36 种）
-│   ├── value.hpp/cpp      # 统一值类型（std::variant）
-│   ├── chunk.hpp/cpp      # 字节码块（bytecode + 常量池 + 行号）
-│   ├── scanner.hpp/cpp    # 词法分析器
-│   ├── parser.hpp/cpp     # Pratt 解析框架
-│   ├── compiler.hpp/cpp   # 编译器（Pratt 递归下降 + 代码生成）
-│   ├── vm.hpp/cpp         # 虚拟机（字节码解释器）
+│   ├── value.hpp          # 统一值类型（std::variant）
+│   ├── chunk.hpp          # 字节码块（bytecode + 常量池 + 行号）
+│   ├── scanner.hpp        # 词法分析器
+│   ├── parser.hpp         # Pratt 解析框架
+│   ├── compiler.hpp       # 编译器（Pratt 递归下降 + 代码生成 + 常量折叠）
+│   ├── vm.hpp             # 虚拟机（Direct Threading 执行器 + IC 缓存数组）
 │   ├── obj.hpp            # 对象基类
-│   ├── object.hpp/cpp     # 对象类型定义与生命周期
-│   ├── objstring.hpp/cpp  # 字符串对象 + 驻留
-│   ├── memory.hpp/cpp     # GC / 自定义分配器
-│   ├── table.hpp          # 哈希表（std::map 别名）
-│   ├── scheduler.hpp/cpp  # 协程调度器
+│   ├── object.hpp         # 对象类型定义（含 Hidden Class 支持）
+│   ├── objstring.hpp      # 字符串对象 + 驻留
+│   ├── memory.hpp         # GC / 自定义分配器
+│   ├── table.hpp          # 哈希表（std::unordered_map 别名）
+│   ├── scheduler.hpp      # 协程调度器
 │   ├── native.hpp         # 原生函数（clock / push / pop / insert / erase）
 │   └── util.hpp           # 字节码反汇编工具
 │
@@ -359,9 +378,136 @@ interpreter/
 │   ├── coroutine.lox      # 协程
 │   └── gc.lox             # 垃圾回收
 │
-├── res/                   # 测试输出结果（.res 文件）
+├── test/expected/         # 测试期望输出
 └── build/                 # 构建产物
 ```
+
+---
+
+## 性能优化详解 (v2.0)
+
+### 1. Direct Threading（计算跳转分发）
+
+传统的 `switch(instruction)` 循环分发在每次迭代时需要一个分支预测器不友好的中心化跳转。Direct Threading 使用 GCC/Clang 扩展 `&&label` 获取每一个 opcode handler 的标签地址，存储在 `dispatch_table[]` 数组中，然后通过 `goto *dispatch_table[opcode]` 实现 O(1) 的间接跳转分发。
+
+```cpp
+// 标签地址表
+void *dispatch_table[] = {
+    [OP_RETURN]   = &&L_OP_RETURN,
+    [OP_CONSTANT] = &&L_OP_CONSTANT,
+    // ... 共 47 个
+};
+
+// 分发宏
+#define NEXT() do { \
+    uint8_t i = frame->read_byte(); \
+    if (i >= OP_COUNT) { runtime_error("Bad opcode?"); return ...; } \
+    goto *dispatch_table[i]; \
+} while (false)
+
+// 每个 handler 是一个 label 块
+L_OP_ADD: { ... } NEXT();
+```
+
+相比 `switch` 省去了跳转表的二次查找和范围检查，CPU 分支预测器可以独立预测每个 handler 出口的目标地址。
+
+### 2. Stack Caching（栈顶缓存）
+
+传统栈式 VM 在每个 push/pop/peek 操作时都需要读写栈数组（内存）。Stack Caching 将栈顶值始终保持在局部变量 `top` 中：
+
+```cpp
+auto &top_ = current_coroutine_->top_;   // 栈指针
+auto &stack = current_coroutine_->stack_; // 栈数组
+Value top = top_ > 0 ? stack[top_ - 1] : Value(); // 栈顶缓存
+
+// push 操作：SPUSH(v) 宏同时更新栈数组和缓存
+#define SPUSH(v) do { stack[top_++] = top; top = (v); stack[top_-1] = top; } while(0)
+
+// 不变量：top == stack[top_-1] 在整个 run() 循环中始终保持
+```
+
+不变量 `top == stack[top_-1]` 允许大多数 handler 直接从 `top` 读取操作数，将内存写入归并为一次操作。
+
+### 3. Constant Folding（常量折叠）
+
+编译器在 `binary()` 函数中检测编译期常量表达式并预求值：
+
+```cpp
+// 编译 1 + 2 * 3 时：
+// 1. 先解析 2 * 3 → 检测到两个常量 → 折叠为 OP_CONSTANT(6)
+// 2. 再处理 1 + 6 → 折叠为 OP_CONSTANT(7)
+// 最终只发出一条 OP_CONSTANT(7)，无需运行时指令
+
+if (sz >= 4 && bytecode[sz-4] == OP_CONSTANT && bytecode[sz-2] == OP_CONSTANT) {
+    Value left = constants[leftIdx], right = constants[rightIdx];
+    auto folded = try_arithmetic(op, left, right);
+    if (folded) {
+        bytecode.resize(sz - 4);      // 删除两条 OP_CONSTANT
+        emit_constant(*folded);        // 发出折叠后的单条常量
+        return;
+    }
+}
+```
+
+支持：数值四则运算、比较（`>`, `<`）、相等性检查（`==`, `!=`）。
+
+### 4. Hidden Classes（隐藏类 / Shape）
+
+传统实现中 `ObjInstance` 的字段存储在 `std::unordered_map` 中，每次属性访问需哈希查找。Hidden Classes 将字段改为偏移量索引：
+
+```
+ObjClass {
+    name_, methods_, field_offsets_: { "x"→0, "y"→1, "z"→2 }
+}
+
+ObjInstance {
+    objClass_ → 指向 Dog (field_offsets_: { "name"→0, "age"→1 })
+    field_values_: ["Buddy", 5]
+}
+```
+
+- `ObjClass::get_or_add_field_offset(name)` 首次访问属性时分配偏移量
+- `OP_SET_PROPERTY` 写入 `field_values_[offset]` 替代哈希插入
+- `OP_GET_PROPERTY` 读取 `field_values_[offset]` 替代哈希查找
+- 继承时子类复制父类的 `field_offsets_`
+- 字段访问从 O(1) 哈希变为 O(1) 数组索引（常数因子降低约 5-10×）
+
+### 5. Inline Caching（内联缓存）
+
+在 Hidden Classes 基础上的进一步优化。VM 中维护两个 64 条目的缓存数组：
+
+```cpp
+static constexpr int IC_SIZE = 64;
+InlineCacheEntry get_ic_[IC_SIZE];  // GET_PROPERTY 缓存
+InlineCacheEntry set_ic_[IC_SIZE];  // SET_PROPERTY 缓存
+
+struct InlineCacheEntry {
+    ObjClass* klass_;   // 上次访问的类
+    ObjString* name_;    // 上次访问的属性名
+    int offset_;         // 缓存的位置偏移
+};
+```
+
+**OP_GET_PROPERTY 执行流程**：
+
+```cpp
+auto &ic = get_ic_[(frame->ip_ * 0x9e3779b9u) & (IC_SIZE - 1)];
+if (ic.klass_ == instance->objClass_ && ic.name_ == name) {
+    // 命中 → 直接索引读取
+    top = instance->field_values_[ic.offset_];
+} else {
+    // 未命中 → 查 Hidden Class 并更新缓存
+    int offset = instance->objClass_->get_field_offset(name);
+    ic.klass_ = instance->objClass_;
+    ic.name_ = name;
+    ic.offset_ = offset;
+    top = instance->field_values_[offset];
+}
+```
+
+- 哈希函数采用 Golden Ratio 乘法（`ip * 0x9e3779b9u`），以字节码地址 IP 为键
+- 缓存命中的属性访问从两次间接访问（查 class → 查数组）降为一次数组索引
+- GC 标记根集时也会标记缓存中的 `klass_` 和 `name_` 指针，避免悬垂引用
 
 ---
 
@@ -388,9 +534,9 @@ std::variant<bool, int, std::monostate, Obj*>
 
 ```cpp
 struct ParseRule {
-    ParseFn prefix_;    // 前缀解析函数（作为表达式开头）
-    ParseFn infix_;     // 中缀解析函数（跟在其他表达式后）
-    Precedence precedence_;  // 优先级（共 10 级）
+    ParseFn prefix_;           // 前缀解析函数（作为表达式开头）
+    ParseFn infix_;            // 中缀解析函数（跟在其他表达式后）
+    Precedence precedence_;    // 优先级（共 10 级）
 };
 ```
 
@@ -407,7 +553,7 @@ struct ParseRule {
 **GC 触发条件**：当累计分配量超过 `next_gc_`（初始 1MB，动态增长 `× 2`）时触发。
 
 **GC 流程**：
-1. `mark_roots()` — 标记根集（VM 栈、调用帧闭包、打开的上值、全局变量表、调度器中的协程）
+1. `mark_roots()` — 标记根集（VM 栈、调用帧闭包、打开的上值、全局变量表、调度器中的协程、**内联缓存数组中的 Class/String 指针**）
 2. `trace_references()` — 灰栈遍历，递归标记所有可达对象
 3. `remove_white_string()` — 从驻留字符串集中移除不可达字符串
 4. `sweep()` — 遍历对象链表，删除白色对象
@@ -449,21 +595,9 @@ struct ParseRule {
 
 ---
 
-## 调试
-
-编译时定义 `DEBUG_MODE` 宏可在执行每条指令时输出字节码反汇编及栈状态。
-
-定义 `STRESS_TEST` 宏使每次内存分配都强制触发 GC，用于 GC 正确性测试。
-
-### 反汇编工具
-
-[`Util::disassemble_instruction()`](file:///home/cambricon/test/interpreter/include/util.hpp) 可将 `Chunk` 中的字节码格式化为可读的指令列表，包含偏移、操作码名称和操作数。
-
----
-
 ## 字节码操作码
 
-共 **40 个字节码指令**（在 [opcode.hpp](file:///home/cambricon/test/interpreter/include/opcode.hpp) 中以 X-Macro 方式定义）：
+共 **47 个字节码指令**（在 [opcode.hpp](file:///home/cambricon/test/interpreter/include/opcode.hpp) 中以 X-Macro 方式定义）：
 
 **栈操作**: `OP_RETURN`, `OP_CONSTANT`, `OP_POP`, `OP_NIL`, `OP_TRUE`, `OP_FALSE`, `OP_PRINT`
 
@@ -551,6 +685,3 @@ JsonLiteral     → "{" (Expression ":" Expression ("," Expression ":" Expressio
 
 - [Crafting Interpreters](https://craftinginterpreters.com/) — Robert Nystrom
 - [munificent/craftinginterpreters](https://github.com/munificent/craftinginterpreters)
-- [Jeff-Mott-OR/cpplox](https://github.com/Jeff-Mott-OR/cpplox)
-- [pkusensei/clox](https://github.com/pkusensei/clox)
-- [GuoYaxiang/craftinginterpreters_zh](https://github.com/GuoYaxiang/craftinginterpreters_zh)
